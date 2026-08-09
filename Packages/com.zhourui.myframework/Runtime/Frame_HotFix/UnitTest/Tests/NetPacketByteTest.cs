@@ -11,6 +11,8 @@ public static class NetPacketByteTest
 		testResetProperty();
 		testHasSign();
 		testMarkAllFiled();
+		testWrite_FieldFlag();
+		testWrite_EmptyNoParams();
 	}
 
 	// ─── 创建 ────────────────────────────────────────────────────────────
@@ -69,6 +71,28 @@ public static class NetPacketByteTest
 		assert(packet.mIntField.mValid,   "markAllFiled(true): int 字段重新 valid");
 		assert(packet.mBoolField.mValid,  "markAllFiled(true): bool 字段重新 valid");
 		assert(packet.mFloatField.mValid, "markAllFiled(true): float 字段重新 valid");
+	}
+
+	// ─── write: 计算 fieldFlag 位掩码 ────────────────────────────────────
+
+	private static void testWrite_FieldFlag()
+	{
+		// TestBytePacket 注册 3 个非可选参数 → bit 0,1,2 置 1 → fieldFlag = 0b111 = 7
+		var packet = new TestBytePacket();
+		packet.write(null, out ulong fieldFlag);
+		assertEqual(7UL, fieldFlag, "3 个非可选参数 → fieldFlag=0b111=7");
+		assertTrue((fieldFlag & (1UL << 0)) != 0, "bit0=1");
+		assertTrue((fieldFlag & (1UL << 1)) != 0, "bit1=1");
+		assertTrue((fieldFlag & (1UL << 2)) != 0, "bit2=1");
+		assertFalse((fieldFlag & (1UL << 3)) != 0, "bit3=0");
+	}
+
+	private static void testWrite_EmptyNoParams()
+	{
+		// 无任何参数 → fieldFlag 恒为 0
+		var packet = new NetPacketByte();
+		packet.write(null, out ulong fieldFlag);
+		assertEqual(0UL, fieldFlag, "无参数 → fieldFlag=0");
 	}
 }
 

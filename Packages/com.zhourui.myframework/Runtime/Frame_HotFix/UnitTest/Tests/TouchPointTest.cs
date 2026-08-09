@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 using System.Collections.Generic;
 using static TestAssert;
 
@@ -17,6 +18,7 @@ public static class TouchPointTest
 		testResetState();
 		testMouseAndTouchID();
 		testGetPositions();
+		testGetTime();
 	}
 
 	// ─── resetProperty 默认值 ─────────────────────────────────────────
@@ -153,5 +155,25 @@ public static class TouchPointTest
 		assertEqual(new Vector3(1, 2, 3), tp.getDownPosition(), "getDownPosition 返回按下位置");
 		// getMoveDelta 返回 Vector3, 内部 Vector2 字段截断 z
 		assertEqual(new Vector3(3, 3, 0), tp.getMoveDelta(), "getMoveDelta 返回移动增量");
+	}
+
+	// ─── 时间 getter(getDownTime/getUpTime) ──────────────────────────
+	private static void testGetTime()
+	{
+		var tp = new TouchPoint();
+		// new 后字段默认是 DateTime.MinValue, 需显式调 resetProperty 才会把 mDownTime/mUpTime 设为 DateTime.Now
+		tp.resetProperty();
+		assertTrue(tp.getDownTime() > DateTime.MinValue, "reset 后 getDownTime 为非默认时间");
+		assertTrue(tp.getUpTime() > DateTime.MinValue, "reset 后 getUpTime 为非默认时间");
+		// pointDown 会重新设置 mDownTime, 断言其不早于 reset 时刻(单调递增)
+		DateTime beforeDown = tp.getDownTime();
+		tp.pointDown(new Vector3(1, 1, 0));
+		DateTime afterDown = tp.getDownTime();
+		assertTrue(afterDown >= beforeDown, "pointDown 后 getDownTime 不早于按下前");
+		// pointUp 会重新设置 mUpTime
+		DateTime beforeUp = tp.getUpTime();
+		tp.pointUp(new Vector3(1, 1, 0), new List<DeadClick>());
+		DateTime afterUp = tp.getUpTime();
+		assertTrue(afterUp >= beforeUp, "pointUp 后 getUpTime 不早于抬起前");
 	}
 }

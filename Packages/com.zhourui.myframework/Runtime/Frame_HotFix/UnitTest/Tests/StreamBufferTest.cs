@@ -14,6 +14,7 @@ public static class StreamBufferTest
         testEdgeCases();
         testDataIntegrity();
         testMultipleOperations();
+        testResetProperty();
     }
 
     static void testInit()
@@ -187,6 +188,22 @@ public static class StreamBufferTest
         buffer.clear();
         assertEqual(0, buffer.getDataLength(), "After clear, length should be 0");
 
+        buffer.destroy();
+    }
+
+    static void testResetProperty()
+    {
+        StreamBuffer buffer = new StreamBuffer(64);
+        byte[] data = { 0x11, 0x22, 0x33 };
+        buffer.addData(data, data.Length);
+        assertEqual(3, buffer.getDataLength(), "Before resetProperty, data length should be 3");
+        assertEqual(64, buffer.getBufferSize(), "Before resetProperty, buffer size should be 64");
+
+        // resetProperty 清空全部字段: mBuffer=null / mBufferSize=0 / mDataLength=0
+        buffer.resetProperty();
+        assertNull(buffer.getData(), "resetProperty 后 getData 应为 null");
+        assertEqual(0, buffer.getDataLength(), "resetProperty 后 data length 应为 0");
+        assertEqual(0, buffer.getBufferSize(), "resetProperty 后 buffer size 应为 0");
         buffer.destroy();
     }
 }

@@ -162,6 +162,22 @@ public static class NetCoreTest
         manager.unregistePacket(typeof(TestPacket), 999);
         manager.unregistePacket(typeof(TestPacket3), 300);
 
+        // 注册对不匹配时不误删: TestPacket 已注销, 但再以不匹配 pair 注销其余已注册项应保留
+        // 注意: TestPacket2->200 自第152行注册后从未注销, 故此处不能重复注册(registePacket 的
+        //       addIf 无 containsKey 守卫, 重复 key 会抛 ArgumentException), 只重新注册已注销的 TestPacket->100。
+        manager.registePacket(typeof(TestPacket), 100);
+        manager.unregistePacket(typeof(TestPacket2), 999);      // type 对不上 → 不误删 200
+        manager.unregistePacket(typeof(TestPacket3), 200);      // classType 对不上 → 不误删 200
+        assertEqual(typeof(TestPacket), manager.getPacketType(100), "不匹配 pair 后 100 仍映射 TestPacket");
+        assertEqual(typeof(TestPacket2), manager.getPacketType(200), "不匹配 pair 后 200 仍映射 TestPacket2");
+        assertEqual((ushort)100, manager.getPacketTypeID(typeof(TestPacket)), "不匹配 pair 后 TestPacket 仍 → 100");
+        assertEqual((ushort)200, manager.getPacketTypeID(typeof(TestPacket2)), "不匹配 pair 后 TestPacket2 仍 → 200");
+
+        // 匹配的注册对才双向删除
+        manager.unregistePacket(typeof(TestPacket), 100);
+        assertNull(manager.getPacketType(100), "匹配 pair 删除后 100 → null");
+        assertEqual((ushort)0, manager.getPacketTypeID(typeof(TestPacket)), "匹配 pair 删除后 TestPacket → 0");
+
         // 其余注册项不受影响
         assertEqual(typeof(TestPacket2), manager.getPacketType(200), "200 仍映射 TestPacket2");
     }

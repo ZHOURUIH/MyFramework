@@ -44,6 +44,28 @@ public static class TransformableTest
 		testSiblingAndChild();
 		testSetParent();
 		testWorldScale();
+		// ─── 方向向量 ───
+		testLeftRightBack();
+		testRotateWorld();
+		testRotateAroundWorld();
+		testLookAtPoint();
+		// ─── 组件查询 ───
+		testGetRotationQuaternion();
+		testIsActiveInHierarchy();
+		testIsUnityComponentEnabled();
+		testGetOrAddUnityComponent();
+		testGetUnityComponentInChild();
+		testGetAlpha();
+		// ─── 世界变换 ───
+		testGetWorldRotation();
+		testSetWorldScale();
+		testGetUnityObject();
+		testGetColliderInChild();
+		testRaycastSelfNoCollider();
+		testRemoveRotationModifyCallback();
+		testRemoveScaleModifyCallback();
+		testRemoveWorldScaleModifyCallback();
+		testGetUnityComponentsInChild();
 		// ─── resetProperty ───
 		testResetProperty();
 	}
@@ -425,6 +447,414 @@ public static class TransformableTest
 		finally
 		{
 			Object.DestroyImmediate(go);
+			t.destroy();
+		}
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 方向向量
+	// ═════════════════════════════════════════════════════════════════
+	private static void testLeftRightBack()
+	{
+		Transformable t = new();
+		var go = new GameObject("DirObj");
+		try
+		{
+			t.setObject(go);
+			// 无旋转时: right=(1,0,0), left=(-1,0,0), back=(0,0,-1)
+			assertEqual(-1f, t.getLeft().x, 0.001f, "无旋转 getLeft.x 应为 -1");
+			assertEqual(1f, t.getRight().x, 0.001f, "无旋转 getRight.x 应为 1");
+			assertEqual(-1f, t.getBack().z, 0.001f, "无旋转 getBack.z 应为 -1");
+			// ignoreY 归一化
+			Vector3 leftY = t.getLeft(true);
+			assertEqual(0f, leftY.y, 0.001f, "ignoreY 后 y 应为 0");
+		}
+		finally
+		{
+			Object.DestroyImmediate(go);
+			t.destroy();
+		}
+	}
+	private static void testRotateWorld()
+	{
+		Transformable t = new();
+		var go = new GameObject("RotW");
+		try
+		{
+			t.setObject(go);
+			t.rotateWorld(new Vector3(0f, 90f, 0f));
+			assertEqual(90f, t.getRotation().y, 0.01f, "rotateWorld 应改变 y 旋转");
+		}
+		finally
+		{
+			Object.DestroyImmediate(go);
+			t.destroy();
+		}
+	}
+	private static void testRotateAroundWorld()
+	{
+		Transformable t = new();
+		var go = new GameObject("RotA");
+		try
+		{
+			t.setObject(go);
+			t.rotateAroundWorld(Vector3.up, 90f);
+			assertEqual(90f, t.getRotation().y, 0.01f, "rotateAroundWorld 绕 y 轴旋转 90 度");
+		}
+		finally
+		{
+			Object.DestroyImmediate(go);
+			t.destroy();
+		}
+	}
+	private static void testLookAtPoint()
+	{
+		Transformable t = new();
+		var go = new GameObject("LookAt");
+		try
+		{
+			t.setObject(go);
+			t.setPosition(Vector3.zero);
+			// 朝 +x 方向观察, 应产生非零旋转
+			t.lookAtPoint(new Vector3(10f, 0f, 0f));
+			Quaternion q = t.getRotationQuaternion();
+			// 朝向 +x, 旋转应非 identity
+			assertTrue(q != Quaternion.identity, "lookAtPoint 应产生旋转");
+		}
+		finally
+		{
+			Object.DestroyImmediate(go);
+			t.destroy();
+		}
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 组件查询
+	// ═════════════════════════════════════════════════════════════════
+	private static void testGetRotationQuaternion()
+	{
+		Transformable t = new();
+		assertEqual(Quaternion.identity, t.getRotationQuaternion(), "未绑定对象时 getRotationQuaternion 返回 identity");
+		var go = new GameObject("RotQ");
+		try
+		{
+			t.setObject(go);
+			t.setRotation(Quaternion.Euler(0f, 45f, 0f));
+			// transform.localRotation 往返可能产生 ULP 尾数差, 用四分量容差比较而非 assertEqual<T>(精确 Equals)
+			Quaternion expected = Quaternion.Euler(0f, 45f, 0f);
+			Quaternion actualRot = t.getRotationQuaternion();
+			assertEqual(expected.x, actualRot.x, 0.0001f, "getRotationQuaternion.x");
+			assertEqual(expected.y, actualRot.y, 0.0001f, "getRotationQuaternion.y");
+			assertEqual(expected.z, actualRot.z, 0.0001f, "getRotationQuaternion.z");
+			assertEqual(expected.w, actualRot.w, 0.0001f, "getRotationQuaternion.w");
+		}
+		finally
+		{
+			Object.DestroyImmediate(go);
+			t.destroy();
+		}
+	}
+	private static void testIsActiveInHierarchy()
+	{
+		Transformable t = new();
+		assertFalse(t.isActiveInHierarchy(), "未绑定对象时 isActiveInHierarchy 为 false");
+		var go = new GameObject("ActiveH");
+		try
+		{
+			t.setObject(go);
+			assertTrue(t.isActiveInHierarchy(), "绑定激活对象时 isActiveInHierarchy 为 true");
+			go.SetActive(false);
+			assertFalse(t.isActiveInHierarchy(), "GameObject 禁用后 isActiveInHierarchy 为 false");
+		}
+		finally
+		{
+			Object.DestroyImmediate(go);
+			t.destroy();
+		}
+	}
+	private static void testIsUnityComponentEnabled()
+	{
+		Transformable t = new();
+		var go = new GameObject("CompEn");
+		try
+		{
+			t.setObject(go);
+			// isUnityComponentEnabled<T> 约束 where T : Behaviour, 需用继承 Behaviour 的组件(AudioSource), 不能用 BoxCollider
+			var aud = go.AddComponent<AudioSource>();
+			assertTrue(t.isUnityComponentEnabled<AudioSource>(), "组件存在且启用时 isUnityComponentEnabled 为 true");
+			aud.enabled = false;
+			assertFalse(t.isUnityComponentEnabled<AudioSource>(), "组件禁用后 isUnityComponentEnabled 为 false");
+		}
+		finally
+		{
+			Object.DestroyImmediate(go);
+			t.destroy();
+		}
+	}
+	private static void testGetOrAddUnityComponent()
+	{
+		Transformable t = new();
+		var go = new GameObject("GetOrAdd");
+		try
+		{
+			t.setObject(go);
+			// 不存在时添加
+			var col1 = t.getOrAddUnityComponent<BoxCollider>();
+			assertNotNull(col1, "getOrAddUnityComponent 应添加组件");
+			// 已存在时复用
+			var col2 = t.getOrAddUnityComponent<BoxCollider>();
+			assertEqual(col1, col2, "getOrAddUnityComponent 已存在组件应复用");
+		}
+		finally
+		{
+			Object.DestroyImmediate(go);
+			t.destroy();
+		}
+	}
+	private static void testGetUnityComponentInChild()
+	{
+		Transformable t = new();
+		var parent = new GameObject("ParentC");
+		try
+		{
+			t.setObject(parent);
+			var child = new GameObject("ChildC");
+			try
+			{
+				child.transform.SetParent(parent.transform);
+				var col = child.AddComponent<BoxCollider>();
+				// 在子节点中查找组件
+				var found = t.getUnityComponentInChild<BoxCollider>(true);
+				assertEqual(col, found, "getUnityComponentInChild 应找到子节点组件");
+			}
+			finally
+			{
+				Object.DestroyImmediate(child);
+			}
+		}
+		finally
+		{
+			Object.DestroyImmediate(parent);
+			t.destroy();
+		}
+	}
+	private static void testGetAlpha()
+	{
+		Transformable t = new();
+		var go = new GameObject("Alpha");
+		try
+		{
+			t.setObject(go);
+			// 无 Renderer 时返回默认 1.0f
+			assertEqual(1.0f, t.getAlpha(), 0.001f, "无 Renderer 时 getAlpha 返回 1.0f");
+		}
+		finally
+		{
+			Object.DestroyImmediate(go);
+			t.destroy();
+		}
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 世界变换
+	// ═════════════════════════════════════════════════════════════════
+	private static void testGetWorldRotation()
+	{
+		Transformable t = new();
+		assertEqual(Vector3.zero, t.getWorldRotation(), "未绑定对象时 getWorldRotation 返回 zero");
+		assertEqual(Quaternion.identity, t.getWorldQuaternionRotation(), "未绑定对象时 getWorldQuaternionRotation 返回 identity");
+		var go = new GameObject("WorldRot");
+		try
+		{
+			t.setObject(go);
+			t.setWorldRotation(new Vector3(0f, 90f, 0f));
+			assertEqual(90f, t.getWorldRotation().y, 0.01f, "setWorldRotation 后 getWorldRotation 应反映 y 旋转");
+			// Quaternion 不能直接 assertEqual(泛型 Equals 是精确位比较, Euler/Transform 计算路径尾数可能差 ULP)
+			// 用四分量容差比较
+			Quaternion expect = Quaternion.Euler(0f, 90f, 0f);
+			Quaternion actualQ = t.getWorldQuaternionRotation();
+			assertEqual(expect.x, actualQ.x, 0.0001f, "getWorldQuaternionRotation.x");
+			assertEqual(expect.y, actualQ.y, 0.0001f, "getWorldQuaternionRotation.y");
+			assertEqual(expect.z, actualQ.z, 0.0001f, "getWorldQuaternionRotation.z");
+			assertEqual(expect.w, actualQ.w, 0.0001f, "getWorldQuaternionRotation.w");
+		}
+		finally
+		{
+			Object.DestroyImmediate(go);
+			t.destroy();
+		}
+	}
+	private static void testSetWorldScale()
+	{
+		Transformable t = new();
+		var go = new GameObject("WorldScale");
+		try
+		{
+			t.setObject(go);
+			t.setWorldScale(new Vector3(3f, 3f, 3f));
+			// 无父节点时 world scale 直接等于 localScale
+			assertEqual(3f, t.getScale().x, 0.001f, "无父节点时 setWorldScale 应设置 localScale");
+			assertEqual(3f, t.getWorldScale().x, 0.001f, "getWorldScale 应返回 3");
+		}
+		finally
+		{
+			Object.DestroyImmediate(go);
+			t.destroy();
+		}
+	}
+	private static void testGetUnityObject()
+	{
+		Transformable t = new();
+		var go = new GameObject("UnityObj");
+		try
+		{
+			t.setObject(go);
+			assertEqual(go, t.getUnityObject(), "getUnityObject 应返回绑定对象");
+		}
+		finally
+		{
+			Object.DestroyImmediate(go);
+			t.destroy();
+		}
+	}
+	private static void testGetColliderInChild()
+	{
+		Transformable t = new();
+		var parent = new GameObject("ParentCol");
+		try
+		{
+			t.setObject(parent);
+			// 无 Collider 时返回 null
+			assertNull(t.getColliderInChild(), "无 Collider 时 getColliderInChild 返回 null");
+			var child = new GameObject("ChildCol");
+			try
+			{
+				child.transform.SetParent(parent.transform);
+				var col = child.AddComponent<BoxCollider>();
+				assertEqual(col, t.getColliderInChild(), "子节点含 Collider 时 getColliderInChild 应找到");
+			}
+			finally
+			{
+				Object.DestroyImmediate(child);
+			}
+		}
+		finally
+		{
+			Object.DestroyImmediate(parent);
+			t.destroy();
+		}
+	}
+	private static void testRaycastSelfNoCollider()
+	{
+		Transformable t = new();
+		var go = new GameObject("Raycast");
+		try
+		{
+			t.setObject(go);
+			// 无 Collider 时 raycastSelf 返回 false
+			Ray ray = new(Vector3.zero, Vector3.forward);
+			bool hit = t.raycastSelf(ref ray, out var hitInfo, 100f);
+			assertFalse(hit, "无 Collider 时 raycastSelf 返回 false");
+		}
+		finally
+		{
+			Object.DestroyImmediate(go);
+			t.destroy();
+		}
+	}
+	private static void testRemoveRotationModifyCallback()
+	{
+		Transformable t = new();
+		var go = new GameObject("RmRotCb");
+		try
+		{
+			t.setObject(go);
+			int calls = 0;
+			System.Action cb = () => ++calls;
+			t.addRotationModifyCallback(cb);
+			t.setRotation(new Vector3(0f, 10f, 0f));
+			t.removeRotationModifyCallback(cb);
+			t.setRotation(new Vector3(0f, 20f, 0f));
+			assertEqual(1, calls, "移除旋转回调后不再触发");
+		}
+		finally
+		{
+			Object.DestroyImmediate(go);
+			t.destroy();
+		}
+	}
+
+	private static void testRemoveScaleModifyCallback()
+	{
+		Transformable t = new();
+		var go = new GameObject("RmScaleCb");
+		try
+		{
+			t.setObject(go);
+			int calls = 0;
+			System.Action cb = () => ++calls;
+			t.addScaleModifyCallback(cb);
+			t.setScale(new Vector3(2f, 2f, 2f));
+			t.removeScaleModifyCallback(cb);
+			t.setScale(new Vector3(3f, 3f, 3f));
+			assertEqual(1, calls, "移除缩放回调后不再触发");
+		}
+		finally
+		{
+			Object.DestroyImmediate(go);
+			t.destroy();
+		}
+	}
+	private static void testRemoveWorldScaleModifyCallback()
+	{
+		Transformable t = new();
+		var go = new GameObject("RmWS");
+		try
+		{
+			t.setObject(go);
+			int calls = 0;
+			System.Action cb = () => ++calls;
+			t.addWorldScaleModifyCallback(cb);
+			t.setWorldScale(new Vector3(2f, 2f, 2f));
+			t.removeWorldScaleModifyCallback(cb);
+			t.setWorldScale(new Vector3(4f, 4f, 4f));
+			assertEqual(1, calls, "移除世界缩放回调后不再触发");
+		}
+		finally
+		{
+			Object.DestroyImmediate(go);
+			t.destroy();
+		}
+	}
+	private static void testGetUnityComponentsInChild()
+	{
+		Transformable t = new();
+		var parent = new GameObject("ParentComps");
+		try
+		{
+			t.setObject(parent);
+			// 无子节点组件时列表为空
+			var list = new System.Collections.Generic.List<BoxCollider>();
+			t.getUnityComponentsInChild(true, list);
+			assertEqual(0, list.Count, "无子节点组件时列表为空");
+			// 添加子节点组件后能收集到
+			var child = new GameObject("ChildComps");
+			try
+			{
+				child.transform.SetParent(parent.transform);
+				var col = child.AddComponent<BoxCollider>();
+				t.getUnityComponentsInChild(true, list);
+				assertEqual(1, list.Count, "子节点含组件时 getUnityComponentsInChild 应收集");
+				assertEqual(col, list[0], "收集到的组件应为子节点上的组件");
+			}
+			finally
+			{
+				Object.DestroyImmediate(child);
+			}
+		}
+		finally
+		{
+			Object.DestroyImmediate(parent);
 			t.destroy();
 		}
 	}

@@ -43,6 +43,9 @@ public static class CommandSystemTest
         testUpdateMixedExpiredAndPending();
         // ─── CommandSystem: destroy / sync ───
         testCommandSystemDestroy();
+        // ─── Command ───
+        testCommandInvokeEndCallBack();
+        testCommandInvokeEndCallBackNoCallbacks();
         // ─── CommandReceiver ───
         testCommandReceiverAddRemoveDelayCmd();
         testCommandReceiverResetProperty();
@@ -465,6 +468,36 @@ public static class CommandSystemTest
 
         sys.destroy();
         // destroy 应清理所有缓冲
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Command
+    // ═══════════════════════════════════════════════════════════════════
+
+    private static void testCommandInvokeEndCallBack()
+    {
+        Command cmd = new();
+        int calls = 0;
+        Command received = null;
+        cmd.addEndCommandCallback(c =>
+        {
+            ++calls;
+            received = c;
+        });
+        cmd.invokeEndCallBack();
+        assertEqual(1, calls, "invokeEndCallBack 应触发结束回调");
+        assertEqual(cmd, received, "回调应收到命令自身");
+        // 回调列表已清空, 再次 invoke 不触发
+        cmd.invokeEndCallBack();
+        assertEqual(1, calls, "invokeEndCallBack 后回调列表被清空");
+        cmd.resetProperty();
+    }
+    private static void testCommandInvokeEndCallBackNoCallbacks()
+    {
+        Command cmd = new();
+        // 无回调时 invokeEndCallBack 空安全
+        cmd.invokeEndCallBack();
+        cmd.resetProperty();
     }
 
     // ═══════════════════════════════════════════════════════════════════

@@ -670,7 +670,9 @@ public static class UnityUtilityTest
 
 		setScreenSize(new Vector2(1920, 1080), false);
 
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR
 		getLastError();
+#endif
 		getComponentInParent<Transform>(go);
 		getGameObjectID(go);
 

@@ -27,6 +27,7 @@ public class FrameHotFixTest
         Register("PoolTest", PoolTest.Run);
         Register("PoolDeepTest", PoolDeepTest.Run);
         Register("AssetBundleInfoTest", AssetBundleInfoTest.Run);
+        Register("AssetDataBaseLoadInfoTest", AssetDataBaseLoadInfoTest.Run);
         Register("CurveTest", CurveTest.Run);
         Register("DictionaryExtensionTest", DictionaryExtensionTest.Run);
         Register("DistanceSortHelperTest", DistanceSortHelperTest.Run);
@@ -38,7 +39,10 @@ public class FrameHotFixTest
         Register("FrameSystemTest", FrameSystemTest.Run);
         Register("FrameUtilityTest", FrameUtilityTest.Run);
         Register("GameEventRegisteInfoTest", GameEventRegisteInfoTest.Run);
+        Register("GameEffectTest", GameEffectTest.Run);
+        Register("QuickEffectTest", QuickEffectTest.Run);
         Register("KeyFrameManagerTest", KeyFrameManagerTest.Run);
+        Register("GameKeyframeTest", GameKeyframeTest.Run);
         Register("ListExtensionTest", ListExtensionTest.Run);
         Register("ListScope2Test", ListScope2Test.Run);
         Register("MathUtilityTest", MathUtilityTest.Run);
@@ -119,7 +123,9 @@ public class FrameHotFixTest
         Register("SerializerBitWriteTest", SerializerBitWriteTest.Run);
         Register("LayoutManagerTest", LayoutManagerTest.Run);
         Register("LayoutLoadGroupTest", LayoutLoadGroupTest.Run);
+        Register("LongPressDataTest", LongPressDataTest.Run);
         Register("GameLayoutTest", GameLayoutTest.Run);
+        Register("LayoutInfoTest", LayoutInfoTest.Run);
         Register("LayoutScriptTest", LayoutScriptTest.Run);
         Register("SceneProcedureTest", SceneProcedureTest.Run);
         Register("GameSceneTest", GameSceneTest.Run);
@@ -135,6 +141,7 @@ public class FrameHotFixTest
         Register("MyCurveTest", MyCurveTest.Run);
         Register("ThreadLockScopeTest", ThreadLockScopeTest.Run);
         Register("ThreadTimeLockTest", ThreadTimeLockTest.Run);
+        Register("MyThreadTest", MyThreadTest.Run);
         Register("StructAndFormItemTest", StructAndFormItemTest.Run);
         Register("Triangle2Test", Triangle2Test.Run);
         Register("Triangle3Test", Triangle3Test.Run);
@@ -241,6 +248,7 @@ public class FrameHotFixTest
 		Register("TweenGroupTest", TweenGroupTest.Run);
 		Register("AnimationLayerTest", AnimationLayerTest.Run);
 		Register("TweenSequenceTest", TweenSequenceTest.Run);
+		Register("TweenTrackTest", TweenTrackTest.Run);
 		Register("TweenSequenceDeepTest", TweenSequenceDeepTest.Run);
 		Register("CmdGlobalDelayCallTest", CmdGlobalDelayCallTest.Run);
 		Register("MemberDataTest", MemberDataTest.Run);

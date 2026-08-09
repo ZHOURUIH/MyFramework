@@ -226,6 +226,14 @@ public static class ListExtension
 	{
 		return list.add(CLASS<T>());
 	}
+	public static T addClassIf<T>(this List<T> list, bool condition) where T : ClassObject, new()
+	{
+		if (!condition)
+		{
+			return null;
+		}
+		return list.add(CLASS<T>());
+	}
 	public static T addNew<T>(this List<T> list) where T : new()
 	{
 		return list.add(new());

@@ -16,6 +16,11 @@ public static class FrameSystemTest
 		testCompareUpdate();
 		testCompareDestroy();
 		testOrderIndependentBetweenComparers();
+		testPreInitAsyncCallsCallback();
+		testPreInitAsyncNullCallbackSafe();
+		testInitAsyncCallsCallback();
+		testInitAsyncNullCallbackSafe();
+		testGetObjectDefaultNull();
 	}
 
 	// ─── compareInit: 按 mInitOrder 升序比较 ────────────────────────
@@ -106,6 +111,83 @@ public static class FrameSystemTest
 		{
 			a.destroy();
 			b.destroy();
+		}
+	}
+
+	// ─── preInitAsync: 非 null callback 会被调用 ──────────────────
+	//     源码: public virtual void preInitAsync(Action callback) { callback?.Invoke(); }
+	//     纯逻辑, 不依赖全局单例/资源。
+	private static void testPreInitAsyncCallsCallback()
+	{
+		FrameSystem sys = new FrameSystem();
+		try
+		{
+			bool called = false;
+			sys.preInitAsync(() => called = true);
+			assertTrue(called, "preInitAsync 应调用非 null callback");
+		}
+		finally
+		{
+			sys.destroy();
+		}
+	}
+
+	// ─── preInitAsync: null callback 不崩溃 ───────────────────────
+	private static void testPreInitAsyncNullCallbackSafe()
+	{
+		FrameSystem sys = new FrameSystem();
+		try
+		{
+			sys.preInitAsync(null);   // ?.Invoke() 空安全, 无异常即通过
+		}
+		finally
+		{
+			sys.destroy();
+		}
+	}
+
+	// ─── initAsync: 非 null callback 会被调用 ────────────────────
+	private static void testInitAsyncCallsCallback()
+	{
+		FrameSystem sys = new FrameSystem();
+		try
+		{
+			bool called = false;
+			sys.initAsync(() => called = true);
+			assertTrue(called, "initAsync 应调用非 null callback");
+		}
+		finally
+		{
+			sys.destroy();
+		}
+	}
+
+	// ─── initAsync: null callback 不崩溃 ──────────────────────────
+	private static void testInitAsyncNullCallbackSafe()
+	{
+		FrameSystem sys = new FrameSystem();
+		try
+		{
+			sys.initAsync(null);   // ?.Invoke() 空安全, 无异常即通过
+		}
+		finally
+		{
+			sys.destroy();
+		}
+	}
+
+	// ─── getObject: 未 init 时(默认 mCreateObject=false)返回 null ─
+	//     getObject() 是只读 getter 返回 mObject; 未调用 init() 时 mObject=null。
+	private static void testGetObjectDefaultNull()
+	{
+		FrameSystem sys = new FrameSystem();
+		try
+		{
+			assertNull(sys.getObject(), "未 init 时 getObject 应返回 null");
+		}
+		finally
+		{
+			sys.destroy();
 		}
 	}
 }

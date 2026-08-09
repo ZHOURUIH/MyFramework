@@ -8,10 +8,12 @@ public static class SequenceSpritePreviewBaseTest
 {
 	public static void Run()
 	{
+#if UNITY_EDITOR
 		testGetSpriteSetName();
 		testSetImageAndGetImage();
+#endif
 	}
-
+#if UNITY_EDITOR
 	// getSpriteSetName: 取最后一个'_'之前的部分
 	private static void testGetSpriteSetName()
 	{
@@ -46,4 +48,5 @@ public static class SequenceSpritePreviewBaseTest
 			UnityEngine.Object.DestroyImmediate(go);
 		}
 	}
+#endif
 }

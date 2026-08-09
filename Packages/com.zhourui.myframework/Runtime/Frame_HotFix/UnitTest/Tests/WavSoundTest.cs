@@ -18,7 +18,8 @@ public static class WavSoundTest
 {
     public static void Run()
     {
-        testGenerateMixPCMData_Mono_ByteArray();
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR
+		testGenerateMixPCMData_Mono_ByteArray();
         testGenerateMixPCMData_Stereo_ByteArray();
         testGenerateMixPCMData_ByteArray_OddShort();
         testGenerateMixPCMData_Mono_ShortArray();
@@ -26,14 +27,18 @@ public static class WavSoundTest
         testGenerateMixPCMData_ShortArray_BufferSizeClamp();
         testGenerateMixPCMData_Stereo_ShortArray_NoBufferSizeUse();
         testGenerateMixPCMData_Empty();
+		testWaveStreamMono();
+		testWaveStreamStereo();
+		testResetPropertyAfterStream();
+#endif
     }
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR
+	// ═══════════════════════════════════════════════════════════════════
+	// byte[] 版本
+	// ═══════════════════════════════════════════════════════════════════
 
-    // ═══════════════════════════════════════════════════════════════════
-    // byte[] 版本
-    // ═══════════════════════════════════════════════════════════════════
-
-    // 单声道: mix[i] = bytesToShort(data[2i], data[2i+1]) (每 2 字节一个短整型)
-    private static void testGenerateMixPCMData_Mono_ByteArray()
+	// 单声道: mix[i] = bytesToShort(data[2i], data[2i+1]) (每 2 字节一个短整型)
+	private static void testGenerateMixPCMData_Mono_ByteArray()
     {
         byte[] data = { 0x34, 0x12, 0x78, 0x56 }; // 2 个采样
         short[] mix = new short[2];
@@ -136,4 +141,100 @@ public static class WavSoundTest
         WavSound.generateMixPCMData(mix, 0, 1, data);
         assertEqual((short)0, mix[0], "mixDataCount=0 时无写入");
     }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // 实例方法: startWaveStream → pushWaveStream → endWaveStream 纯内存链路
+    // 不依赖真实 wav 文件/麦克风, 用 WaveFormatEx 头 + 内存字节构造可控 PCM 数据。
+    // ═══════════════════════════════════════════════════════════════════
+    // 单声道 4 字节(2 采样): startWaveStream 后 pushWaveStream({0x34,0x12,0x78,0x56},4)
+    //   endWaveStream: mDataBuffer=[0x34,0x12,0x78,0x56], getPCMBufferSize=4,
+    //   getPCMShortDataCount=4/2=2, getMixPCMDataCount=4/(2*1)=2,
+    //   mix[0]=0x1234, mix[1]=0x5678
+    private static void testWaveStreamMono()
+    {
+        WavSound sound = new();
+        try
+        {
+            WaveFormatEx header = new()
+            {
+                wFormatTag = 1,
+                nChannels = 1,
+                nSamplesPerSec = 8000,
+                nAvgBytesPerSec = 16000,
+                nBlockAlign = 2,
+                wBitsPerSample = 16,
+                cbSize = 0
+            };
+            sound.startWaveStream(header);
+            byte[] pcm = { 0x34, 0x12, 0x78, 0x56 };
+            sound.pushWaveStream(pcm, pcm.Length);
+            sound.endWaveStream();
+            assertEqual((short)1, sound.getSoundChannels(), "单声道 nChannels=1");
+            assertEqual(4, sound.getPCMBufferSize(), "单声道 2 采样 buffer 长度 4");
+            assertEqual(2, sound.getPCMShortDataCount(), "单声道 short 采样数 2");
+            assertEqual(2, sound.getMixPCMDataCount(), "单声道 mix 数 = 2");
+            short[] mix = sound.getMixPCMData();
+            assertEqual((short)0x1234, mix[0], "单声道 mix[0] = 0x1234");
+            assertEqual((short)0x5678, mix[1], "单声道 mix[1] = 0x5678");
+        }
+        finally
+        {
+            sound.resetProperty();
+        }
+    }
+    // 双声道 4 字节(1 采样): getMixPCMDataCount=4/(2*2)=1, mix[0]=(4660+22136)*0.5=13398
+    private static void testWaveStreamStereo()
+    {
+        WavSound sound = new();
+        try
+        {
+            WaveFormatEx header = new()
+            {
+                wFormatTag = 1,
+                nChannels = 2,
+                nSamplesPerSec = 44100,
+                nAvgBytesPerSec = 176400,
+                nBlockAlign = 4,
+                wBitsPerSample = 16,
+                cbSize = 0
+            };
+            sound.startWaveStream(header);
+            byte[] pcm = { 0x34, 0x12, 0x78, 0x56 }; // left=0x1234=4660, right=0x5678=22136
+            sound.pushWaveStream(pcm, pcm.Length);
+            sound.endWaveStream();
+            assertEqual((short)2, sound.getSoundChannels(), "双声道 nChannels=2");
+            assertEqual(1, sound.getMixPCMDataCount(), "双声道 4 字节 mix 数 = 4/(2*2) = 1");
+            short[] mix = sound.getMixPCMData();
+            assertEqual((short)13398, mix[0], "双声道 mix[0] = (4660+22136)*0.5 = 13398");
+        }
+        finally
+        {
+            sound.resetProperty();
+        }
+    }
+    // resetProperty 清空 buffer: endWaveStream 后 resetProperty → getPCMBuffer null, getMixPCMData null
+    private static void testResetPropertyAfterStream()
+    {
+        WavSound sound = new();
+        WaveFormatEx header = new()
+        {
+            wFormatTag = 1,
+            nChannels = 1,
+            nSamplesPerSec = 8000,
+            nAvgBytesPerSec = 16000,
+            nBlockAlign = 2,
+            wBitsPerSample = 16,
+            cbSize = 0
+        };
+        sound.startWaveStream(header);
+        byte[] pcm = { 0x34, 0x12, 0x78, 0x56 };
+        sound.pushWaveStream(pcm, pcm.Length);
+        sound.endWaveStream();
+        assertEqual(4, sound.getPCMBufferSize(), "endWaveStream 后 buffer 长度 4");
+        sound.resetProperty();
+        assertNull(sound.getPCMBuffer(), "resetProperty 后 getPCMBuffer 为 null");
+        assertNull(sound.getMixPCMData(), "resetProperty 后 getMixPCMData 为 null");
+        assertEqual((short)0, sound.getSoundChannels(), "resetProperty 后声道数归 0");
+    }
+#endif
 }

@@ -68,6 +68,8 @@ public static class GameSceneTest
 		testDefaultProcedureListEmpty();
 		testDefaultLastProcedureListEmpty();
 		testDefaultAllState();
+		testGetObjectDefaultNull();
+		testGameSceneManagerGetCurSceneDefaultNull();
 
 		// === addProcedure ===
 		testAddProcedure();
@@ -180,6 +182,17 @@ public static class GameSceneTest
 	private static void testDefaultCurProcedure()
 	{
 		assertNull(new TestGameScene().getCurProcedure());
+	}
+	private static void testGetObjectDefaultNull()
+	{
+		// 未 init 时 mObject 为 null, getObject() 返回 null
+		assertNull(new TestGameScene().getObject());
+	}
+	private static void testGameSceneManagerGetCurSceneDefaultNull()
+	{
+		// 未 enterScene 时 getCurScene() 返回 null
+		var manager = new GameSceneManager();
+		assertNull(manager.getCurScene());
 	}
 	private static void testDefaultProcedureListEmpty()
 	{

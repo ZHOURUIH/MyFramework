@@ -36,8 +36,13 @@ public class NetPacketTypeManager : FrameSystem
 	}
 	public void unregistePacket(Type classType, ushort type)
 	{
-		mPacketTypeList.Remove(type);
-		mClassTypeList.Remove(classType);
+		// 只在 classType 确实注册为该 type 时才双向移除映射
+		// 否则(如 type 未注册或注册对不匹配)不误删该 classType/type 的注册状态
+		if (mClassTypeList.get(classType)?.mTypeID == type)
+		{
+			mPacketTypeList.Remove(type);
+			mClassTypeList.Remove(classType);
+		}
 	}
 	public ushort getPacketTypeID(Type type) { return mClassTypeList.get(type)?.mTypeID ?? 0; }
 	public Type getPacketType(ushort typeID) { return mPacketTypeList.get(typeID)?.mClassType; }

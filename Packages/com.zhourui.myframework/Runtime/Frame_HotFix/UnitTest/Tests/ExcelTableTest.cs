@@ -86,17 +86,18 @@ public static class ExcelTableTest
 
 	private static void testCheckPathNoBackslash()
 	{
-		// checkPath 使用静态缓存，第二次调用不会重复检查
-		// 使用项目中确实存在的路径以避免 isFileExist 触发 logError
-		string validPath = "Test/1.txt";
-		// 清理缓存以避免前序测试影响
+		// checkPath 在编辑器下会校验 isFileExist(F_GAME_RESOURCES_PATH + path),
+		// 传入不存在的路径会触发 logError, 故必须用真实存在的相对路径。
+		// Assets/GameResources/Excel/Test.bytes 是真实文件, 相对 GameResources 的路径为 "Excel/Test.bytes"。
+		string validPath = "Excel/Test.bytes";
+		// 清理缓存以避免前序测试影响(同 path 会因 mCheckPathResultMap 缓存而跳过)
 		var cacheField = typeof(ExcelTable).GetField("mCheckPathResultMap",
 			System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
 		var cache = cacheField.GetValue(null) as System.Collections.Generic.Dictionary<string, bool>;
 		cache?.Clear();
 
 		ExcelTable.checkPath(validPath, false);
-		// 无异常即通过
+		// 无反斜杠/空格 + 文件真实存在 → 不触发任何 logError, 无异常即通过
 	}
 
 	private static void testCheckPathBackslash()

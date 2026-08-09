@@ -27,6 +27,7 @@ public static class MovableObjectTest
 		testDestroySelfCreated();
 		// ─── 默认 getter ───
 		testDefaultGetters();
+		testCOMInteractiveNullGetters();
 		// ─── 错误路径 getter ───
 		testErrorPathGetters();
 		// ─── resetProperty ───
@@ -149,6 +150,21 @@ public static class MovableObjectTest
 		assertFalse(obj.hasLastPosition(), "无移动信息组件时 hasLastPosition false");
 		assertNull(obj.getDepth(), "默认深度为 null");
 		assertFalse(obj.isEnableFixedUpdate(), "默认不启用固定更新");
+		obj.destroy();
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 交互组件(mCOMInteractive)为 null 时的空安全查询
+	// ═════════════════════════════════════════════════════════════════
+	private static void testCOMInteractiveNullGetters()
+	{
+		MovableObject obj = new();
+		// mCOMInteractive == null 时, 空安全查询返回默认值
+		assertEqual(0, obj.getClickSound(), "无交互组件时 getClickSound 返回 0");
+		assertFalse(obj.isReceiveScreenTouch(), "无交互组件时 isReceiveScreenTouch false");
+		assertFalse(obj.isMouseHovered(), "无交互组件时 isMouseHovered false");
+		// isPassDragEvent = !isDraggable() || (...), 无拖拽组件时 isDraggable false → 返回 true
+		assertTrue(obj.isPassDragEvent(), "无交互/拖拽组件时 isPassDragEvent true");
 		obj.destroy();
 	}
 

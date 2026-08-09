@@ -1,3 +1,4 @@
+using UnityEngine;
 using static TestAssert;
 
 // AtlasRef 单元测试：generateToken/引用计数/resetProperty/setAtlas/destroy/isValid
@@ -18,6 +19,8 @@ public static class AtlasRefTest
 		testNullAtlasGettersReturnNull();
 		testNullAtlasHasSpriteFalse();
 		testNullAtlasGetAtlasSingleNameNull();
+		testGetFirstSpriteSizeEmptyList();
+		testGetFirstSpriteSizeWithSprite();
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// mock AtlasBase 用于测试
@@ -174,5 +177,31 @@ public static class AtlasRefTest
 	{
 		var refObj = new AtlasRef();
 		assertNull(refObj.getAtlasSingleName(), "mAtlas==null 时 getAtlasSingleName 应为 null");
+	}
+
+	// ─── getFirstSpriteSize: 空图集列表 → Vector2.zero ────────────
+	//     注意 getFirstSpriteSize() 委托 mAtlas.getFirstSpriteSize() 且无 `?.` 空安全,
+	//     因此必须先 setAtlas(mock) 再调用(正常使用入口:已持有的图集)。
+	private static void testGetFirstSpriteSizeEmptyList()
+	{
+		var atlas = new MockAtlas();
+		var refObj = new AtlasRef();
+		refObj.setAtlas(atlas);
+		Vector2 size = refObj.getFirstSpriteSize();
+		assertEqual(0.0f, size.x, "空图集列表 getFirstSpriteSize.x 应为 0");
+		assertEqual(0.0f, size.y, "空图集列表 getFirstSpriteSize.y 应为 0");
+	}
+
+	// ─── getFirstSpriteSize: 添加首个 Sprite 后返回其实际尺寸 ─────
+	private static void testGetFirstSpriteSizeWithSprite()
+	{
+		var atlas = new MockAtlas();
+		Sprite sprite = Sprite.Create(new Texture2D(4, 4), new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f));
+		atlas.addSprite(sprite, "first");
+		var refObj = new AtlasRef();
+		refObj.setAtlas(atlas);
+		Vector2 size = refObj.getFirstSpriteSize();
+		assertEqual(4.0f, size.x, "getFirstSpriteSize.x 应等于首个 sprite 的宽 4");
+		assertEqual(4.0f, size.y, "getFirstSpriteSize.y 应等于首个 sprite 的高 4");
 	}
 }
