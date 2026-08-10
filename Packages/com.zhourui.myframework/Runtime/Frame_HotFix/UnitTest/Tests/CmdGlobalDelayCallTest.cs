@@ -17,6 +17,12 @@ public static class CmdGlobalDelayCallTest
 		test_Param1_Execute();
 		test_Param1_GuardMismatch();
 		test_Param1_ResetProperty();
+		// ─── CmdGlobalDelayCallParam2<T0,T1> 与 Param5<T0..T4> 代表性多参变体 ───
+		test_Param2_ExecuteMultiParams();
+		test_Param2_GuardMismatch();
+		test_Param5_ExecuteMultiParams();
+		test_Param5_GuardMismatch();
+		test_Param5_ResetProperty();
 	}
 
 	// ═════════════════════════════════════════════════════════════════
@@ -125,6 +131,78 @@ public static class CmdGlobalDelayCallTest
 		cmd.resetProperty();
 		cmd.execute();
 		assertNull(received, "reset 后带参 execute 不调用");
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// CmdGlobalDelayCallParam2 — 双参传递 + guard
+	// ═════════════════════════════════════════════════════════════════
+	private static void test_Param2_ExecuteMultiParams()
+	{
+		CmdGlobalDelayCallParam2<int, string> cmd = new CmdGlobalDelayCallParam2<int, string>();
+		int i0 = 0; string i1 = null;
+		cmd.mFunction = (int a, string b) => { i0 = a; i1 = b; };
+		cmd.mParam0 = 7; cmd.mParam1 = "hello";
+		cmd.execute();
+		assertEqual(7, i0, "Param2 execute 应传 mParam0");
+		assertEqual("hello", i1, "Param2 execute 应传 mParam1");
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// CmdGlobalDelayCallParam2 — guard 不匹配跳过(多参版)
+	// ═════════════════════════════════════════════════════════════════
+	private static void test_Param2_GuardMismatch()
+	{
+		CmdGlobalDelayCallParam2<float, bool> cmd = new CmdGlobalDelayCallParam2<float, bool>();
+		bool called = false;
+		cmd.mFunction = (float a, bool b) => { called = true; };
+		TestRecyclable guard = new TestRecyclable(1);
+		cmd.setGuard(guard);
+		guard.mAssignID = 2;
+		cmd.execute();
+		assertFalse(called, "Param2 guard 不匹配时应跳过");
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// CmdGlobalDelayCallParam5 — 五参传递(参数最多变体)
+	// ═════════════════════════════════════════════════════════════════
+	private static void test_Param5_ExecuteMultiParams()
+	{
+		CmdGlobalDelayCallParam5<int, int, int, int, int> cmd = new CmdGlobalDelayCallParam5<int, int, int, int, int>();
+		int[] got = new int[5];
+		cmd.mFunction = (int a, int b, int c, int d, int e) => { got[0] = a; got[1] = b; got[2] = c; got[3] = d; got[4] = e; };
+		cmd.mParam0 = 1; cmd.mParam1 = 2; cmd.mParam2 = 3; cmd.mParam3 = 4; cmd.mParam4 = 5;
+		cmd.execute();
+		assertTrue(got[0] == 1 && got[1] == 2 && got[2] == 3 && got[3] == 4 && got[4] == 5,
+			"Param5 execute 应按序传 mParam0..mParam4");
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// CmdGlobalDelayCallParam5 — guard 不匹配跳过
+	// ═════════════════════════════════════════════════════════════════
+	private static void test_Param5_GuardMismatch()
+	{
+		CmdGlobalDelayCallParam5<int, string, bool, float, long> cmd = new CmdGlobalDelayCallParam5<int, string, bool, float, long>();
+		bool called = false;
+		cmd.mFunction = (int a, string b, bool c, float d, long e) => { called = true; };
+		TestRecyclable guard = new TestRecyclable(9);
+		cmd.setGuard(guard);
+		guard.mAssignID = 10;
+		cmd.execute();
+		assertFalse(called, "Param5 guard 不匹配时应跳过");
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// CmdGlobalDelayCallParam5 — resetProperty 清空多参状态
+	// ═════════════════════════════════════════════════════════════════
+	private static void test_Param5_ResetProperty()
+	{
+		CmdGlobalDelayCallParam5<int, string, bool, float, long> cmd = new CmdGlobalDelayCallParam5<int, string, bool, float, long>();
+		bool called = false;
+		cmd.mFunction = (int a, string b, bool c, float d, long e) => { called = true; };
+		cmd.mParam0 = 1;
+		cmd.resetProperty();
+		cmd.execute();
+		assertFalse(called, "Param5 reset 后 function 被清空, execute 不调用");
 	}
 
 	// ═════════════════════════════════════════════════════════════════

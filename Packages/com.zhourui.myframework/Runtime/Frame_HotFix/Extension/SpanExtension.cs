@@ -137,4 +137,12 @@ public static class SpanExtension
 		// 默认为UTF8
 		return (encoding ?? Encoding.UTF8).GetString(bytes).removeLastZero();
 	}
+	public static T random<T>(this Span<T> list)
+	{
+		if (list.isEmpty())
+		{
+			return default;
+		}
+		return list[UnityEngine.Random.Range(0, list.Length)];
+	}
 }

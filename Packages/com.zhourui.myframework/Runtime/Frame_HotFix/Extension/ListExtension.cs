@@ -671,7 +671,7 @@ public static class ListExtension
 		}
 		return list.removeAt(list.Count - 1);
 	}
-	public static T getLast<T>(this List<T> list)
+	public static T last<T>(this List<T> list)
 	{
 		if (list.isEmpty())
 		{

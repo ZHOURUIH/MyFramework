@@ -29,6 +29,10 @@ public class SerializerBitWriteTest
 		testMethodSignaturesExist();
 		testInstanceCreation();
 		testWriteMethodsReturnType();
+		testWriteBufferBitCount();
+		testWriteBufferZeroLen();
+		testFillZeroToByteEndAfterBool();
+		testClearResetsBitIndex();
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 安全方法查找：避免 Type.GetMethod 在多个重载时抛出 AmbiguousMatchException
@@ -291,5 +295,54 @@ public class SerializerBitWriteTest
 				assertNotNull(method);
 			}
 		}
+	}
+	//------------------------------------------------------------------------------------------------------------------------------
+	// 位写入器核心逻辑测试(writeBuffer/fillZeroToByteEnd/getBitCount/getByteCount/clear)
+	// 纯内存位操作, 确定性可测。基于 SerializeBitUtility 语义:
+	//   write(bool) 固定 1 位; writeBuffer 裸写字节推进 size*8 位;
+	//   fillZeroToByteEnd 对齐到字节末尾; getByteCount = bitCountToByteCount(bitCount)(向上取整到字节)
+	private static void testWriteBufferBitCount()
+	{
+		var w = new SerializerBitWrite();
+		assertEqual(0, w.getBitCount(), "初始 bitCount 为 0");
+		assertEqual(0, w.getByteCount(), "初始 byteCount 为 0");
+		// write(bool) 固定写 1 位
+		w.write(true);
+		assertEqual(1, w.getBitCount(), "write(bool) 后 bitCount=1");
+		assertEqual(1, w.getByteCount(), "1 bit → 1 byte");
+		assertTrue(w.getBuffer() != null, "write 后 getBuffer 非 null");
+		// writeBuffer 裸写 3 字节: 内部先 fillZeroToByteEnd(1→8对齐), 再写 3 字节 → bitIndex=(1+3)*8=32
+		byte[] data = { 1, 2, 3 };
+		w.writeBuffer(data, 3);
+		assertEqual(32, w.getBitCount(), "writeBuffer(3字节) 后 bitIndex 对齐到字节末尾+24 = 32");
+		assertEqual(4, w.getByteCount(), "32 bit → 4 byte");
+	}
+	private static void testWriteBufferZeroLen()
+	{
+		var w = new SerializerBitWrite();
+		// 空缓冲区或 dataSize=0 时 writeBuffer 直接 return, 不改变 bitCount
+		w.writeBuffer(null, 0);
+		assertEqual(0, w.getBitCount(), "writeBuffer(null,0) 不改变 bitCount");
+		byte[] data = { 9 };
+		w.writeBuffer(data, 0);
+		assertEqual(0, w.getBitCount(), "writeBuffer(data,0) 不改变 bitCount");
+	}
+	private static void testFillZeroToByteEndAfterBool()
+	{
+		var w = new SerializerBitWrite();
+		w.write(true); // 1 位
+		assertEqual(1, w.getBitCount(), "write(bool) 后 bitCount=1");
+		w.fillZeroToByteEnd();
+		assertEqual(8, w.getBitCount(), "fillZeroToByteEnd 后 bitCount 对齐到字节末尾 8");
+		assertEqual(1, w.getByteCount(), "8 bit → 1 byte");
+	}
+	private static void testClearResetsBitIndex()
+	{
+		var w = new SerializerBitWrite();
+		w.write(true);
+		w.write(true);
+		assertEqual(2, w.getBitCount(), "写 2 个 bool 后 bitCount=2");
+		w.clear();
+		assertEqual(0, w.getBitCount(), "clear 后 bitCount=0");
 	}
 }

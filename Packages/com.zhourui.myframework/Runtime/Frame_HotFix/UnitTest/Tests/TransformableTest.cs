@@ -95,11 +95,20 @@ public static class TransformableTest
 	private static void testSetObjectNull()
 	{
 		Transformable t = new();
-		t.setObject(new GameObject("Tmp"));
-		t.setObject(null);
-		assertNull(t.getGameObject(), "setObject(null) 后 getGameObject 为 null");
-		assertNull(t.getTransform(), "setObject(null) 后 getTransform 为 null");
-		t.destroy();
+		GameObject tmp = new("Tmp");
+		try
+		{
+			t.setObject(tmp);
+			t.setObject(null);
+			assertNull(t.getGameObject(), "setObject(null) 后 getGameObject 为 null");
+			assertNull(t.getTransform(), "setObject(null) 后 getTransform 为 null");
+		}
+		finally
+		{
+			// setObject(null) 后 mObject 已置空, t.destroy() 不会销毁 Tmp —— 必须手动销毁
+			Object.DestroyImmediate(tmp);
+			t.destroy();
+		}
 	}
 	private static void testGetGameObjectTransform()
 	{

@@ -16,6 +16,10 @@ public static class SerializerByteTest
 		testBufferWriteRead();
 		testIndexControl();
 		testClearAndReset();
+		testReadEnumByte();
+		testReadEnumInt();
+		testReadEnumLong();
+		testReadEnumByteList();
 	}
 
 	// ─── 基本类型 round-trip ──────────────────────────────────────────
@@ -229,4 +233,82 @@ public static class SerializerByteTest
 		reader.resetProperty();
 		assertEqual(0, reader.getDataSize(), "resetProperty 后 dataSize 归 0");
 	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// readEnumByte — write(byte) 对称回环
+	// ═════════════════════════════════════════════════════════════════
+	private static void testReadEnumByte()
+	{
+		var writer = new SerializerWrite();
+		writer.write((byte)5);
+		var reader = new SerializerRead();
+		reader.init(writer.getBuffer(), writer.getDataSize(), 0);
+		bool ok = reader.readEnumByte<TestByteEnum>(out TestByteEnum value);
+		assertTrue(ok, "readEnumByte 应返回 true");
+		assertEqual(TestByteEnum.Five, value, "readEnumByte 读回写入的枚举值 5");
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// readEnumInt — write(int) 对称回环
+	// ═════════════════════════════════════════════════════════════════
+	private static void testReadEnumInt()
+	{
+		var writer = new SerializerWrite();
+		writer.write(12345);
+		var reader = new SerializerRead();
+		reader.init(writer.getBuffer(), writer.getDataSize(), 0);
+		bool ok = reader.readEnumInt<TestByteEnumInt>(out TestByteEnumInt value);
+		assertTrue(ok, "readEnumInt 应返回 true");
+		assertEqual(TestByteEnumInt.Val12345, value, "readEnumInt 读回写入的枚举值 12345");
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// readEnumLong — write(long) 对称回环
+	// ═════════════════════════════════════════════════════════════════
+	private static void testReadEnumLong()
+	{
+		var writer = new SerializerWrite();
+		writer.write(9876543210L);
+		var reader = new SerializerRead();
+		reader.init(writer.getBuffer(), writer.getDataSize(), 0);
+		bool ok = reader.readEnumLong<TestByteEnumLong>(out TestByteEnumLong value);
+		assertTrue(ok, "readEnumLong 应返回 true");
+		assertEqual(TestByteEnumLong.Big, value, "readEnumLong 读回写入的枚举值 9876543210");
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// readEnumByteList — writeList(List<byte>) 对称回环
+	// ═════════════════════════════════════════════════════════════════
+	private static void testReadEnumByteList()
+	{
+		var writer = new SerializerWrite();
+		writer.writeList(new List<byte> { 1, 5, 0 });
+		var reader = new SerializerRead();
+		reader.init(writer.getBuffer(), writer.getDataSize(), 0);
+		List<TestByteEnum> list = new List<TestByteEnum>();
+		bool ok = reader.readEnumByteList(list);
+		assertTrue(ok, "readEnumByteList 应返回 true");
+		assertEqual(3, list.Count, "读回 3 个枚举");
+		assertEqual(TestByteEnum.One, list[0], "第 0 个枚举为 One");
+		assertEqual(TestByteEnum.Five, list[1], "第 1 个枚举为 Five");
+		assertEqual(TestByteEnum.Zero, list[2], "第 2 个枚举为 Zero");
+	}
+}
+
+// ═════════════════════════════════════════════════════════════════
+// readEnum 测试用枚举(不同底层类型)
+// ═════════════════════════════════════════════════════════════════
+public enum TestByteEnum : byte
+{
+	Zero = 0,
+	One = 1,
+	Five = 5,
+}
+public enum TestByteEnumInt : int
+{
+	Val12345 = 12345,
+}
+public enum TestByteEnumLong : long
+{
+	Big = 9876543210L,
 }

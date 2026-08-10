@@ -54,6 +54,7 @@ public static class ListExtensionTest
         testFor();
         testForI();
         testAddClass();
+        testAddClassIf();
         testRemoveList();
         testRemoveFirstMatch();
         testAddRangeListCount();
@@ -256,7 +257,7 @@ public static class ListExtensionTest
         assertEqual(3, last, "popBack returns last");
         assertEqual(2, list.count(), "popBack count=2");
 
-        int getLast = list.getLast();
+        int getLast = list.last();
         assertEqual(2, getLast, "getLast returns new last");
 
         // 空列表
@@ -1020,6 +1021,23 @@ public static class ListExtensionTest
         assertEqual(1, list.Count, "addClass count=1");
         assert(obj == list[0], "addClass same ref");
         UN_CLASS(ref obj);
+    }
+
+    // ─── addClassIf ──────────────────────────────────────────────────────
+    private static void testAddClassIf()
+    {
+        // condition=false → 返回 null, 列表不变(纯逻辑, 不碰 CLASS 池)
+        var list = new List<TestListClass>();
+        TestListClass notAdded = list.addClassIf(false);
+        assertNull(notAdded, "addClassIf(false) 返回 null");
+        assertEqual(0, list.Count, "addClassIf(false) 列表不变");
+
+        // condition=true → 从 CLASS 池取对象加入列表
+        TestListClass added = list.addClassIf(true);
+        assertNotNull(added, "addClassIf(true) 返回非 null");
+        assertEqual(1, list.Count, "addClassIf(true) 列表增加 1");
+        assert(added == list[0], "addClassIf(true) 同一引用");
+        UN_CLASS(ref added);
     }
 
     public class TestListClass : ClassObject { }
