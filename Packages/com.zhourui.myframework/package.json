@@ -1,7 +1,7 @@
 {
 	"name": "com.zhourui.myframework",
 	"displayName": "MyFramework",
-	"version": "1.0.43",
+	"version": "1.0.44",
 	"description": "A Unity game framework by ZHOURUIH.",
 	"keywords": [
 		"unity",
