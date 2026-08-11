@@ -60,6 +60,15 @@ public static class DictionaryExtension
 	{
 		dic[key] = value;
 	}
+	// 严格的设置值,仅设置存在的key
+	public static void setOnly<TKey, TValue>(this Dictionary<TKey, TValue> dic, TKey key, TValue value)
+	{
+		if (dic.ContainsKey(key))
+		{
+			dic[key] = value;
+		}
+	}
+	// 宽松的设置值,只是在编辑器下会提示不允许设置不存在的key
 	public static void set<TKey, TValue>(this Dictionary<TKey, TValue> dic, TKey key, TValue value)
 	{
 		if (isEditor() && !dic.ContainsKey(key))

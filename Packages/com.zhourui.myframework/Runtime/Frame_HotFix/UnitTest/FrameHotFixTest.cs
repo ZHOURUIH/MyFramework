@@ -15,6 +15,7 @@ public class FrameHotFixTest
         Register("AtlasManagerTest", AtlasManagerTest.Run);
         Register("AtlasUGUITest", AtlasUGUITest.Run);
         Register("GlobalTouchSystemTest", GlobalTouchSystemTest.Run);
+        Register("GlobalTouchRegisteDeepTest", GlobalTouchRegisteDeepTest.Run);
         Register("MouseCastWindowSetTest", MouseCastWindowSetTest.Run);
         Register("MouseCastObjectSetTest", MouseCastObjectSetTest.Run);
         Register("TouchInfoTest", TouchInfoTest.Run);
@@ -132,8 +133,10 @@ public class FrameHotFixTest
         Register("GameLayoutTest", GameLayoutTest.Run);
         Register("GameLayoutDeepTest", GameLayoutDeepTest.Run);
         Register("GameLayoutLifecycleTest", GameLayoutLifecycleTest.Run);
+        Register("GameLayoutUpdateDeepTest", GameLayoutUpdateDeepTest.Run);
         Register("LayoutInfoTest", LayoutInfoTest.Run);
         Register("LayoutScriptTest", LayoutScriptTest.Run);
+        Register("LayoutScriptDeepTest", LayoutScriptDeepTest.Run);
         Register("SceneProcedureTest", SceneProcedureTest.Run);
         Register("GameSceneTest", GameSceneTest.Run);
         Register("ScopeFallbackTest", ScopeFallbackTest.Run);
@@ -142,6 +145,9 @@ public class FrameHotFixTest
         Register("PacketAndPurchaseInfoTest", PacketAndPurchaseInfoTest.Run);
         Register("ResourceInfoBasicTest", ResourceInfoBasicTest.Run);
         Register("UIDepthTest", UIDepthTest.Run);
+        Register("UIPanelDeepTest", UIPanelDeepTest.Run);
+        Register("UGUIControlDeepTest", UGUIControlDeepTest.Run);
+        Register("UGUIInputFieldDeepTest", UGUIInputFieldDeepTest.Run);
         Register("LayoutAndLongPressDataTest", LayoutAndLongPressDataTest.Run);
         Register("WaitingTest", WaitingTest.Run);
         Register("MiscDataResetTest", MiscDataResetTest.Run);
@@ -216,6 +222,9 @@ public class FrameHotFixTest
 		Register("GameObjectInfoTest", GameObjectInfoTest.Run);
 		Register("MyUGUIObjectTest", MyUGUIObjectTest.Run);
 		Register("MyUGUIObjectGeometryTest", MyUGUIObjectGeometryTest.Run);
+		Register("MyUGUIObjectParentTest", MyUGUIObjectParentTest.Run);
+		Register("MyUGUIImageSimpleDeepTest", MyUGUIImageSimpleDeepTest.Run);
+		Register("MyUGUITextTest", MyUGUITextTest.Run);
 		Register("ParamBaseTest", ParamBaseTest.Run);
 		Register("CharacterStateTTest", CharacterStateTTest.Run);
         Register("SafeModifyTest", SafeModifyTest.Run);
@@ -277,6 +286,19 @@ public class FrameHotFixTest
         Register("CharacterManagerDeepTest", CharacterManagerDeepTest.Run);
         Register("CharacterDeepTest", CharacterDeepTest.Run);
         Register("AudioManagerTest", AudioManagerTest.Run);
+        Register("MyUGUIScrollRectDeepTest", MyUGUIScrollRectDeepTest.Run);
+        Register("MyUGUIDropdownSliderTest", MyUGUIDropdownSliderTest.Run);
+        Register("MyUGUIRawImageTest", MyUGUIRawImageTest.Run);
+        Register("MyUGUIObjectInteractiveDeepTest", MyUGUIObjectInteractiveDeepTest.Run);
+        Register("MyUGUIObjectStateDeepTest", MyUGUIObjectStateDeepTest.Run);
+        Register("MyScrollListPanelComboTest", MyScrollListPanelComboTest.Run);
+        Register("MyUGUIObjectCallbackDeepTest", MyUGUIObjectCallbackDeepTest.Run);
+        Register("MyUGUIImageButtonTest", MyUGUIImageButtonTest.Run);
+        Register("MyUGUIScrollBarTest", MyUGUIScrollBarTest.Run);
+        Register("MyUGUITileImageTest", MyUGUITileImageTest.Run);
+        Register("MyUGUIDragViewTest", MyUGUIDragViewTest.Run);
+        Register("MyUGUISpriteTest", MyUGUISpriteTest.Run);
+        Register("MyUGUITextComplementTest", MyUGUITextComplementTest.Run);
 
         doRunAll(sTests);
     }
