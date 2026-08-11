@@ -10,17 +10,17 @@ using static FrameUtility;
 // 提供单击/双击检测,每帧自动更新触点位置和按键状态
 public class InputSystem : FrameSystem
 {
-	protected Dictionary<IEventListener, Dictionary<Action, KeyListenInfo>> mListenerList = new();		// 以监听者为索引的快捷键监听列表
-	protected SafeDictionary<KeyCode, SafeList<KeyListenInfo>> mKeyListenList = new();					// 按键按下的监听回调列表
+	protected Dictionary<IEventListener, Dictionary<Action, KeyListenInfo>> mListenerList = new();      // 以监听者为索引的快捷键监听列表
+	protected SafeDictionary<KeyCode, SafeList<KeyListenInfo>> mKeyListenList = new();                  // 按键按下的监听回调列表
 	protected SafeDictionary<int, TouchPoint> mTouchPointList = new();  // 触点信息列表,可能与GlobalTouchSystem有一定的重合
-	protected HashSet<IInputField> mInputFieldList = new();				// 输入框列表,用于判断当前是否正在输入
+	protected HashSet<IInputField> mInputFieldList = new();             // 输入框列表,用于判断当前是否正在输入
 	protected SafeList<DeadClick> mLastClickList = new();               // 已经完成单击的行为,用于实现双击的功能
 	protected List<KeyCode> mAllKeys = new();                           // 所有支持的按键列表
-	protected List<KeyCode> mCurKeyDownList = new();					// 这一帧按下的按键列表,每帧都会清空一次,用于在其他地方获取这一帧按下了哪些按键
-	protected List<KeyCode> mCurKeyUpList = new();						// 这一帧抬起的按键列表,每帧都会清空一次,用于在其他地方获取这一帧按下了哪些按键
-	protected int mFocusMask;											// 当前的输入掩码,是输入框的输入还是快捷键输入
-	protected bool mEnableKey = true;									// 是否启用按键的响应
-	protected bool mActiveInput = true;									// 是否检测输入
+	protected List<KeyCode> mCurKeyDownList = new();                    // 这一帧按下的按键列表,每帧都会清空一次,用于在其他地方获取这一帧按下了哪些按键
+	protected List<KeyCode> mCurKeyUpList = new();                      // 这一帧抬起的按键列表,每帧都会清空一次,用于在其他地方获取这一帧按下了哪些按键
+	protected int mFocusMask;                                           // 当前的输入掩码,是输入框的输入还是快捷键输入
+	protected bool mEnableKey = true;                                   // 是否启用按键的响应
+	protected bool mActiveInput = true;                                 // 是否检测输入
 	public override void init()
 	{
 		base.init();
@@ -36,7 +36,7 @@ public class InputSystem : FrameSystem
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		if(!mActiveInput)
+		if (!mActiveInput)
 		{
 			return;
 		}
@@ -165,7 +165,7 @@ public class InputSystem : FrameSystem
 				mCurKeyUpList.Add(item);
 			}
 		}
-		
+
 		// 遍历监听列表,发送监听事件
 		COMBINATION_KEY curCombination = COMBINATION_KEY.NONE;
 		curCombination |= isAnyKeyDown(KeyCode.LeftControl, KeyCode.RightControl) ? COMBINATION_KEY.CTRL : COMBINATION_KEY.NONE;
@@ -266,7 +266,7 @@ public class InputSystem : FrameSystem
 	public bool getTouchDown(out TouchPoint touchPoint)
 	{
 		touchPoint = null;
-		foreach (var item in mTouchPointList)
+		foreach (var item in mTouchPointList.getMainList())
 		{
 			if (item.Value.isCurrentDown())
 			{
@@ -279,7 +279,7 @@ public class InputSystem : FrameSystem
 	// 是否有任意触点在这一帧完成一次点击操作,如果有,则返回第一个在这一帧完成点击的触点
 	public TouchPoint getTouchClick()
 	{
-		foreach (var item in mTouchPointList)
+		foreach (var item in mTouchPointList.getMainList())
 		{
 			if (item.Value.isClick())
 			{
@@ -288,15 +288,15 @@ public class InputSystem : FrameSystem
 		}
 		return null;
 	}
-    public bool getTouchClick(out TouchPoint touch)
+	public bool getTouchClick(out TouchPoint touch)
 	{
 		touch = getTouchClick();
 		return touch != null;
 	}
-    // 是否有任意触点在这一帧完成一次双击操作,如果有,则返回第一个在这一帧完成双击的触点
-    public TouchPoint getTouchDoubleClick()
+	// 是否有任意触点在这一帧完成一次双击操作,如果有,则返回第一个在这一帧完成双击的触点
+	public TouchPoint getTouchDoubleClick()
 	{
-		foreach (var item in mTouchPointList)
+		foreach (var item in mTouchPointList.getMainList())
 		{
 			if (item.Value.isDoubleClick())
 			{
@@ -305,13 +305,13 @@ public class InputSystem : FrameSystem
 		}
 		return null;
 	}
-    public bool getTouchDoubleClick(out TouchPoint touch)
-    {
-        touch = getTouchDoubleClick();
-        return touch != null;
-    }
-    // 指定触点是否处于持续按下状态
-    public bool isTouchKeepDown(int pointerID)
+	public bool getTouchDoubleClick(out TouchPoint touch)
+	{
+		touch = getTouchDoubleClick();
+		return touch != null;
+	}
+	// 指定触点是否处于持续按下状态
+	public bool isTouchKeepDown(int pointerID)
 	{
 		if (!mTouchPointList.tryGetValue(pointerID, out TouchPoint point))
 		{
@@ -326,7 +326,7 @@ public class InputSystem : FrameSystem
 		return mTouchPointList.tryGetValue(pointerID, out TouchPoint point) && point.isCurrentUp();
 	}
 	public TouchPoint getTouchPoint(int pointerID) { return mTouchPointList.get(pointerID); }
-	public Vector3 getMouseLeftPosition() 
+	public Vector3 getMouseLeftPosition()
 	{
 		if (!isEditor() && !isStandalone())
 		{
@@ -358,7 +358,7 @@ public class InputSystem : FrameSystem
 	public int getTouchPointDownCount()
 	{
 		int count = 0;
-		foreach (var item in mTouchPointList)
+		foreach (var item in mTouchPointList.getMainList())
 		{
 			if (item.Value.isDown())
 			{
@@ -368,149 +368,149 @@ public class InputSystem : FrameSystem
 		return count;
 	}
 	// 以下鼠标相关函数只能在windows或者编辑器中使用
-	public void setMouseVisible(bool visible) 
+	public void setMouseVisible(bool visible)
 	{
 		if (!isEditor() && !isStandalone())
 		{
 			logError("只能在编辑器或者桌面平台调用");
 			return;
 		}
-		Cursor.visible = visible; 
+		Cursor.visible = visible;
 	}
-	public float getMouseWheelDelta() 
+	public float getMouseWheelDelta()
 	{
 		if (!isEditor() && !isStandalone())
 		{
 			logError("只能在编辑器或者桌面平台调用");
 			return 0.0f;
 		}
-		return Input.mouseScrollDelta.y; 
+		return Input.mouseScrollDelta.y;
 	}
-	public float getMouseMoveX() 
+	public float getMouseMoveX()
 	{
 		if (!isEditor() && !isStandalone())
 		{
 			logError("只能在编辑器或者桌面平台调用");
 			return 0.0f;
 		}
-		return Input.GetAxis("Mouse X"); 
+		return Input.GetAxis("Mouse X");
 	}
-	public float getMouseMoveY() 
+	public float getMouseMoveY()
 	{
 		if (!isEditor() && !isStandalone())
 		{
 			logError("只能在编辑器或者桌面平台调用");
 			return 0.0f;
 		}
-		return Input.GetAxis("Mouse Y"); 
+		return Input.GetAxis("Mouse Y");
 	}
-	public bool isMouseLeftDown() 
+	public bool isMouseLeftDown()
 	{
 		if (!isEditor() && !isStandalone())
 		{
 			logError("只能在编辑器或者桌面平台调用");
 			return false;
 		}
-		return isMouseLeftKeepDown() || isMouseLeftCurrentDown(); 
+		return isMouseLeftKeepDown() || isMouseLeftCurrentDown();
 	}
-	public bool isMouseRightDown() 
+	public bool isMouseRightDown()
 	{
 		if (!isEditor() && !isStandalone())
 		{
 			logError("只能在编辑器或者桌面平台调用");
 			return false;
 		}
-		return isMouseRightKeepDown() || isMouseRightCurrentDown(); 
+		return isMouseRightKeepDown() || isMouseRightCurrentDown();
 	}
-	public bool isMouseMiddleDown() 
+	public bool isMouseMiddleDown()
 	{
 		if (!isEditor() && !isStandalone())
 		{
 			logError("只能在编辑器或者桌面平台调用");
 			return false;
 		}
-		return isMouseMiddleKeepDown() || isMouseMiddleCurrentDown(); 
+		return isMouseMiddleKeepDown() || isMouseMiddleCurrentDown();
 	}
-	public bool isMouseLeftKeepDown() 
+	public bool isMouseLeftKeepDown()
 	{
 		if (!isEditor() && !isStandalone())
 		{
 			logError("只能在编辑器或者桌面平台调用");
 			return false;
 		}
-		return Input.GetMouseButton((int)MOUSE_BUTTON.LEFT); 
+		return Input.GetMouseButton((int)MOUSE_BUTTON.LEFT);
 	}
-	public bool isMouseRightKeepDown() 
+	public bool isMouseRightKeepDown()
 	{
 		if (!isEditor() && !isStandalone())
 		{
 			logError("只能在编辑器或者桌面平台调用");
 			return false;
 		}
-		return Input.GetMouseButton((int)MOUSE_BUTTON.RIGHT); 
+		return Input.GetMouseButton((int)MOUSE_BUTTON.RIGHT);
 	}
-	public bool isMouseMiddleKeepDown() 
+	public bool isMouseMiddleKeepDown()
 	{
 		if (!isEditor() && !isStandalone())
 		{
 			logError("只能在编辑器或者桌面平台调用");
 			return false;
 		}
-		return Input.GetMouseButton((int)MOUSE_BUTTON.MIDDLE); 
+		return Input.GetMouseButton((int)MOUSE_BUTTON.MIDDLE);
 	}
-	public bool isMouseLeftCurrentDown() 
+	public bool isMouseLeftCurrentDown()
 	{
 		if (!isEditor() && !isStandalone())
 		{
 			logError("只能在编辑器或者桌面平台调用");
 			return false;
 		}
-		return Input.GetMouseButtonDown((int)MOUSE_BUTTON.LEFT); 
+		return Input.GetMouseButtonDown((int)MOUSE_BUTTON.LEFT);
 	}
-	public bool isMouseRightCurrentDown() 
+	public bool isMouseRightCurrentDown()
 	{
 		if (!isEditor() && !isStandalone())
 		{
 			logError("只能在编辑器或者桌面平台调用");
 			return false;
 		}
-		return Input.GetMouseButtonDown((int)MOUSE_BUTTON.RIGHT); 
+		return Input.GetMouseButtonDown((int)MOUSE_BUTTON.RIGHT);
 	}
-	public bool isMouseMiddleCurrentDown() 
+	public bool isMouseMiddleCurrentDown()
 	{
 		if (!isEditor() && !isStandalone())
 		{
 			logError("只能在编辑器或者桌面平台调用");
 			return false;
 		}
-		return Input.GetMouseButtonDown((int)MOUSE_BUTTON.MIDDLE); 
+		return Input.GetMouseButtonDown((int)MOUSE_BUTTON.MIDDLE);
 	}
-	public bool isMouseLeftCurrentUp() 
+	public bool isMouseLeftCurrentUp()
 	{
 		if (!isEditor() && !isStandalone())
 		{
 			logError("只能在编辑器或者桌面平台调用");
 			return false;
 		}
-		return Input.GetMouseButtonUp((int)MOUSE_BUTTON.LEFT); 
+		return Input.GetMouseButtonUp((int)MOUSE_BUTTON.LEFT);
 	}
-	public bool isMouseRightCurrentUp() 
+	public bool isMouseRightCurrentUp()
 	{
 		if (!isEditor() && !isStandalone())
 		{
 			logError("只能在编辑器或者桌面平台调用");
 			return false;
 		}
-		return Input.GetMouseButtonUp((int)MOUSE_BUTTON.RIGHT); 
+		return Input.GetMouseButtonUp((int)MOUSE_BUTTON.RIGHT);
 	}
-	public bool isMouseMiddleCurrentUp() 
+	public bool isMouseMiddleCurrentUp()
 	{
 		if (!isEditor() && !isStandalone())
 		{
 			logError("只能在编辑器或者桌面平台调用");
 			return false;
 		}
-		return Input.GetMouseButtonUp((int)MOUSE_BUTTON.MIDDLE); 
+		return Input.GetMouseButtonUp((int)MOUSE_BUTTON.MIDDLE);
 	}
 	// mask表示要检测的输入类型,是UI输入框输入,还是场景全局输入,或者是其他情况下的输入
 	public bool isAnyKeyDown(KeyCode key0, KeyCode key1, FOCUS_MASK mask = FOCUS_MASK.SCENE) { return isKeyDown(key0, mask) || isKeyDown(key1, mask); }
@@ -526,7 +526,7 @@ public class InputSystem : FrameSystem
 	public void setActiveInput(bool value)
 	{
 		mActiveInput = value;
-		foreach (var each in mTouchPointList)
+		foreach (var each in mTouchPointList.getMainList())
 		{
 			each.Value.resetState();
 		}

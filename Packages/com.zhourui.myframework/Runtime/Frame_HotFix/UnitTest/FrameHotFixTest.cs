@@ -299,6 +299,15 @@ public class FrameHotFixTest
         Register("MyUGUIDragViewTest", MyUGUIDragViewTest.Run);
         Register("MyUGUISpriteTest", MyUGUISpriteTest.Run);
         Register("MyUGUITextComplementTest", MyUGUITextComplementTest.Run);
+        Register("MyUIIAnimationTest", MyUIIAnimationTest.Run);
+        Register("WindowObjectDeepTest", WindowObjectDeepTest.Run);
+        Register("WindowStructPoolDeepTest", WindowStructPoolDeepTest.Run);
+        Register("WindowPoolDeepTest", WindowPoolDeepTest.Run);
+        Register("UGUITabTest", UGUITabTest.Run);
+        Register("UGUITreeListTest", UGUITreeListTest.Run);
+        Register("UGUISliderTest", UGUISliderTest.Run);
+        Register("UGUIAnimProgressTest", UGUIAnimProgressTest.Run);
+        Register("UGUIScrollTest", UGUIScrollTest.Run);
 
         doRunAll(sTests);
     }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using static MathUtility;
 using static FrameBaseHotFix;
@@ -18,24 +19,39 @@ public class CmdLayoutManagerBackBlur
 		{
 			maxOrder = getMax(layout.getRenderOrder(), maxOrder);
 		}
-		foreach (var item in mLayoutManager.getLayoutList())
+		if (mLayoutManager.getLayoutList().isForeaching())
 		{
-			GameLayout layout = item.Value;
-			if (!layout.isVisible())
+			using var a = new DicScope<Type, GameLayout>(out var tempList);
+			tempList.addRange(mLayoutManager.getLayoutList().getMainList());
+			foreach (var item in tempList)
 			{
-				continue;
+				setLayoutBlur(item.Value, maxOrder);
 			}
-			GameObject rootObj = layout.getRoot().getGameObject();
-			if (layout.getRenderOrder() < maxOrder)
+		}
+		else
+		{
+			foreach (var item in mLayoutManager.getLayoutList())
 			{
-				setGameObjectLayer(rootObj, LAYER_INT_UI_BLUR);
-			}
-			else
-			{
-				setGameObjectLayer(rootObj, layout.getDefaultLayer());
+				setLayoutBlur(item.Value, maxOrder);
 			}
 		}
 		// 开启模糊摄像机
 		mCameraManager.activeBlurCamera(blur);
+	}
+	protected static void setLayoutBlur(GameLayout layout, int maxOrder)
+	{
+		if (!layout.isVisible())
+		{
+			return;
+		}
+		GameObject rootObj = layout.getRoot().getGameObject();
+		if (layout.getRenderOrder() < maxOrder)
+		{
+			setGameObjectLayer(rootObj, LAYER_INT_UI_BLUR);
+		}
+		else
+		{
+			setGameObjectLayer(rootObj, layout.getDefaultLayer());
+		}
 	}
 }

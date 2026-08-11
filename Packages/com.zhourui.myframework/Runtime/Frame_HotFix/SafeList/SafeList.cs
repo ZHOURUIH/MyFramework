@@ -15,7 +15,7 @@ public class SafeList<T> : ClassObject
 		public SafeListEnumerator(SafeList<T> safeList)
 		{
 			mOwner = safeList;
-			mEnumerator = safeList.startForeach().GetEnumerator();
+			mEnumerator = safeList.startForeach().safe().GetEnumerator();
 		}
 		public T Current => mEnumerator.Current;
 		public bool MoveNext() { return mEnumerator.MoveNext(); }

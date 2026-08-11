@@ -16,7 +16,7 @@ public class SafeDictionary<Key, Value> : ClassObject
 		public SafeDictionaryEnumerator(SafeDictionary<Key, Value> safeList)
 		{
 			mOwner = safeList;
-			mEnumerator = safeList.startForeach().GetEnumerator();
+			mEnumerator = safeList.startForeach().safe().GetEnumerator();
 		}
 		public KeyValuePair<Key, Value> Current => mEnumerator.Current;
 		public bool MoveNext() { return mEnumerator.MoveNext(); }
