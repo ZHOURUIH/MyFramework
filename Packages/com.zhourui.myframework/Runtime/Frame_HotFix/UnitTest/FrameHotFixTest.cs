@@ -308,6 +308,24 @@ public class FrameHotFixTest
         Register("UGUISliderTest", UGUISliderTest.Run);
         Register("UGUIAnimProgressTest", UGUIAnimProgressTest.Run);
         Register("UGUIScrollTest", UGUIScrollTest.Run);
+        Register("UGUIDropListTest", UGUIDropListTest.Run);
+        Register("ScaleAnchorTest", ScaleAnchorTest.Run);
+        Register("MyUGUIButtonTest", MyUGUIButtonTest.Run);
+        Register("PaddingAnchorTest", PaddingAnchorTest.Run);
+        Register("LayoutAutoGridTest", LayoutAutoGridTest.Run);
+        Register("LayoutGridVerticalTest", LayoutGridVerticalTest.Run);
+        Register("LayoutGridHorizontalTest", LayoutGridHorizontalTest.Run);
+        Register("UGUIEventThroughAreaTest", UGUIEventThroughAreaTest.Run);
+        Register("ImageNumberTest", ImageNumberTest.Run);
+        Register("EventTriggerListenerTest", EventTriggerListenerTest.Run);
+        Register("MyUGUIDropdownTest", MyUGUIDropdownTest.Run);
+        Register("UGUICheckboxTest", UGUICheckboxTest.Run);
+        Register("UGUIProgressTest", UGUIProgressTest.Run);
+        Register("MyUGUIInputFieldTest", MyUGUIInputFieldTest.Run);
+        Register("MyUGUIDragViewDeepTest", MyUGUIDragViewDeepTest.Run);
+        Register("MyUGUIScrollBarDeepTest", MyUGUIScrollBarDeepTest.Run);
+        Register("ComponentDragDeepTest", ComponentDragDeepTest.Run);
+        Register("MyUGUITextAutoDeepTest", MyUGUITextAutoDeepTest.Run);
 
         doRunAll(sTests);
     }

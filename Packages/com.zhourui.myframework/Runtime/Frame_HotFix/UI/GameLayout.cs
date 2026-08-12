@@ -235,6 +235,8 @@ public class GameLayout
 	public Dictionary<int, myUGUIObject> getUIObjectList()	{ return mGameObjectSearchList; }
 	public myUGUICanvas getRoot()							{ return mRoot; }
 	public LayoutScript getScript()							{ return mScript; }
+	// 手动注入布局脚本(默认由 init 通过 mLayoutManager.createScript 设置, 测试/特殊复用场景可注入)
+	public void setScript(LayoutScript script)				{ mScript = script; }
 	public LAYOUT_ORDER getRenderOrderType()				{ return mRenderOrderType; }
 	public string getName()									{ return mName; }
 	public Type getType()									{ return mType; }
