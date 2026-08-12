@@ -20,6 +20,7 @@ public static class MyUGUIImageSimpleDeepTest
 		testRenderQueue();
 		testSiblingOrder();
 		testSiblingOrderSamePositionNoop();
+		testCullChain();
 	}
 
 	// ═════════════════════════════════════════════════════════════════
@@ -226,6 +227,33 @@ public static class MyUGUIImageSimpleDeepTest
 		finally
 		{
 			UnityEngine.Object.DestroyImmediate(parentGo);
+		}
+	}
+
+	// 加深: cull 链(cull → CanvasGroup.alpha + isCulled + canGenerateDepth 联动)
+	private static void testCullChain()
+	{
+		myUGUIImageSimple img = createImage(out GameObject go);
+		try
+		{
+			assertTrue(!img.isCulled(), "初始未剔除");
+			assertTrue(img.canGenerateDepth(), "未剔除时可生成深度");
+			img.cull(true);
+			assertTrue(img.isCulled(), "cull(true) 后 isCulled true");
+			assertTrue(!img.canGenerateDepth(), "剔除后不可生成深度");
+			CanvasGroup group = go.GetComponent<CanvasGroup>();
+			assertNotNull(group, "cull 自动添加 CanvasGroup");
+			assertEqual(0.0f, group.alpha, 0.001f, "cull(true) CanvasGroup.alpha 0");
+			img.cull(false);
+			assertTrue(!img.isCulled(), "cull(false) 后 isCulled false");
+			assertEqual(1.0f, group.alpha, 0.001f, "cull(false) CanvasGroup.alpha 1");
+			img.cull(true);
+			img.cull(false);
+			assertTrue(!img.isCulled(), "连续 cull 切换链最终未剔除");
+		}
+		finally
+		{
+			UnityEngine.Object.DestroyImmediate(go);
 		}
 	}
 

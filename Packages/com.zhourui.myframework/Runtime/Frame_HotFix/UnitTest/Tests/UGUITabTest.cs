@@ -30,6 +30,7 @@ public static class UGUITabTest
 		testLegendSetText();
 		testLegendReset();
 		testLegendRegisteCollider();
+		testTabSwitchChain();
 	}
 
 	// ═════════════════════════════════════════════════════════════════
@@ -320,6 +321,39 @@ public static class UGUITabTest
 		if (ui != null)
 		{
 			LayoutScript.destroyObject(ref ui, true);
+		}
+	}
+
+	// 加深: 连续切换链 + 回调计数(点击链)
+	private static void testTabSwitchChain()
+	{
+		TestLayoutScriptDeep script = createScriptAndTree(out GameObject rootGo, out myUGUIObject tabRoot);
+		TestTabUGUI tab = null;
+		try
+		{
+			tab = new TestTabUGUI(script);
+			tab.assignWindow(tabRoot);
+			tab.init();
+			int callbackCount = 0;
+			tab.setCallback(() => ++callbackCount);
+			tab.setSelected(true);
+			assertTrue(tab.isSelected(), "切换 1: 选中");
+			tab.setSelected(false);
+			assertTrue(!tab.isSelected(), "切换 2: 取消");
+			tab.setSelected(true);
+			assertTrue(tab.isSelected(), "切换 3: 再选中");
+			tab.setSelected(false);
+			assertTrue(!tab.isSelected(), "切换 4: 再取消");
+			tab.click();
+			assertEqual(1, callbackCount, "点击触发回调 1 次");
+			tab.click();
+			assertEqual(2, callbackCount, "再次点击触发 2 次");
+		}
+		finally
+		{
+			tab?.destroy();
+			destroyUI(ref tabRoot);
+			UnityEngine.Object.DestroyImmediate(rootGo);
 		}
 	}
 }

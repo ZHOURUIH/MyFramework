@@ -20,6 +20,7 @@ public static class ImageNumberTest
 		testClearNumber();
 		testSetDocking();
 		testSetInterval();
+		testNumberLongNegativeChain();
 	}
 
 	// ═════════════════════════════════════════════════════════════════
@@ -117,6 +118,29 @@ public static class ImageNumberTest
 			assertEqual(7, number.getInterval(), "setInterval(7) 读回");
 			number.setInterval(0);
 			assertEqual(0, number.getInterval(), "setInterval(0) 读回");
+		}
+		finally
+		{
+			UnityEngine.Object.DestroyImmediate(go);
+		}
+	}
+
+	// 加深: 长数字/负数链 + interval 组合宽度
+	private static void testNumberLongNegativeChain()
+	{
+		ImageNumber number = createNumber(out GameObject go);
+		try
+		{
+			number.setNumber("123456789");
+			assertEqual("123456789", number.getNumber(), "长数字读回");
+			int longWidth = number.getContentWidth();
+			number.setNumber("-123");
+			assertEqual("-123", number.getNumber(), "负数读回");
+			// interval 影响组合宽度
+			int width0 = number.getContentWidth();
+			number.setInterval(10);
+			int width10 = number.getContentWidth();
+			assertTrue(width10 > width0, "interval 增大 → 内容宽增大");
 		}
 		finally
 		{

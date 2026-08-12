@@ -23,6 +23,7 @@ public static class UGUIAnimProgressTest
 		testAnimProgressThumbPosition();
 		testAnimProgressFillMode();
 		testAnimProgressShowForeground();
+		testAnimProgressValueChain();
 	}
 
 	// ═════════════════════════════════════════════════════════════════
@@ -234,6 +235,37 @@ public static class UGUIAnimProgressTest
 		if (ui != null)
 		{
 			LayoutScript.destroyObject(ref ui, true);
+		}
+	}
+
+	// 加深: 连续 setValue 链 + saturate + 模式切换
+	private static void testAnimProgressValueChain()
+	{
+		TestLayoutScriptDeep script = createScriptAndTree(out GameObject rootGo, out myUGUIObject animRoot);
+		UGUIAnimProgress progress = null;
+		try
+		{
+			progress = new UGUIAnimProgress(script);
+			progress.assignWindow(animRoot);
+			progress.init();
+			progress.setValue(0.2f);
+			assertEqual(0.2f, progress.getValue(), 0.001f, "链 0.2");
+			progress.setValue(0.7f);
+			assertEqual(0.7f, progress.getValue(), 0.001f, "链 0.7");
+			progress.setValue(1.5f);
+			assertEqual(1.0f, progress.getValue(), 0.001f, "链 1.5 夹到 1");
+			progress.setValue(-0.3f);
+			assertEqual(0.0f, progress.getValue(), 0.001f, "链 -0.3 夹到 0");
+			// 模式切换后值保持
+			progress.setSliderMode(SLIDER_MODE.FILL);
+			progress.setValue(0.6f);
+			assertEqual(0.6f, progress.getValue(), 0.001f, "FILL 模式设置 0.6");
+		}
+		finally
+		{
+			progress?.destroy();
+			destroyUI(ref animRoot);
+			UnityEngine.Object.DestroyImmediate(rootGo);
 		}
 	}
 }

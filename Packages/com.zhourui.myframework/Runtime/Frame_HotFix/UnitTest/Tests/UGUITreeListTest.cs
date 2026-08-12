@@ -29,6 +29,7 @@ public static class UGUITreeListTest
 		testTreeNodeDepth();
 		testTreeNodeReset();
 		testTreeNodeClickCallback();
+		testTreeSelectSwitchChain();
 	}
 
 	// ═════════════════════════════════════════════════════════════════
@@ -324,6 +325,38 @@ public static class UGUITreeListTest
 			nodeA.triggerClickCallback();
 			nodeB.triggerClickCallback();
 			assertEqual(2, callbackCount, "两个节点的回调都触发");
+		}
+		finally
+		{
+			UnityEngine.Object.DestroyImmediate(rootGo);
+		}
+	}
+
+	// 加深: 多级树 expand 递归链 + selectNode 连续切换链
+	private static void testTreeSelectSwitchChain()
+	{
+		TestLayoutScriptDeep script = createScript(out GameObject rootGo);
+		try
+		{
+			TestTreeList tree = new TestTreeList(script);
+			TestTreeNode root = createNode(script);
+			TestTreeNode child = createNode(script);
+			TestTreeNode grandchild = createNode(script);
+			tree.addNode(null, root);
+			tree.addNode(root, child);
+			tree.addNode(child, grandchild);
+			tree.expandAll();
+			assertTrue(root.isExpand(), "根展开");
+			assertTrue(child.isExpand(), "子展开");
+			assertTrue(grandchild.isExpand(), "孙展开");
+			tree.selectNode(root);
+			assertTrue(ReferenceEquals(root, tree.getSelectedNode()), "选中根");
+			tree.selectNode(child);
+			assertTrue(ReferenceEquals(child, tree.getSelectedNode()), "选中子(根取消)");
+			assertTrue(!root.isSelect(), "根取消选中");
+			tree.selectNode(grandchild);
+			assertTrue(ReferenceEquals(grandchild, tree.getSelectedNode()), "选中孙(子取消)");
+			assertTrue(!child.isSelect(), "子取消选中");
 		}
 		finally
 		{

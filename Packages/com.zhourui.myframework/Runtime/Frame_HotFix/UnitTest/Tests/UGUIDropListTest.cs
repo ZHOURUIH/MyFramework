@@ -29,6 +29,7 @@ public static class UGUIDropListTest
 		testDropListShowOptions();
 		testDropListOnClickAndMask();
 		testDropListClearOptions();
+		testDropListShowOptionsToggleChain();
 	}
 
 	// ═════════════════════════════════════════════════════════════════
@@ -306,6 +307,34 @@ public static class UGUIDropListTest
 		{
 			drop?.destroy();
 			LayoutScript.destroyObject(ref dropRoot, true);
+			UnityEngine.Object.DestroyImmediate(rootGo);
+		}
+	}
+
+	// 加深: showOptions 开合组合链(展开 -> 关闭 -> 再展开, 幂等)
+	private static void testDropListShowOptionsToggleChain()
+	{
+		TestLayoutScriptDeep script = createScript(out GameObject rootGo, out myUGUIObject dropRoot);
+		TestDropList drop = null;
+		try
+		{
+			drop = new TestDropList(script);
+			drop.initForTest(dropRoot);
+			drop.showOptions(true);
+			assertTrue(drop.isOptionsActive(), "展开 1");
+			drop.showOptions(true);
+			assertTrue(drop.isOptionsActive(), "重复展开幂等");
+			drop.showOptions(false);
+			assertTrue(!drop.isOptionsActive(), "关闭");
+			drop.showOptions(false);
+			assertTrue(!drop.isOptionsActive(), "重复关闭幂等");
+			drop.showOptions(true);
+			assertTrue(drop.isOptionsActive(), "再展开");
+		}
+		finally
+		{
+			// TestDropItem 是纯 C# 类(非 Unity 对象), drop.destroy() 已清理, 无需 destroyAllUI
+			drop.destroy();
 			UnityEngine.Object.DestroyImmediate(rootGo);
 		}
 	}

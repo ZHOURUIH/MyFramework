@@ -306,7 +306,7 @@ public class TestLegendPanel : LayoutScript
 		obj.setNeedUpdate(true);
 	}
 
-	private void close() { mCloseCount++; }
+	private new void close() { mCloseCount++; }
 
 	public new void resetProperty()
 	{

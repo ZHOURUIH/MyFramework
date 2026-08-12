@@ -18,6 +18,7 @@ public static class MyUGUIButtonTest
 		testButtonSetClickCallback();
 		testButtonMultipleClickCallbacks();
 		testButtonClickCallbackOrder();
+		testButtonCallbackOrderChain();
 	}
 
 	// ═════════════════════════════════════════════════════════════════
@@ -130,6 +131,29 @@ public static class MyUGUIButtonTest
 			ui.setUGUIButtonClick(() => count++);
 			unityButton.onClick.Invoke();
 			assertEqual(1, count, "注册后点击触发 1 次");
+		}
+		finally
+		{
+			UnityEngine.Object.DestroyImmediate(go);
+		}
+	}
+
+	// 加深: 多个回调按注册顺序依次触发链
+	private static void testButtonCallbackOrderChain()
+	{
+		myUGUIButton ui = createButton(out GameObject go, out Button unityButton);
+		try
+		{
+			string order = "";
+			ui.setUGUIButtonClick(() => order += "A");
+			ui.setUGUIButtonClick(() => order += "B");
+			ui.setUGUIButtonClick(() => order += "C");
+			unityButton.onClick.Invoke();
+			assertEqual("ABC", order, "回调按注册顺序触发");
+			// 再次触发, 顺序不变
+			order = "";
+			unityButton.onClick.Invoke();
+			assertEqual("ABC", order, "再次触发顺序不变");
 		}
 		finally
 		{

@@ -326,6 +326,24 @@ public class FrameHotFixTest
         Register("MyUGUIScrollBarDeepTest", MyUGUIScrollBarDeepTest.Run);
         Register("ComponentDragDeepTest", ComponentDragDeepTest.Run);
         Register("MyUGUITextAutoDeepTest", MyUGUITextAutoDeepTest.Run);
+        Register("GameCameraDeepTest", GameCameraDeepTest.Run);
+        Register("MyUGUISpriteDeepTest", MyUGUISpriteDeepTest.Run);
+        Register("MyUGUIImageTest", MyUGUIImageTest.Run);
+        Register("UGUILineMeshTest", UGUILineMeshTest.Run);
+        Register("CustomLineTest", CustomLineTest.Run);
+        Register("UGUITextImageTest", UGUITextImageTest.Run);
+        Register("SQLiteDataTest", SQLiteDataTest.Run);
+        Register("MyUGUIImageNumberTest", MyUGUIImageNumberTest.Run);
+        Register("ComponentKeyFrameTest", ComponentKeyFrameTest.Run);
+        Register("ArrayPoolThreadTest", ArrayPoolThreadTest.Run);
+        Register("ByteArrayPoolThreadTest", ByteArrayPoolThreadTest.Run);
+        Register("ComponentMultiTouchTest", ComponentMultiTouchTest.Run);
+        Register("LocalizationManagerDeepTest", LocalizationManagerDeepTest.Run);
+        Register("ComponentInteractiveDeepTest", ComponentInteractiveDeepTest.Run);
+        Register("CameraManagerDeepTest", CameraManagerDeepTest.Run);
+        Register("DictionaryPoolTest", DictionaryPoolTest.Run);
+        Register("MySpriteRendererDeepTest", MySpriteRendererDeepTest.Run);
+        Register("MyUGUIObjectAnchorDeepTest", MyUGUIObjectAnchorDeepTest.Run);
 
         doRunAll(sTests);
     }

@@ -31,6 +31,7 @@ public static class UGUIScrollTest
 		testGetNearIndex();
 		testDragStateMachine();
 		testUpdateItemLerp();
+		testScrollToIndexChain();
 	}
 
 	// ═════════════════════════════════════════════════════════════════
@@ -557,6 +558,27 @@ public static class UGUIScrollTest
 		if (ui != null)
 		{
 			LayoutScript.destroyObject(ref ui, true);
+		}
+	}
+
+	// 加深: scrollToIndex 连续跳转链(多次跳转 + 越界安全)
+	private static void testScrollToIndexChain()
+	{
+		TestLayoutScriptDeep script = createScript(out GameObject rootGo, out myUGUIObject scrollRoot);
+		TestScrollUGUI scroll = createScroll(script, out List<TestScrollItem> items, out List<TestScrollContainer> containers, out List<myUGUIObject> allUI);
+		try
+		{
+			scroll.scrollToIndex(0);
+			scroll.scrollToIndex(2);
+			scroll.scrollToIndex(1);
+			scroll.scrollToIndex(3);
+			scroll.scrollToIndex(999);
+			scroll.scrollToIndex(-1);
+		}
+		finally
+		{
+			destroyAllUI(allUI);
+			UnityEngine.Object.DestroyImmediate(rootGo);
 		}
 	}
 }

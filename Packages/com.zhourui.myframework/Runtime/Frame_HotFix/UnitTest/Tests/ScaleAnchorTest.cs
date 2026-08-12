@@ -25,6 +25,7 @@ public static class ScaleAnchorTest
 		testUpdateRectFont();
 		testScaleAnchor3DUpdate();
 		testScaleAnchor3DGetRealScale();
+		testGetRealScaleBoundaryChain();
 	}
 
 	// ═════════════════════════════════════════════════════════════════
@@ -234,6 +235,30 @@ public static class ScaleAnchorTest
 			Vector2 scale = anchor.getRealScaleForTest();
 			assertEqual(2.0f, scale.x, 0.001f, "3D AUTO (2,3) → x=min=2");
 			assertEqual(2.0f, scale.y, 0.001f, "3D AUTO (2,3) → y=min=2");
+		}
+		finally
+		{
+			UnityEngine.Object.DestroyImmediate(anchor);
+		}
+	}
+
+	// 加深: getRealScale 多组屏幕缩放边界链(USE_HEIGHT_SCALE/AUTO)
+	private static void testGetRealScaleBoundaryChain()
+	{
+		TestScaleAnchor anchor = new TestScaleAnchor();
+		try
+		{
+			anchor.mKeepAspect = true;
+			anchor.mAspectBase = ASPECT_BASE.USE_HEIGHT_SCALE;
+			anchor.setScreenScaleForTest(new Vector2(2.0f, 3.0f));
+			Vector2 scaleH = anchor.getRealScaleForTest();
+			assertEqual(3.0f, scaleH.x, 0.001f, "USE_HEIGHT_SCALE x = y");
+			assertEqual(3.0f, scaleH.y, 0.001f, "USE_HEIGHT_SCALE y 不变");
+			anchor.setScreenScaleForTest(new Vector2(2.0f, 2.0f));
+			anchor.mAspectBase = ASPECT_BASE.AUTO;
+			Vector2 scaleAuto = anchor.getRealScaleForTest();
+			assertEqual(2.0f, scaleAuto.x, 0.001f, "AUTO 相等时取 min");
+			assertEqual(2.0f, scaleAuto.y, 0.001f, "AUTO 相等时 y 同");
 		}
 		finally
 		{

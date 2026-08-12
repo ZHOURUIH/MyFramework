@@ -17,6 +17,7 @@ public static class UGUIEventThroughAreaTest
 		testSetPassOnlyRectTransform();
 		testSetPassOnlyRectTransformNoParent();
 		testSetPassOnlyRectRoundTrip();
+		testSetPassOnlyAreaOverwriteChain();
 	}
 
 	// setPassOnlyArea(Rect): 存储穿透区域, 可读回
@@ -100,6 +101,27 @@ public static class UGUIEventThroughAreaTest
 			assertEqual(100.0f, rect.x, 0.001f, "覆盖后 x=100");
 			assertEqual(200.0f, rect.y, 0.001f, "覆盖后 y=200");
 			assertEqual(300.0f, rect.width, 0.001f, "覆盖后宽 300");
+		}
+		finally
+		{
+			UnityEngine.Object.DestroyImmediate(go);
+		}
+	}
+
+	// 加深: setPassOnlyArea 连续覆盖链(Rect 版本互相覆盖 + RectTransform 版本覆盖)
+	private static void testSetPassOnlyAreaOverwriteChain()
+	{
+		GameObject go = new GameObject("EventArea");
+		TestEventThroughArea area = go.AddComponent<TestEventThroughArea>();
+		try
+		{
+			area.setPassOnlyArea(new Rect(10.0f, 20.0f, 30.0f, 40.0f));
+			area.setPassOnlyArea(new Rect(50.0f, 60.0f, 70.0f, 80.0f));
+			Rect rect = area.getPassOnlyRectForTest();
+			assertEqual(50.0f, rect.x, 0.001f, "覆盖后 x=50");
+			assertEqual(60.0f, rect.y, 0.001f, "覆盖后 y=60");
+			assertEqual(70.0f, rect.width, 0.001f, "覆盖后宽 70");
+			assertEqual(80.0f, rect.height, 0.001f, "覆盖后高 80");
 		}
 		finally
 		{

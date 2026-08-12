@@ -30,6 +30,8 @@ public static class UGUISliderTest
 		testSliderSetterRoundTrip();
 		testSliderCallbacks();
 		testSliderShowForeground();
+		testSliderSetValueChain();
+		testSliderModeSwitchChain();
 	}
 
 	// ═════════════════════════════════════════════════════════════════
@@ -347,6 +349,64 @@ public static class UGUISliderTest
 		if (ui != null)
 		{
 			LayoutScript.destroyObject(ref ui, true);
+		}
+	}
+
+	// 加深: 连续 setValue 链(多次设置 + saturate 夹取超界值)
+	private static void testSliderSetValueChain()
+	{
+		TestLayoutScriptDeep script = createScriptAndTree(out GameObject rootGo, out myUGUIObject sliderRoot);
+		UGUISlider slider = null;
+		try
+		{
+			slider = new UGUISlider(script);
+			slider.assignWindow(sliderRoot);
+			slider.init();
+			slider.setValue(0.2f);
+			assertEqual(0.2f, slider.getValue(), 0.001f, "链: 0.2");
+			slider.setValue(0.5f);
+			assertEqual(0.5f, slider.getValue(), 0.001f, "链: 0.5");
+			slider.setValue(0.8f);
+			assertEqual(0.8f, slider.getValue(), 0.001f, "链: 0.8");
+			slider.setValue(1.5f);
+			assertEqual(1.0f, slider.getValue(), 0.001f, "链: 1.5 夹到 1");
+			slider.setValue(-0.5f);
+			assertEqual(0.0f, slider.getValue(), 0.001f, "链: -0.5 夹到 0");
+		}
+		finally
+		{
+			slider?.destroy();
+			destroyUI(ref sliderRoot);
+			UnityEngine.Object.DestroyImmediate(rootGo);
+		}
+	}
+
+	// 加深: 模式切换链(SIZING → FILL → SIZING, 值保持)
+	private static void testSliderModeSwitchChain()
+	{
+		TestLayoutScriptDeep script = createScriptAndTree(out GameObject rootGo, out myUGUIObject sliderRoot);
+		UGUISlider slider = null;
+		try
+		{
+			slider = new UGUISlider(script);
+			slider.assignWindow(sliderRoot);
+			slider.init();
+			assertTrue(slider.getSliderMode() == SLIDER_MODE.SIZING, "初始 SIZING(Image Simple)");
+			slider.setValue(0.6f);
+			assertEqual(0.6f, slider.getValue(), 0.001f, "SIZING 下设置 0.6");
+			slider.setSliderMode(SLIDER_MODE.FILL);
+			assertTrue(slider.getSliderMode() == SLIDER_MODE.FILL, "切换 FILL");
+			slider.setValue(0.3f);
+			assertEqual(0.3f, slider.getValue(), 0.001f, "FILL 下设置 0.3");
+			slider.setSliderMode(SLIDER_MODE.SIZING);
+			slider.setValue(0.9f);
+			assertEqual(0.9f, slider.getValue(), 0.001f, "切回 SIZING 后设置 0.9");
+		}
+		finally
+		{
+			slider?.destroy();
+			destroyUI(ref sliderRoot);
+			UnityEngine.Object.DestroyImmediate(rootGo);
 		}
 	}
 }
