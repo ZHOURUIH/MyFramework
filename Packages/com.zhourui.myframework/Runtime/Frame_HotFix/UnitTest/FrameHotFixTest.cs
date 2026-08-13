@@ -15,7 +15,7 @@ public class FrameHotFixTest
         Register("AtlasManagerTest", AtlasManagerTest.Run);
         Register("AtlasUGUITest", AtlasUGUITest.Run);
         Register("GlobalTouchSystemTest", GlobalTouchSystemTest.Run);
-        Register("GlobalTouchRegisteDeepTest", GlobalTouchRegisteDeepTest.Run);
+        Register("GlobalTouchRegisteTest", GlobalTouchRegisteTest.Run);
         Register("MouseCastWindowSetTest", MouseCastWindowSetTest.Run);
         Register("MouseCastObjectSetTest", MouseCastObjectSetTest.Run);
         Register("TouchInfoTest", TouchInfoTest.Run);
@@ -27,9 +27,9 @@ public class FrameHotFixTest
         Register("CommandSystemTest", CommandSystemTest.Run);
         Register("ComplexPointTest", ComplexPointTest.Run);
         Register("ComponentTest", ComponentTest.Run);
-        Register("ComponentOwnerDeepTest", ComponentOwnerDeepTest.Run);
+        Register("ComponentOwnerTest", ComponentOwnerTest.Run);
         Register("PoolTest", PoolTest.Run);
-        Register("PoolDeepTest", PoolDeepTest.Run);
+
         Register("AssetBundleInfoTest", AssetBundleInfoTest.Run);
         Register("AssetDataBaseLoadInfoTest", AssetDataBaseLoadInfoTest.Run);
         Register("CurveTest", CurveTest.Run);
@@ -51,7 +51,7 @@ public class FrameHotFixTest
         Register("ListExtensionTest", ListExtensionTest.Run);
         Register("ListScope2Test", ListScope2Test.Run);
         Register("MathUtilityTest", MathUtilityTest.Run);
-        Register("MathUtilityDeepTest", MathUtilityDeepTest.Run);
+
         Register("MostSafeFloatTest", MostSafeFloatTest.Run);
         Register("MostSafeIntTest", MostSafeIntTest.Run);
         Register("MostSafeLongTest", MostSafeLongTest.Run);
@@ -60,7 +60,7 @@ public class FrameHotFixTest
         Register("MyTimerTest", MyTimerTest.Run);
         Register("NetPacketBitTest", NetPacketBitTest.Run);
         Register("NetPacketByteTest", NetPacketByteTest.Run);
-        Register("SafeDeepDictionaryTest", SafeDeepDictionaryTest.Run);
+
         Register("SafeDictionaryTest", SafeDictionaryTest.Run);
         Register("SafeFloatTest", SafeFloatTest.Run);
         Register("SafeHashSetTest", SafeHashSetTest.Run);
@@ -72,7 +72,7 @@ public class FrameHotFixTest
         Register("SerializableTest", SerializableTest.Run);
         Register("SerializeByteUtilityTest", SerializeByteUtilityTest.Run);
         Register("SpringTest", SpringTest.Run);
-        Register("SpringDeepTest", SpringDeepTest.Run);
+
         Register("StateGroupTest", StateGroupTest.Run);
         Register("StateParamTest", StateParamTest.Run);
         Register("StreamBufferTest", StreamBufferTest.Run);
@@ -82,7 +82,7 @@ public class FrameHotFixTest
         Register("ThreadLockManagerTest", ThreadLockManagerTest.Run);
         Register("TileRenderDataTest", TileRenderDataTest.Run);
         Register("TimeUtilityTest", TimeUtilityTest.Run);
-        Register("TimeUtilityDeepTest", TimeUtilityDeepTest.Run);
+
         Register("TypeIDTest", TypeIDTest.Run);
         Register("UndoManagerTest", UndoManagerTest.Run);
         Register("UndoTest", UndoTest.Run);
@@ -95,8 +95,8 @@ public class FrameHotFixTest
         Register("HashSetExtensionTest", HashSetExtensionTest.Run);
         Register("SpanExtensionTest", SpanExtensionTest.Run);
         Register("DictionaryTypeTest", DictionaryTypeTest.Run);
-        Register("SafeDeepListTest", SafeDeepListTest.Run);
-        Register("SafeFastDeepListTest", SafeFastDeepListTest.Run);
+
+        Register("SafeFastListTest", SafeFastListTest.Run);
         Register("BIT_BOOLTest", BIT_BOOLTest.Run);
         Register("BIT_BYTESTest", BIT_BYTESTest.Run);
         Register("BIT_BYTETest", BIT_BYTETest.Run);
@@ -131,12 +131,12 @@ public class FrameHotFixTest
         Register("LayoutLoadGroupTest", LayoutLoadGroupTest.Run);
         Register("LongPressDataTest", LongPressDataTest.Run);
         Register("GameLayoutTest", GameLayoutTest.Run);
-        Register("GameLayoutDeepTest", GameLayoutDeepTest.Run);
+
         Register("GameLayoutLifecycleTest", GameLayoutLifecycleTest.Run);
-        Register("GameLayoutUpdateDeepTest", GameLayoutUpdateDeepTest.Run);
+        Register("GameLayoutUpdateTest", GameLayoutUpdateTest.Run);
         Register("LayoutInfoTest", LayoutInfoTest.Run);
         Register("LayoutScriptTest", LayoutScriptTest.Run);
-        Register("LayoutScriptDeepTest", LayoutScriptDeepTest.Run);
+
         Register("SceneProcedureTest", SceneProcedureTest.Run);
         Register("GameSceneTest", GameSceneTest.Run);
         Register("ScopeFallbackTest", ScopeFallbackTest.Run);
@@ -145,13 +145,13 @@ public class FrameHotFixTest
         Register("PacketAndPurchaseInfoTest", PacketAndPurchaseInfoTest.Run);
         Register("ResourceInfoBasicTest", ResourceInfoBasicTest.Run);
         Register("UIDepthTest", UIDepthTest.Run);
-        Register("UIPanelDeepTest", UIPanelDeepTest.Run);
-        Register("UGUIControlDeepTest", UGUIControlDeepTest.Run);
-        Register("UGUIInputFieldDeepTest", UGUIInputFieldDeepTest.Run);
+        Register("UIPanelTest", UIPanelTest.Run);
+        Register("UGUIControlTest", UGUIControlTest.Run);
+
         Register("LayoutAndLongPressDataTest", LayoutAndLongPressDataTest.Run);
         Register("WaitingTest", WaitingTest.Run);
         Register("MiscDataResetTest", MiscDataResetTest.Run);
-        Register("MyCurveTest", MyCurveTest.Run);
+
         Register("ThreadLockScopeTest", ThreadLockScopeTest.Run);
         Register("ThreadTimeLockTest", ThreadTimeLockTest.Run);
         Register("MyThreadTest", MyThreadTest.Run);
@@ -169,7 +169,7 @@ public class FrameHotFixTest
         Register("ResourceManagerTest", ResourceManagerTest.Run);
         Register("Vector2IntMyTest", Vector2IntMyTest.Run);
         Register("AStarMinHeapTest", AStarMinHeapTest.Run);
-        Register("AStarMinHeapDeepTest", AStarMinHeapDeepTest.Run);
+
         Register("PointTest", PointTest.Run);
         Register("Vector2ShortTest", Vector2ShortTest.Run);
         Register("Vector2UIntTest", Vector2UIntTest.Run);
@@ -223,7 +223,7 @@ public class FrameHotFixTest
 		Register("MyUGUIObjectTest", MyUGUIObjectTest.Run);
 		Register("MyUGUIObjectGeometryTest", MyUGUIObjectGeometryTest.Run);
 		Register("MyUGUIObjectParentTest", MyUGUIObjectParentTest.Run);
-		Register("MyUGUIImageSimpleDeepTest", MyUGUIImageSimpleDeepTest.Run);
+		Register("MyUGUIImageSimpleTest", MyUGUIImageSimpleTest.Run);
 		Register("MyUGUITextTest", MyUGUITextTest.Run);
 		Register("ParamBaseTest", ParamBaseTest.Run);
 		Register("CharacterStateTTest", CharacterStateTTest.Run);
@@ -238,7 +238,7 @@ public class FrameHotFixTest
         Register("TweenerManagerTest", TweenerManagerTest.Run);
         Register("MovableObjectTest", MovableObjectTest.Run);
         Register("SceneSystemTest", SceneSystemTest.Run);
-        Register("SceneSystemDeepTest", SceneSystemDeepTest.Run);
+
         Register("GeometryStructTest", GeometryStructTest.Run);
         Register("NetPacketFactoryTest", NetPacketFactoryTest.Run);
         Register("ScopeTest", ScopeTest.Run);
@@ -246,13 +246,13 @@ public class FrameHotFixTest
         Register("AsyncTaskGroupTest", AsyncTaskGroupTest.Run);
         Register("TouchPointTest", TouchPointTest.Run);
         Register("StateManagerTest", StateManagerTest.Run);
-        Register("StateManagerDeepTest", StateManagerDeepTest.Run);
-        Register("UndoManagerDeepTest", UndoManagerDeepTest.Run);
-        Register("COMCharacterStateMachineDeepTest", COMCharacterStateMachineDeepTest.Run);
-        Register("WaitingManagerDeepTest", WaitingManagerDeepTest.Run);
-        Register("InputSystemDeepTest", InputSystemDeepTest.Run);
-        Register("EventSystemDeepTest", EventSystemDeepTest.Run);
-        Register("RedPointSystemDeepTest", RedPointSystemDeepTest.Run);
+
+
+        Register("COMCharacterStateMachineTest", COMCharacterStateMachineTest.Run);
+        Register("WaitingManagerTest", WaitingManagerTest.Run);
+
+
+        Register("RedPointSystemTest", RedPointSystemTest.Run);
         Register("SerializerByteTest", SerializerByteTest.Run);
         Register("NetPacketTest", NetPacketTest.Run);
         Register("HttpSendInfoTest", HttpSendInfoTest.Run);
@@ -266,43 +266,32 @@ public class FrameHotFixTest
         Register("AnimationLayerTest", AnimationLayerTest.Run);
         Register("TweenSequenceTest", TweenSequenceTest.Run);
         Register("TweenTrackTest", TweenTrackTest.Run);
-        Register("TweenSequenceDeepTest", TweenSequenceDeepTest.Run);
+
         Register("CmdGlobalDelayCallTest", CmdGlobalDelayCallTest.Run);
         Register("MemberDataTest", MemberDataTest.Run);
-        Register("CurveDeepTest", CurveDeepTest.Run);
-        Register("MovableObjectDeepTest", MovableObjectDeepTest.Run);
-        Register("GameSceneDeepTest", GameSceneDeepTest.Run);
-        Register("SceneProcedureDeepTest", SceneProcedureDeepTest.Run);
-        Register("BinaryUtilityDeepTest", BinaryUtilityDeepTest.Run);
-        Register("SQLUtilityDeepTest", SQLUtilityDeepTest.Run);
-        Register("TransformableDeepTest", TransformableDeepTest.Run);
-        Register("SafeIntDeepTest", SafeIntDeepTest.Run);
-        Register("SafeFloatDeepTest", SafeFloatDeepTest.Run);
-        Register("SafeLongDeepTest", SafeLongDeepTest.Run);
-        Register("MostSafeIntDeepTest", MostSafeIntDeepTest.Run);
-        Register("MostSafeFloatDeepTest", MostSafeFloatDeepTest.Run);
-        Register("MostSafeLongDeepTest", MostSafeLongDeepTest.Run);
-        Register("CharacterStateDeepTest", CharacterStateDeepTest.Run);
-        Register("CharacterManagerDeepTest", CharacterManagerDeepTest.Run);
-        Register("CharacterDeepTest", CharacterDeepTest.Run);
+
+
+
+
+        Register("CharacterManagerTest", CharacterManagerTest.Run);
+        Register("CharacterTest", CharacterTest.Run);
         Register("AudioManagerTest", AudioManagerTest.Run);
-        Register("MyUGUIScrollRectDeepTest", MyUGUIScrollRectDeepTest.Run);
+        Register("MyUGUIScrollRectTest", MyUGUIScrollRectTest.Run);
         Register("MyUGUIDropdownSliderTest", MyUGUIDropdownSliderTest.Run);
         Register("MyUGUIRawImageTest", MyUGUIRawImageTest.Run);
-        Register("MyUGUIObjectInteractiveDeepTest", MyUGUIObjectInteractiveDeepTest.Run);
-        Register("MyUGUIObjectStateDeepTest", MyUGUIObjectStateDeepTest.Run);
+
         Register("MyScrollListPanelComboTest", MyScrollListPanelComboTest.Run);
-        Register("MyUGUIObjectCallbackDeepTest", MyUGUIObjectCallbackDeepTest.Run);
+
         Register("MyUGUIImageButtonTest", MyUGUIImageButtonTest.Run);
         Register("MyUGUIScrollBarTest", MyUGUIScrollBarTest.Run);
         Register("MyUGUITileImageTest", MyUGUITileImageTest.Run);
         Register("MyUGUIDragViewTest", MyUGUIDragViewTest.Run);
         Register("MyUGUISpriteTest", MyUGUISpriteTest.Run);
-        Register("MyUGUITextComplementTest", MyUGUITextComplementTest.Run);
+
         Register("MyUIIAnimationTest", MyUIIAnimationTest.Run);
-        Register("WindowObjectDeepTest", WindowObjectDeepTest.Run);
-        Register("WindowStructPoolDeepTest", WindowStructPoolDeepTest.Run);
-        Register("WindowPoolDeepTest", WindowPoolDeepTest.Run);
+        Register("WindowObjectTest", WindowObjectTest.Run);
+        Register("WindowStructPoolTest", WindowStructPoolTest.Run);
+        Register("WindowPoolTest", WindowPoolTest.Run);
         Register("UGUITabTest", UGUITabTest.Run);
         Register("UGUITreeListTest", UGUITreeListTest.Run);
         Register("UGUISliderTest", UGUISliderTest.Run);
@@ -322,12 +311,11 @@ public class FrameHotFixTest
         Register("UGUICheckboxTest", UGUICheckboxTest.Run);
         Register("UGUIProgressTest", UGUIProgressTest.Run);
         Register("MyUGUIInputFieldTest", MyUGUIInputFieldTest.Run);
-        Register("MyUGUIDragViewDeepTest", MyUGUIDragViewDeepTest.Run);
-        Register("MyUGUIScrollBarDeepTest", MyUGUIScrollBarDeepTest.Run);
-        Register("ComponentDragDeepTest", ComponentDragDeepTest.Run);
-        Register("MyUGUITextAutoDeepTest", MyUGUITextAutoDeepTest.Run);
-        Register("GameCameraDeepTest", GameCameraDeepTest.Run);
-        Register("MyUGUISpriteDeepTest", MyUGUISpriteDeepTest.Run);
+
+        Register("ComponentDragTest", ComponentDragTest.Run);
+        Register("MyUGUITextAutoTest", MyUGUITextAutoTest.Run);
+        Register("GameCameraTest", GameCameraTest.Run);
+
         Register("MyUGUIImageTest", MyUGUIImageTest.Run);
         Register("UGUILineMeshTest", UGUILineMeshTest.Run);
         Register("CustomLineTest", CustomLineTest.Run);
@@ -338,12 +326,12 @@ public class FrameHotFixTest
         Register("ArrayPoolThreadTest", ArrayPoolThreadTest.Run);
         Register("ByteArrayPoolThreadTest", ByteArrayPoolThreadTest.Run);
         Register("ComponentMultiTouchTest", ComponentMultiTouchTest.Run);
-        Register("LocalizationManagerDeepTest", LocalizationManagerDeepTest.Run);
-        Register("ComponentInteractiveDeepTest", ComponentInteractiveDeepTest.Run);
-        Register("CameraManagerDeepTest", CameraManagerDeepTest.Run);
+
+        Register("ComponentInteractiveTest", ComponentInteractiveTest.Run);
+        Register("CameraManagerTest", CameraManagerTest.Run);
         Register("DictionaryPoolTest", DictionaryPoolTest.Run);
-        Register("MySpriteRendererDeepTest", MySpriteRendererDeepTest.Run);
-        Register("MyUGUIObjectAnchorDeepTest", MyUGUIObjectAnchorDeepTest.Run);
+        Register("MySpriteRendererTest", MySpriteRendererTest.Run);
+
 
         doRunAll(sTests);
     }

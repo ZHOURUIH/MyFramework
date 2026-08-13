@@ -264,4 +264,46 @@ public static class MyUGUITextTest
 			UnityEngine.Object.DestroyImmediate(go);
 		}
 	}
+
+private static void testTextGetFont()
+	{
+		GameObject go = createText(out myUGUIText text);
+		try
+		{
+			Text comp = go.GetComponent<Text>();
+			assertTrue(ReferenceEquals(comp.font, text.getFont()), "getFont 返回 Text 组件的字体");
+		}
+		finally
+		{
+			UnityEngine.Object.DestroyImmediate(go);
+		}
+	}
+
+private static void testTextSetAlignment()
+	{
+		GameObject go = createText(out myUGUIText text);
+		try
+		{
+			Text comp = go.GetComponent<Text>();
+			text.setAlignment(TextAnchor.UpperRight);
+			assertTrue(TextAnchor.UpperRight == comp.alignment, "setAlignment(UpperRight) 写入");
+			text.setAlignment(TextAnchor.MiddleCenter);
+			assertTrue(TextAnchor.MiddleCenter == comp.alignment, "setAlignment(MiddleCenter) 写入");
+		}
+		finally
+		{
+			UnityEngine.Object.DestroyImmediate(go);
+		}
+	}
+
+private static GameObject createText(out myUGUIText text)
+	{
+		GameObject go = new GameObject("Text");
+		go.AddComponent<RectTransform>();
+		go.AddComponent<Text>();
+		text = new myUGUIText();
+		text.setObject(go);
+		text.init();
+		return go;
+	}
 }

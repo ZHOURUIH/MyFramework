@@ -87,17 +87,42 @@ public static class ExcelTableTest
 	private static void testCheckPathNoBackslash()
 	{
 		// checkPath 在编辑器下会校验 isFileExist(F_GAME_RESOURCES_PATH + path),
-		// 传入不存在的路径会触发 logError, 故必须用真实存在的相对路径。
-		// Assets/GameResources/Excel/Test.bytes 是真实文件, 相对 GameResources 的路径为 "Excel/Test.bytes"。
-		string validPath = "Excel/Test.bytes";
+		// 传入不存在的路径会触发 logError, 故必须保证文件真实存在。
+		// 非编辑器下 checkPath 不做文件存在性校验, 此测试直接跳过。
+		if (!FrameBaseUtility.isEditor())
+		{
+			return;
+		}
 		// 清理缓存以避免前序测试影响(同 path 会因 mCheckPathResultMap 缓存而跳过)
 		var cacheField = typeof(ExcelTable).GetField("mCheckPathResultMap",
 			System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
 		var cache = cacheField.GetValue(null) as System.Collections.Generic.Dictionary<string, bool>;
 		cache?.Clear();
 
-		ExcelTable.checkPath(validPath, false);
-		// 无反斜杠/空格 + 文件真实存在 → 不触发任何 logError, 无异常即通过
+		// 相对 GameResources 的路径, 如 Assets/GameResources/Excel/Test.bytes
+		string validPath = "Excel/Test.bytes";
+		string fullPath = FrameDefine.F_GAME_RESOURCES_PATH + validPath;
+		// 本地不存在此文件时临时创建, 确保文件一定存在, 测试完成后删除
+		bool createdTmpFile = false;
+		try
+		{
+			if (!FileUtility.isFileExist(fullPath))
+			{
+				FileUtility.writeFile(fullPath, new byte[0]);
+				createdTmpFile = true;
+			}
+			ExcelTable.checkPath(validPath, false);
+			// 无反斜杠/空格 + 文件真实存在 → 不触发任何 logError, 无异常即通过
+		}
+		finally
+		{
+			if (createdTmpFile)
+			{
+				FileUtility.deleteFile(fullPath);
+				// 同步移除路径缓存, 避免删除文件后残留 true 缓存影响后续测试
+				cache?.Remove(validPath);
+			}
+		}
 	}
 
 	private static void testCheckPathBackslash()
