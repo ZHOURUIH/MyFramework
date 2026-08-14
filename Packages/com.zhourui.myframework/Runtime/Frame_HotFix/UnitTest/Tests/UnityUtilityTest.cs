@@ -659,10 +659,12 @@ public static class UnityUtilityTest
 		findShaders(go);
 		findUGUIShaders(go);
 
+#if USE_URP
 		float oldScale = getRenderScale();
 		setRenderScale(1.0f);
 		getRenderScale();
 		setRenderScale(oldScale);
+#endif
 
 		GameObject parent = new GameObject("Parent");
 		setNormalProperty(go, parent);
