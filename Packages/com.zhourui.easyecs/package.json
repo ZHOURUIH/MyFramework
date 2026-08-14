@@ -1,0 +1,18 @@
+{
+	"name": "com.zhourui.easyecs",
+	"displayName": "EasyECS",
+	"version": "1.0.0",
+	"description": "Use ECS as OOP",
+	"keywords": [
+		"unity",
+		"ecs",
+		"oop"
+	],
+	"author": {
+		"name": "ZHOURUIH",
+		"email": "785130190@qq.com",
+		"url": "https://github.com/ZHOURUIH/MyFramework"
+	},
+	"dependencies": {
+	}
+}
