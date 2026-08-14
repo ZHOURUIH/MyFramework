@@ -12,13 +12,16 @@ public static class SQLiteDataTest
 {
 	public static void Run()
 	{
+#if USE_SQLITE
 		testDefaults();
 		testSetIDAndValue();
 		testInsertRefString();
 		testInsertBuilder();
 		testResetProperty();
+#endif
 	}
 
+#if USE_SQLITE
 	// 默认值
 	private static void testDefaults()
 	{
@@ -72,4 +75,5 @@ public static class SQLiteDataTest
 		assertEqual(0, data.mID, "reset 后 mID=0");
 		assertTrue(data.mValues.Count == 0, "reset 后 mValues 清空");
 	}
+#endif
 }

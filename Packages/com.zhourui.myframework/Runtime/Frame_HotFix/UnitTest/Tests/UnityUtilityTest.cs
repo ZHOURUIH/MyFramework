@@ -1,7 +1,7 @@
 using UnityEngine;
+using System.Collections.Generic;
 using static UnityUtility;
 using static TestAssert;
-using System.Collections.Generic;
 
 // UnityUtility 中可通过构造 GameObject/Component 测试的函数
 public static class UnityUtilityTest
@@ -653,8 +653,9 @@ public static class UnityUtilityTest
 	{
 		GameObject go = new GameObject();
 		Camera cam = go.AddComponent<Camera>();
-
+#if USE_URP
 		setRenderType(cam, UnityEngine.Rendering.Universal.CameraRenderType.Overlay);
+#endif
 
 		findShaders(go);
 		findUGUIShaders(go);
