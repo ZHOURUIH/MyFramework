@@ -14,6 +14,11 @@ public static class SafeLongTest
 		testOverwrite();
 		testMultipleInstances();
 		testEquals();
+		testConstructorValue();
+		testSetOverwriteSequence();
+		testStructCopyIndependent();
+		testEqualsReflexive();
+		testZeroAfterSet();
 	
 
 		testLongMinMax();
@@ -225,5 +230,51 @@ public static class SafeLongTest
 			sl.set(expected += 1000000000000L);
 			assertEqual(expected, sl.get(), $"累加第 {i} 次");
 		}
+	}
+
+	// ─── 组合场景 ────────────────────────────────────────────────────────
+
+	// 构造直接设值
+	private static void testConstructorValue()
+	{
+		SafeLong sl = new SafeLong(123456789L);
+		assertEqual(123456789L, sl.get(), "构造设值正数");
+		SafeLong negative = new SafeLong(-987654321L);
+		assertEqual(-987654321L, negative.get(), "构造设值负数");
+	}
+
+	// 连续 set 覆盖序列
+	private static void testSetOverwriteSequence()
+	{
+		SafeLong sl = new SafeLong();
+		sl.set(1L);
+		sl.set(2L);
+		sl.set(3L);
+		assertEqual(3L, sl.get(), "三次 set 后取最后值");
+	}
+
+	// 结构体复制独立: copy 改值不影响原实例
+	private static void testStructCopyIndependent()
+	{
+		SafeLong a = new SafeLong(5L);
+		SafeLong copy = a;
+		copy.set(9L);
+		assertEqual(5L, a.get(), "原实例不受 copy 影响");
+		assertEqual(9L, copy.get(), "copy 独立取值");
+	}
+
+	// Equals 反身性(内部加密字段结构相等)
+	private static void testEqualsReflexive()
+	{
+		SafeLong a = new SafeLong(7L);
+		assertTrue(a.Equals(a), "a.Equals(a) 反身性成立");
+	}
+
+	// set(0) 后 get 0
+	private static void testZeroAfterSet()
+	{
+		SafeLong sl = new SafeLong(5L);
+		sl.set(0L);
+		assertEqual(0L, sl.get(), "set(0) 后 get 0");
 	}
 }

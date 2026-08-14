@@ -18,6 +18,11 @@ public static class SafeFloatTest
 		testOverwrite();
 		testMultipleInstances();
 		testEquals();
+		testConstructorValue();
+		testSetOverwriteSequence();
+		testStructCopyIndependent();
+		testEqualsReflexive();
+		testZeroAfterSet();
 	
 
 		testTypicalValues();
@@ -252,5 +257,51 @@ public static class SafeFloatTest
 			var sf = new SafeFloat(v);
 			assertEqual(v, sf.get(), 0.01f, $"大值往返 {v}");
 		}
+	}
+
+	// ─── 组合场景 ────────────────────────────────────────────────────────
+
+	// 构造直接设值
+	private static void testConstructorValue()
+	{
+		SafeFloat sf = new SafeFloat(3.14f);
+		assertEqual(3.14f, sf.get(), 0.001f, "构造设值 3.14");
+		SafeFloat negative = new SafeFloat(-0.5f);
+		assertEqual(-0.5f, negative.get(), 0.001f, "构造设值 -0.5");
+	}
+
+	// 连续 set 覆盖序列
+	private static void testSetOverwriteSequence()
+	{
+		SafeFloat sf = new SafeFloat();
+		sf.set(1.0f);
+		sf.set(2.5f);
+		sf.set(3.75f);
+		assertEqual(3.75f, sf.get(), 0.001f, "三次 set 后取最后值");
+	}
+
+	// 结构体复制独立: copy 改值不影响原实例
+	private static void testStructCopyIndependent()
+	{
+		SafeFloat a = new SafeFloat(5.0f);
+		SafeFloat copy = a;
+		copy.set(9.5f);
+		assertEqual(5.0f, a.get(), 0.001f, "原实例不受 copy 影响");
+		assertEqual(9.5f, copy.get(), 0.001f, "copy 独立取值");
+	}
+
+	// Equals 反身性(内部加密字段结构相等)
+	private static void testEqualsReflexive()
+	{
+		SafeFloat a = new SafeFloat(7.25f);
+		assertTrue(a.Equals(a), "a.Equals(a) 反身性成立");
+	}
+
+	// set(0) 后 get 0
+	private static void testZeroAfterSet()
+	{
+		SafeFloat sf = new SafeFloat(5.0f);
+		sf.set(0.0f);
+		assertEqual(0.0f, sf.get(), 0.001f, "set(0) 后 get 0");
 	}
 }

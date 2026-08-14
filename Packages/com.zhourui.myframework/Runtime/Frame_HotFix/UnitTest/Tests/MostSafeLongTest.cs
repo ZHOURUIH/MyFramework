@@ -14,6 +14,10 @@ public static class MostSafeLongTest
 		testMultipleInstances();
 		testLargeValue();
 		testEquals();
+		testConstructorValue();
+		testSetOverwriteSequence();
+		testStructCopyIndependent();
+		testEqualsReflexive();
 	
 
 		testLongMinMax();
@@ -240,5 +244,43 @@ public static class MostSafeLongTest
 			m.set(v);
 			assertEqual(v, m.get(), $"宽范围步进 {v}");
 		}
+	}
+
+	// ─── 组合场景 ────────────────────────────────────────────────────────
+
+	// 构造直接设值
+	private static void testConstructorValue()
+	{
+		MostSafeLong m = new MostSafeLong(123456789L);
+		assertEqual(123456789L, m.get(), "构造设值正数");
+		MostSafeLong negative = new MostSafeLong(-777L);
+		assertEqual(-777L, negative.get(), "构造设值负数");
+	}
+
+	// 连续 set 覆盖序列
+	private static void testSetOverwriteSequence()
+	{
+		MostSafeLong m = new MostSafeLong();
+		m.set(1L);
+		m.set(2L);
+		m.set(3L);
+		assertEqual(3L, m.get(), "三次 set 后取最后值");
+	}
+
+	// 结构体复制独立
+	private static void testStructCopyIndependent()
+	{
+		MostSafeLong a = new MostSafeLong(5L);
+		MostSafeLong copy = a;
+		copy.set(9L);
+		assertEqual(5L, a.get(), "原实例不受 copy 影响");
+		assertEqual(9L, copy.get(), "copy 独立取值");
+	}
+
+	// Equals 反身性(内部加密字段结构相等)
+	private static void testEqualsReflexive()
+	{
+		MostSafeLong a = new MostSafeLong(7L);
+		assertTrue(a.Equals(a), "a.Equals(a) 反身性成立");
 	}
 }

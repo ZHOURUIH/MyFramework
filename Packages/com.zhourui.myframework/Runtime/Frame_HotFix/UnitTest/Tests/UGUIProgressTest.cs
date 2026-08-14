@@ -20,6 +20,13 @@ public static class UGUIProgressTest
 		testFillMode();
 		testThumbNullSafe();
 		testModeGetSet();
+		testOriginProgressGetSet();
+		testSetValueSaturateNegative();
+		testSetValueSaturateOverOne();
+		testSetValueZero();
+		testFillModePercent();
+		testThumbPositionRange();
+		testModeSwitchAfterSetValue();
 	}
 
 	// ═════════════════════════════════════════════════════════════════
@@ -163,6 +170,140 @@ public static class UGUIProgressTest
 			assertTrue(progress.getSliderMode() == SLIDER_MODE.FILL, "setSliderMode(FILL) 读回");
 			progress.setSliderMode(SLIDER_MODE.SIZING);
 			assertTrue(progress.getSliderMode() == SLIDER_MODE.SIZING, "setSliderMode(SIZING) 读回");
+		}
+		finally
+		{
+			UnityEngine.Object.DestroyImmediate(barGo);
+			UnityEngine.Object.DestroyImmediate(thumbGo);
+		}
+	}
+
+	// getOriginProgressSize/Position: 纯字段读回(createProgress 注入 origin 值)
+	private static void testOriginProgressGetSet()
+	{
+		TestUGUIProgress progress = createProgress(out GameObject barGo, out GameObject thumbGo);
+		try
+		{
+			Vector2 size = progress.getOriginProgressSize();
+			assertEqual(100.0f, size.x, 0.0001f, "originSize.x 读回 100");
+			assertEqual(20.0f, size.y, 0.0001f, "originSize.y 读回 20");
+			Vector3 pos = progress.getOriginProgressPosition();
+			assertEqual(50.0f, pos.x, 0.0001f, "originPosition.x 读回 50");
+			assertEqual(0.0f, pos.z, 0.0001f, "originPosition.z 读回 0");
+		}
+		finally
+		{
+			UnityEngine.Object.DestroyImmediate(barGo);
+			UnityEngine.Object.DestroyImmediate(thumbGo);
+		}
+	}
+
+	// setValue 负数: saturate 到 0, SIZING 模式下 bar 尺寸为 0, 位置回到最左
+	private static void testSetValueSaturateNegative()
+	{
+		TestUGUIProgress progress = createProgress(out GameObject barGo, out GameObject thumbGo);
+		try
+		{
+			progress.setValue(-5.0f);
+			assertEqual(0.0f, progress.getValue(), 0.0001f, "负值被 saturate 到 0");
+			assertEqual(0.0f, progress.getBarSizeX(), 0.0001f, "bar 尺寸为 0");
+			// bar.x = originX - originW*0.5 + 0 = 50 - 50 = 0
+			assertEqual(0.0f, progress.getBarPositionX(), 0.0001f, "bar 位置回到最左");
+		}
+		finally
+		{
+			UnityEngine.Object.DestroyImmediate(barGo);
+			UnityEngine.Object.DestroyImmediate(thumbGo);
+		}
+	}
+
+	// setValue 超 1: saturate 到 1, bar 尺寸等于 originW
+	private static void testSetValueSaturateOverOne()
+	{
+		TestUGUIProgress progress = createProgress(out GameObject barGo, out GameObject thumbGo);
+		try
+		{
+			progress.setValue(2.0f);
+			assertEqual(1.0f, progress.getValue(), 0.0001f, "超 1 被 saturate 到 1");
+			assertEqual(100.0f, progress.getBarSizeX(), 0.0001f, "bar 尺寸为 originW(100)");
+			assertEqual(50.0f, progress.getBarPositionX(), 0.0001f, "bar 位置回到原点");
+		}
+		finally
+		{
+			UnityEngine.Object.DestroyImmediate(barGo);
+			UnityEngine.Object.DestroyImmediate(thumbGo);
+		}
+	}
+
+	// setValue(0): 边界值
+	private static void testSetValueZero()
+	{
+		TestUGUIProgress progress = createProgress(out GameObject barGo, out GameObject thumbGo);
+		try
+		{
+			progress.setValue(0.0f);
+			assertEqual(0.0f, progress.getValue(), 0.0001f, "setValue(0) 读回 0");
+			assertEqual(0.0f, progress.getBarSizeX(), 0.0001f, "bar 尺寸 0");
+			assertEqual(0.0f, progress.getBarPositionX(), 0.0001f, "bar 位置最左");
+		}
+		finally
+		{
+			UnityEngine.Object.DestroyImmediate(barGo);
+			UnityEngine.Object.DestroyImmediate(thumbGo);
+		}
+	}
+
+	// FILL 模式: setValue 写 fillPercent
+	private static void testFillModePercent()
+	{
+		TestUGUIProgress progress = createProgress(out GameObject barGo, out GameObject thumbGo);
+		try
+		{
+			progress.setModeForTest(SLIDER_MODE.FILL);
+			progress.setValue(0.5f);
+			assertEqual(0.5f, progress.getValue(), 0.0001f, "getValue 0.5");
+			assertEqual(0.5f, progress.getBarFillPercent(), 0.0001f, "fillPercent 0.5");
+			progress.setValue(0.75f);
+			assertEqual(0.75f, progress.getBarFillPercent(), 0.0001f, "fillPercent 0.75");
+		}
+		finally
+		{
+			UnityEngine.Object.DestroyImmediate(barGo);
+			UnityEngine.Object.DestroyImmediate(thumbGo);
+		}
+	}
+
+	// thumb 位置: (value - 0.5) * originW, value=1 → +50, value=0 → -50
+	private static void testThumbPositionRange()
+	{
+		TestUGUIProgress progress = createProgress(out GameObject barGo, out GameObject thumbGo);
+		try
+		{
+			progress.setValue(1.0f);
+			assertEqual(50.0f, progress.getThumbPositionX(), 0.0001f, "value=1 thumb.x=+50");
+			progress.setValue(0.0f);
+			assertEqual(-50.0f, progress.getThumbPositionX(), 0.0001f, "value=0 thumb.x=-50");
+			progress.setValue(0.5f);
+			assertEqual(0.0f, progress.getThumbPositionX(), 0.0001f, "value=0.5 thumb.x=0");
+		}
+		finally
+		{
+			UnityEngine.Object.DestroyImmediate(barGo);
+			UnityEngine.Object.DestroyImmediate(thumbGo);
+		}
+	}
+
+	// 模式切换: SIZING setValue 后切 FILL 再 setValue, fillPercent 生效
+	private static void testModeSwitchAfterSetValue()
+	{
+		TestUGUIProgress progress = createProgress(out GameObject barGo, out GameObject thumbGo);
+		try
+		{
+			progress.setValue(0.3f);   // SIZING 模式
+			assertEqual(30.0f, progress.getBarSizeX(), 0.0001f, "SIZING value=0.3 bar 宽 30");
+			progress.setModeForTest(SLIDER_MODE.FILL);
+			progress.setValue(0.6f);
+			assertEqual(0.6f, progress.getBarFillPercent(), 0.0001f, "切 FILL 后 fillPercent 0.6");
 		}
 		finally
 		{

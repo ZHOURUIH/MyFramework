@@ -29,6 +29,12 @@ public class SafeHashSetTest
 		testStartForeachModifySyncIncremental();
 		testStartForeachModifySyncFullSync();
 		testGetEnumerator();
+		testMoveNextDispose();
+		testAddOrRemoveToggleSequence();
+		testClearAndReaddSequence();
+		testAddIfThenRemoveChain();
+		testForeachOneModifyOther();
+		testMultipleOperationsSequence();
 
 		// --- 遍历使用场景 ---
 		testForeachSnapshotUnchangedByAdd();
@@ -547,5 +553,104 @@ public class SafeHashSetTest
 		assertTrue(main.Contains(2));
 		assertTrue(main.Contains(5));
 		assertFalse(main.Contains(3));
+	}
+
+	// MoveNext/Dispose: 枚举器显式遍历与释放(using 结束自动调用 endForeach)
+	private static void testMoveNextDispose()
+	{
+		SafeHashSet<int> set = new SafeHashSet<int>();
+		set.add(1);
+		set.add(2);
+		set.add(3);
+		using (SafeHashSet<int>.SafeHashSetEnumerator enumerator = set.GetEnumerator())
+		{
+			int count = 0;
+			while (enumerator.MoveNext())
+			{
+				++count;
+			}
+			assertEqual(3, count, "MoveNext 遍历到 3 个元素");
+		}
+		// Dispose 后可再次遍历(安全遍历状态已复位)
+		using (SafeHashSet<int>.SafeHashSetEnumerator enumerator = set.GetEnumerator())
+		{
+			assertTrue(enumerator.MoveNext(), "Dispose 后重新遍历正常");
+		}
+	}
+
+	// ── 组合序列场景 ──────────────────────────────────────────────
+	// addOrRemove 切换序列: 返回 isAdd 参数本身(非操作结果); true 添加, false 移除
+	private static void testAddOrRemoveToggleSequence()
+	{
+		SafeHashSet<int> set = new SafeHashSet<int>();
+		assertTrue(set.addOrRemove(1, true), "addOrRemove(true) 返回 true");
+		assertTrue(set.contains(1), "添加后包含 1");
+		assertFalse(set.addOrRemove(1, false), "addOrRemove(false) 返回 false(isAdd 参数)");
+		assertFalse(set.contains(1), "移除后不包含 1");
+		// 再切回
+		assertTrue(set.addOrRemove(1, true), "再次添加返回 true");
+		assertEqual(1, set.count(), "count 1");
+	}
+
+	// clear 后重新填充
+	private static void testClearAndReaddSequence()
+	{
+		SafeHashSet<int> set = new SafeHashSet<int>();
+		set.add(1);
+		set.add(2);
+		set.clear();
+		assertEqual(0, set.count(), "clear 后 count 0");
+		set.add(10);
+		set.add(20);
+		set.add(30);
+		assertEqual(3, set.count(), "重新填充后 count 3");
+		assertTrue(set.contains(20), "重新填充包含 20");
+	}
+
+	// addIf → remove 组合链
+	private static void testAddIfThenRemoveChain()
+	{
+		SafeHashSet<int> set = new SafeHashSet<int>();
+		assertTrue(set.addIf(1, true), "addIf(true) 添加返回 true");
+		assertTrue(set.addIf(2, true), "addIf(true) 添加 2");
+		assertFalse(set.addIf(3, false), "addIf(false) 不添加返回 false");
+		assertEqual(2, set.count(), "addIf(false) 后 count 2");
+		assertTrue(set.remove(1), "remove 1 返回 true");
+		assertFalse(set.contains(1), "移除后不包含 1");
+		assertTrue(set.contains(2), "保留 2");
+	}
+
+	// 遍历 setA 时修改 setB: 互不干扰
+	private static void testForeachOneModifyOther()
+	{
+		SafeHashSet<int> setA = new SafeHashSet<int>();
+		SafeHashSet<int> setB = new SafeHashSet<int>();
+		setA.add(1);
+		setA.add(2);
+		setB.add(100);
+		int seen = 0;
+		foreach (int v in setA)
+		{
+			setB.add(v * 10);
+			++seen;
+		}
+		assertEqual(2, seen, "setA 遍历到 2 个元素");
+		assertEqual(3, setB.count(), "setB 被追加 2 个(count 3)");
+		assertTrue(setB.contains(20), "setB 包含追加的 20");
+	}
+
+	// 混合操作序列: add/remove/addIf/addOrRemove 交替
+	private static void testMultipleOperationsSequence()
+	{
+		SafeHashSet<int> set = new SafeHashSet<int>();
+		set.add(1);
+		set.addIf(2, true);
+		set.addOrRemove(3, true);
+		set.remove(1);
+		set.addOrRemove(2, false);
+		assertEqual(1, set.count(), "混合操作后 count 1");
+		assertFalse(set.contains(1), "1 已被移除");
+		assertFalse(set.contains(2), "2 被 addOrRemove(false) 移除");
+		assertTrue(set.contains(3), "3 保留");
 	}
 }

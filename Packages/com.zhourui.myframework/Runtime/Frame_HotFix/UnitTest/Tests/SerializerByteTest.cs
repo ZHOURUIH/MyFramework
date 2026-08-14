@@ -20,6 +20,12 @@ public static class SerializerByteTest
 		testReadEnumInt();
 		testReadEnumLong();
 		testReadEnumByteList();
+		testMultiValueSequence();
+		testStringUnicode();
+		testReadPastEnd();
+		testEmptyListRoundTrip();
+		testReinitReuse();
+		testNestedBuffer();
 	}
 
 	// ─── 基本类型 round-trip ──────────────────────────────────────────
@@ -292,6 +298,120 @@ public static class SerializerByteTest
 		assertEqual(TestByteEnum.One, list[0], "第 0 个枚举为 One");
 		assertEqual(TestByteEnum.Five, list[1], "第 1 个枚举为 Five");
 		assertEqual(TestByteEnum.Zero, list[2], "第 2 个枚举为 Zero");
+	}
+
+	// ─── 组合场景 ────────────────────────────────────────────────────
+
+	// 混合类型顺序写读: int→bool→string→float 链
+	private static void testMultiValueSequence()
+	{
+		var writer = new SerializerWrite();
+		writer.write(12345);
+		writer.write(true);
+		writer.writeString("hello");
+		writer.write(2.5f);
+
+		var reader = new SerializerRead();
+		reader.init(writer.getBuffer(), writer.getDataSize(), 0);
+		int i; bool b; string s; float f;
+		reader.read(out i);
+		reader.read(out b);
+		reader.readString(out s);
+		reader.read(out f);
+		assertEqual(12345, i, "int 读回");
+		assertTrue(b, "bool 读回");
+		assertEqual("hello", s, "string 读回");
+		assertEqual(2.5f, f, 0.0001f, "float 读回");
+	}
+
+	// 特殊字符串: 中文/空/长字符串往返
+	private static void testStringUnicode()
+	{
+		var writer = new SerializerWrite();
+		writer.writeString("中文测试");
+		writer.writeString("");
+		writer.writeString(new string('a', 1000));
+
+		var reader = new SerializerRead();
+		reader.init(writer.getBuffer(), writer.getDataSize(), 0);
+		string s1; string s2; string s3;
+		reader.readString(out s1);
+		reader.readString(out s2);
+		reader.readString(out s3);
+		assertEqual("中文测试", s1, "中文往返");
+		assertEqual("", s2, "空字符串往返");
+		assertEqual(1000, s3.Length, "长字符串长度往返");
+	}
+
+	// 越界读取返回 false(安全)
+	private static void testReadPastEnd()
+	{
+		var writer = new SerializerWrite();
+		writer.write((byte)1);   // 1 字节
+		var reader = new SerializerRead();
+		reader.init(writer.getBuffer(), writer.getDataSize(), 0);
+		int value;
+		// 读 int(4 字节) 超出 1 字节 → 返回 false
+		bool ok = reader.read(out value);
+		assertFalse(ok, "越界读 int 返回 false");
+	}
+
+	// 空列表往返
+	private static void testEmptyListRoundTrip()
+	{
+		var writer = new SerializerWrite();
+		writer.writeList(new List<int>());
+		var reader = new SerializerRead();
+		reader.init(writer.getBuffer(), writer.getDataSize(), 0);
+		List<int> list = new List<int>();
+		bool ok = reader.readList(list);
+		assertTrue(ok, "空列表读回成功");
+		assertEqual(0, list.Count, "空列表读回 0 个");
+	}
+
+	// 同一 reader 重新 init 复用
+	private static void testReinitReuse()
+	{
+		var writer1 = new SerializerWrite();
+		writer1.write(111);
+		var writer2 = new SerializerWrite();
+		writer2.write(222);
+
+		var reader = new SerializerRead();
+		// 第一次读
+		reader.init(writer1.getBuffer(), writer1.getDataSize(), 0);
+		int v1;
+		reader.read(out v1);
+		assertEqual(111, v1, "第一次读回 111");
+		// 重新 init 到第二个缓冲区
+		reader.init(writer2.getBuffer(), writer2.getDataSize(), 0);
+		int v2;
+		reader.read(out v2);
+		assertEqual(222, v2, "重新 init 后读回 222");
+	}
+
+	// writeBuffer 嵌套后继续写
+	private static void testNestedBuffer()
+	{
+		var writer = new SerializerWrite();
+		byte[] inner = { 7, 8, 9 };
+		writer.write((byte)1);
+		writer.writeBuffer(inner, inner.Length);
+		writer.write((byte)2);
+
+		var reader = new SerializerRead();
+		reader.init(writer.getBuffer(), writer.getDataSize(), 0);
+		byte b1; byte b2;
+		byte[] outBuf = new byte[inner.Length];
+		reader.read(out b1);
+		reader.readBuffer(outBuf, inner.Length);
+		reader.read(out b2);
+		assertEqual((byte)1, b1, "嵌套前字节");
+		assertEqual((byte)2, b2, "嵌套后字节");
+		for (int i = 0; i < inner.Length; ++i)
+		{
+			assertEqual(inner[i], outBuf[i], "嵌套缓冲第 " + i + " 字节");
+		}
 	}
 }
 

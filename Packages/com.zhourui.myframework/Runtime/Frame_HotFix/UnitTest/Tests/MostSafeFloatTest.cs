@@ -16,6 +16,10 @@ public static class MostSafeFloatTest
 		testLargeValue();
 		testEquals();
 		testOverwrite();
+		testConstructorValue();
+		testSetOverwriteSequence();
+		testStructCopyIndependent();
+		testEqualsReflexive();
 	
 
 		testTypicalValues();
@@ -216,5 +220,43 @@ public static class MostSafeFloatTest
 			m.set(v);
 			assertEqual(v, m.get(), 0.001f, $"小步进 {v}");
 		}
+	}
+
+	// ─── 组合场景 ────────────────────────────────────────────────────────
+
+	// 构造直接设值
+	private static void testConstructorValue()
+	{
+		MostSafeFloat m = new MostSafeFloat(3.25f);
+		assertEqual(3.25f, m.get(), EPSILON, "构造设值 3.25");
+		MostSafeFloat negative = new MostSafeFloat(-0.75f);
+		assertEqual(-0.75f, negative.get(), EPSILON, "构造设值 -0.75");
+	}
+
+	// 连续 set 覆盖序列
+	private static void testSetOverwriteSequence()
+	{
+		MostSafeFloat m = new MostSafeFloat();
+		m.set(1.0f);
+		m.set(2.5f);
+		m.set(3.75f);
+		assertEqual(3.75f, m.get(), EPSILON, "三次 set 后取最后值");
+	}
+
+	// 结构体复制独立
+	private static void testStructCopyIndependent()
+	{
+		MostSafeFloat a = new MostSafeFloat(5.0f);
+		MostSafeFloat copy = a;
+		copy.set(9.5f);
+		assertEqual(5.0f, a.get(), EPSILON, "原实例不受 copy 影响");
+		assertEqual(9.5f, copy.get(), EPSILON, "copy 独立取值");
+	}
+
+	// Equals 反身性(内部加密字段结构相等)
+	private static void testEqualsReflexive()
+	{
+		MostSafeFloat a = new MostSafeFloat(7.25f);
+		assertTrue(a.Equals(a), "a.Equals(a) 反身性成立");
 	}
 }

@@ -102,6 +102,10 @@ public static class UGUITextImageTest
 			});
 			ti.text = "测试<quad width=10 sprite=icon_1/>文本";
 			ti.SetVerticesDirty();
+			// 清理: TextImage.SetVerticesDirty 只在"下次重建"时销毁 mImageList 里的旧图,
+			// 故清空文本再触发一次重建, 让 mDestroyImage 销毁已创建的 QuadImgGO, 避免残留
+			ti.text = "";
+			ti.SetVerticesDirty();
 		}
 		finally
 		{

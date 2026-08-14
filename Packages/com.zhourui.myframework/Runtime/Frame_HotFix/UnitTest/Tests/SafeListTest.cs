@@ -24,9 +24,13 @@ public static class SafeListTest
 		testFind();
 		testIsForeaching();
 		testGetEnumerator();
+		testDispose();
 		testStartForeachEndForeach();
 		testClearDuringForeach();
 		testStartForeachModifySync();
+		testTwoListsIndependent();
+		testFindDefault();
+		testForeachOneModifyOther();
 
 		// --- 主列表操作 ---
 		testGetMainList();
@@ -1490,6 +1494,73 @@ public static class SafeListTest
 		assertTrue(main.Contains(2));
 		assertTrue(main.Contains(5));
 		assertFalse(main.Contains(3));
+	}
+	// Dispose: 枚举器显式释放(using 作用域结束自动调用 endForeach 结束安全遍历)
+	private static void testDispose()
+	{
+		SafeList<int> list = new SafeList<int>();
+		list.add(1);
+		list.add(2);
+		using (SafeList<int>.SafeListEnumerator enumerator = list.GetEnumerator())
+		{
+			int count = 0;
+			while (enumerator.MoveNext())
+			{
+				++count;
+			}
+			assertEqual(2, count, "枚举器遍历到 2 个元素");
+		}
+		// Dispose 后可再次遍历(安全遍历状态已复位)
+		using (SafeList<int>.SafeListEnumerator enumerator = list.GetEnumerator())
+		{
+			assertTrue(enumerator.MoveNext(), "Dispose 后重新遍历正常");
+		}
+	}
+
+	// ── 多实例组合场景 ──────────────────────────────────────────────
+	// 两个列表独立操作互不影响
+	private static void testTwoListsIndependent()
+	{
+		SafeList<int> listA = new SafeList<int>();
+		SafeList<int> listB = new SafeList<int>();
+		listA.add(1);
+		listA.add(2);
+		listB.add(10);
+		assertEqual(2, listA.count(), "listA count 2");
+		assertEqual(1, listB.count(), "listB count 1");
+		listA.clear();
+		assertEqual(0, listA.count(), "clear listA 不影响 listB");
+		assertEqual(1, listB.count(), "listB 保持 1");
+		assertTrue(listB.contains(10), "listB 元素保留");
+	}
+
+	// find 找不到返回 default
+	private static void testFindDefault()
+	{
+		SafeList<int> list = new SafeList<int>();
+		list.add(1);
+		list.add(2);
+		assertEqual(0, list.find((int v) => v == 99), "find 找不到返回 default 0");
+		assertEqual(2, list.find((int v) => v == 2), "find 命中返回值");
+	}
+
+	// 遍历 listA 时修改 listB: 互不干扰
+	private static void testForeachOneModifyOther()
+	{
+		SafeList<int> listA = new SafeList<int>();
+		SafeList<int> listB = new SafeList<int>();
+		listA.add(1);
+		listA.add(2);
+		listB.add(100);
+		int seen = 0;
+		foreach (int v in listA)
+		{
+			listB.add(v * 10);
+			++seen;
+		}
+		assertEqual(2, seen, "listA 遍历到 2 个元素");
+		assertEqual(3, listB.count(), "listB 遍历中被追加 2 个(count 3)");
+		assertTrue(listB.contains(20), "listB 包含追加的 20");
 	}
 }
 

@@ -18,6 +18,9 @@ public static class SafeModifyTest
 		testSafeListModifyString();
 		testSafeDictionaryModifyStringInt();
 		testSafeHashSetModifyInt();
+		testSafeListModifyDefault();
+		testSafeDictionaryModifyDefault();
+		testSafeHashSetModifyDefault();
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// SafeListModify
@@ -136,5 +139,34 @@ public static class SafeModifyTest
 		var remove = new SafeHashSetModify<int>(2, false);
 		assertEqual(2, remove.mValue, "int remove");
 		assertFalse(remove.mAdd, "int remove flag");
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 组合: struct 默认值
+	// ═════════════════════════════════════════════════════════════════
+
+	// SafeListModify 默认值
+	private static void testSafeListModifyDefault()
+	{
+		SafeListModify<int> mod = new SafeListModify<int>();
+		assertEqual(0, mod.mValue, "默认 mValue=0");
+		assertFalse(mod.mAdd, "默认 mAdd=false");
+		assertEqual(0, mod.mRemoveIndex, "默认 mRemoveIndex=0");
+	}
+
+	// SafeDictionaryModify 默认值
+	private static void testSafeDictionaryModifyDefault()
+	{
+		SafeDictionaryModify<int, string> mod = new SafeDictionaryModify<int, string>();
+		assertEqual(0, mod.mKey, "默认 mKey=0");
+		assertFalse(mod.mAdd, "默认 mAdd=false");
+	}
+
+	// SafeHashSetModify 默认值
+	private static void testSafeHashSetModifyDefault()
+	{
+		SafeHashSetModify<int> mod = new SafeHashSetModify<int>();
+		assertEqual(0, mod.mValue, "默认 mValue=0");
+		assertFalse(mod.mAdd, "默认 mAdd=false");
 	}
 }

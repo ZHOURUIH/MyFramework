@@ -31,6 +31,13 @@ public static class SafeDictionaryTest
 		testClearDuringForeach();
 		testStartForeachModifySync();
 		testGetEnumerator();
+		testDispose();
+		testTwoDictsIndependent();
+		testForeachOneModifyOther();
+		testAddDuplicateReturnValue();
+		testRemoveIfTrueFalse();
+		testValueUpdateSequence();
+		testClearAndReaddSequence();
 
 		// --- 主列表 ---
 		testGetMainList();
@@ -1301,6 +1308,120 @@ public static class SafeDictionaryTest
 		assertTrue(main.ContainsKey("b"));
 		assertTrue(main.ContainsKey("e"));
 		assertFalse(main.ContainsKey("c"));
+	}
+	// Dispose: 枚举器显式释放(using 作用域结束自动调用 endForeach 结束安全遍历)
+	private static void testDispose()
+	{
+		SafeDictionary<string, int> d = new();
+		d.add("x", 10);
+		d.add("y", 20);
+		using (SafeDictionary<string, int>.SafeDictionaryEnumerator enumerator = d.GetEnumerator())
+		{
+			int count = 0;
+			while (enumerator.MoveNext())
+			{
+				++count;
+			}
+			assertEqual(2, count, "枚举器遍历到 2 个元素");
+		}
+		// Dispose 后可再次遍历(安全遍历状态已复位)
+		using (SafeDictionary<string, int>.SafeDictionaryEnumerator enumerator = d.GetEnumerator())
+		{
+			assertTrue(enumerator.MoveNext(), "Dispose 后重新遍历正常");
+		}
+	}
+
+	// ── 多实例组合场景 ──────────────────────────────────────────────
+	// 两个字典独立操作互不影响
+	private static void testTwoDictsIndependent()
+	{
+		SafeDictionary<string, int> dictA = new SafeDictionary<string, int>();
+		SafeDictionary<string, int> dictB = new SafeDictionary<string, int>();
+		dictA.add("a", 1);
+		dictA.add("b", 2);
+		dictB.add("x", 100);
+		assertEqual(2, dictA.count(), "dictA count 2");
+		assertEqual(1, dictB.count(), "dictB count 1");
+		dictA.clear();
+		assertEqual(0, dictA.count(), "clear dictA 不影响 dictB");
+		assertEqual(1, dictB.count(), "dictB 保持 1");
+		assertEqual(100, dictB.get("x"), "dictB 值保留");
+	}
+
+	// 遍历 dictA 时修改 dictB: 互不干扰
+	private static void testForeachOneModifyOther()
+	{
+		SafeDictionary<string, int> dictA = new SafeDictionary<string, int>();
+		SafeDictionary<string, int> dictB = new SafeDictionary<string, int>();
+		dictA.add("k1", 1);
+		dictA.add("k2", 2);
+		dictB.add("base", 0);
+		int seen = 0;
+		foreach (var kv in dictA)
+		{
+			dictB.add("copy" + kv.Key, kv.Value);
+			++seen;
+		}
+		assertEqual(2, seen, "dictA 遍历到 2 个键");
+		assertEqual(3, dictB.count(), "dictB 被追加 2 个(count 3)");
+		assertTrue(dictB.containsKey("copyk1"), "dictB 包含追加键");
+	}
+
+	// add 重复 key 返回 false, 值不覆盖
+	private static void testAddDuplicateReturnValue()
+	{
+		SafeDictionary<string, int> d = new SafeDictionary<string, int>();
+		assertTrue(d.add("a", 1), "首次 add 返回 true");
+		bool dup = d.add("a", 99);
+		assertFalse(dup, "重复 add 返回 false");
+		assertEqual(1, d.count(), "重复 add 后 count 不变");
+		assertEqual(1, d.get("a"), "重复 add 值不覆盖(保持 1)");
+	}
+
+	// removeIf: 条件为真才删除
+	private static void testRemoveIfTrueFalse()
+	{
+		SafeDictionary<string, int> d = new SafeDictionary<string, int>();
+		d.add("a", 1);
+		d.add("b", 2);
+		assertTrue(d.removeIf("a", true), "removeIf(true) 删除成功返回 true");
+		assertFalse(d.containsKey("a"), "removeIf(true) 后 a 已删除");
+		assertFalse(d.removeIf("b", false), "removeIf(false) 不删除返回 false");
+		assertTrue(d.containsKey("b"), "removeIf(false) 后 b 保留");
+		assertEqual(1, d.count(), "count 1");
+	}
+
+	// 组合序列: add → get → removeIf → containsKey 全链路
+	private static void testValueUpdateSequence()
+	{
+		SafeDictionary<string, int> d = new SafeDictionary<string, int>();
+		d.add("hp", 100);
+		d.add("mp", 50);
+		assertEqual(100, d.get("hp"), "get hp=100");
+		assertEqual(50, d.get("mp"), "get mp=50");
+		// 组合操作序列
+		d.removeIf("mp", true);
+		d.add("atk", 30);
+		assertFalse(d.containsKey("mp"), "序列后 mp 已删除");
+		assertTrue(d.containsKey("atk"), "序列后 atk 已添加");
+		assertEqual(30, d.get("atk"), "序列后 atk=30");
+		assertEqual(2, d.count(), "序列后 count 2");
+	}
+
+	// clear 后重新 add: 字典可复用
+	private static void testClearAndReaddSequence()
+	{
+		SafeDictionary<string, int> d = new SafeDictionary<string, int>();
+		d.add("a", 1);
+		d.add("b", 2);
+		d.clear();
+		assertEqual(0, d.count(), "clear 后 count 0");
+		// 重新填充
+		d.add("x", 10);
+		d.add("y", 20);
+		d.add("z", 30);
+		assertEqual(3, d.count(), "重新 add 后 count 3");
+		assertEqual(20, d.get("y"), "重新 add 后 y=20");
 	}
 }
 

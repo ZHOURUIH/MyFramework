@@ -510,7 +510,7 @@ public static class UnityUtilityTest
 
 		logWarning("test warning");
 		log("test log");
-		log("test", "log2");
+		log("test", "7A7A7A");
 		logNoLock("test nolock");
 		assertTrue(true, "log functions called");
 	}

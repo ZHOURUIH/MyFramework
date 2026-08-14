@@ -1,3 +1,4 @@
+using System;
 using static TestAssert;
 using static FrameBaseHotFix;
 
@@ -25,6 +26,14 @@ public static class NetPacketFactoryTest
 		testDestroyPacket();
 		testCreateDestroyReuse();
 		testSetConnectAndType();
+		testDestroyNull();
+		testCreateDifferentTypes();
+		testReuseSameInstance();
+		testTypeResetOnReuse();
+		testTypeIDZero();
+		testSetConnectRoundTrip();
+		testCreateDestroyManyMixedCycles();
+		testPacketTypeIndependent();
 	}
 
 	// ═════════════════════════════════════════════════════════════════
@@ -110,5 +119,99 @@ public static class NetPacketFactoryTest
 		packet.setPacketType(0x1234);
 		assertEqual((ushort)0x1234, packet.getPacketType(), "setPacketType 后 getPacketType 应返回新值");
 		mNetPacketFactory.destroyPacket(packet);
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// destroyPacket(null): 空安全
+	// ═════════════════════════════════════════════════════════════════
+	private static void testDestroyNull()
+	{
+		mNetPacketFactory.destroyPacket(null);
+		// 无异常即通过
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 多种类型创建均成功
+	// ═════════════════════════════════════════════════════════════════
+	private static void testCreateDifferentTypes()
+	{
+		NetPacket bytePacket = mNetPacketFactory.createSocketPacket(typeof(NetPacketByte), 500);
+		NetPacket factoryPacket = mNetPacketFactory.createSocketPacket(typeof(TestFactoryPacket), 501);
+		assertTrue(bytePacket is NetPacketByte, "NetPacketByte 类型创建成功");
+		assertTrue(factoryPacket is TestFactoryPacket, "TestFactoryPacket 类型创建成功");
+		mNetPacketFactory.destroyPacket(bytePacket);
+		mNetPacketFactory.destroyPacket(factoryPacket);
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 销毁后创建复用同一实例(对象池复用)
+	// ═════════════════════════════════════════════════════════════════
+	private static void testReuseSameInstance()
+	{
+		NetPacket packet = mNetPacketFactory.createSocketPacket(typeof(TestFactoryPacket), 600);
+		NetPacket saved = packet;
+		mNetPacketFactory.destroyPacket(packet);
+		NetPacket reused = mNetPacketFactory.createSocketPacket(typeof(TestFactoryPacket), 601);
+		assertTrue(ReferenceEquals(reused, saved), "销毁后创建复用同一实例");
+		mNetPacketFactory.destroyPacket(reused);
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 复用后 packetType 重设为新 typeID(不残留旧值)
+	// ═════════════════════════════════════════════════════════════════
+	private static void testTypeResetOnReuse()
+	{
+		NetPacket packet = mNetPacketFactory.createSocketPacket(typeof(TestFactoryPacket), 700);
+		mNetPacketFactory.destroyPacket(packet);
+		// 复用时传入新 typeID
+		NetPacket reused = mNetPacketFactory.createSocketPacket(typeof(TestFactoryPacket), 701);
+		assertEqual((ushort)701, reused.getPacketType(), "复用后 packetType 重设为新 typeID");
+		mNetPacketFactory.destroyPacket(reused);
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// typeID=0: 查注册表, TestFactoryPacket 未注册 → typeID 保持 0
+	// ═════════════════════════════════════════════════════════════════
+	private static void testTypeIDZero()
+	{
+		NetPacket packet = mNetPacketFactory.createSocketPacket(typeof(TestFactoryPacket), 0);
+		assertNotNull(packet, "typeID=0 创建成功");
+		assertEqual((ushort)0, packet.getPacketType(), "未注册类型 typeID=0 时 packetType 0");
+		mNetPacketFactory.destroyPacket(packet);
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// setConnect/getConnect 往返
+	// ═════════════════════════════════════════════════════════════════
+	private static void testSetConnectRoundTrip()
+	{
+		NetPacket packet = mNetPacketFactory.createSocketPacket(typeof(TestFactoryPacket), 800);
+		NetConnect connect = new NetConnect();
+		packet.setConnect(connect);
+		assertTrue(ReferenceEquals(connect, packet.getConnect()), "setConnect 后 getConnect 同一引用");
+		mNetPacketFactory.destroyPacket(packet);
+	}
+
+	// 混合类型多轮创建/销毁
+	private static void testCreateDestroyManyMixedCycles()
+	{
+		for (int i = 0; i < 10; ++i)
+		{
+			Type type = (i % 2 == 0) ? typeof(TestFactoryPacket) : typeof(NetPacketByte);
+			NetPacket packet = mNetPacketFactory.createSocketPacket(type, (ushort)(900 + i));
+			assertNotNull(packet, "第 " + i + " 轮混合创建成功");
+			mNetPacketFactory.destroyPacket(packet);
+		}
+	}
+
+	// 两 packet 各自 typeID 独立
+	private static void testPacketTypeIndependent()
+	{
+		NetPacket a = mNetPacketFactory.createSocketPacket(typeof(TestFactoryPacket), 1000);
+		NetPacket b = mNetPacketFactory.createSocketPacket(typeof(TestFactoryPacket), 1001);
+		assertEqual((ushort)1000, a.getPacketType(), "a typeID");
+		assertEqual((ushort)1001, b.getPacketType(), "b typeID");
+		mNetPacketFactory.destroyPacket(a);
+		mNetPacketFactory.destroyPacket(b);
 	}
 }

@@ -17,6 +17,10 @@ public static class UGUICheckboxTest
 		testInteractableBlock();
 		testInteractableGetSet();
 		testLabelNullSafe();
+		testToggleMultipleTimes();
+		testClickCallbackCount();
+		testInteractableBlocksSequence();
+		testSetCheckedNoCallback();
 	}
 
 	// ═════════════════════════════════════════════════════════════════
@@ -146,11 +150,101 @@ public static class UGUICheckboxTest
 			UnityEngine.Object.DestroyImmediate(markGo);
 		}
 	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 组合: 多次点击 → 状态交替切换
+	// ═════════════════════════════════════════════════════════════════
+	private static void testToggleMultipleTimes()
+	{
+		TestUGUICheckbox box = createCheckbox(out GameObject markGo);
+		try
+		{
+			bool[] expected = { false, true, false, true };
+			// 初始未勾选, 连续点击 4 次交替
+			for (int i = 0; i < 4; ++i)
+			{
+				box.onCheckClickForTest();
+				assertEqual(expected[i], box.isChecked(), "第 " + (i + 1) + " 次点击后状态 " + expected[i]);
+			}
+		}
+		finally
+		{
+			UnityEngine.Object.DestroyImmediate(markGo);
+		}
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 组合: 每次点击回调都触发, 计数递增
+	// ═════════════════════════════════════════════════════════════════
+	private static void testClickCallbackCount()
+	{
+		TestUGUICheckbox box = createCheckbox(out GameObject markGo);
+		try
+		{
+			int callbackCount = 0;
+			box.setCheckCallback((UGUICheckbox cb) => { ++callbackCount; });
+			for (int i = 0; i < 3; ++i)
+			{
+				box.onCheckClickForTest();
+			}
+			assertEqual(3, callbackCount, "3 次点击回调触发 3 次");
+		}
+		finally
+		{
+			UnityEngine.Object.DestroyImmediate(markGo);
+		}
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 组合: 不可交互时点击被阻止, 恢复后点击生效
+	// ═════════════════════════════════════════════════════════════════
+	private static void testInteractableBlocksSequence()
+	{
+		TestUGUICheckbox box = createCheckbox(out GameObject markGo);
+		try
+		{
+			box.setChecked(true);
+			box.setInteractable(false);
+			box.onCheckClickForTest();
+			assertTrue(box.isChecked(), "不可交互时点击不改变状态");
+			// 恢复可交互
+			box.setInteractable(true);
+			box.onCheckClickForTest();
+			assertFalse(box.isChecked(), "恢复后点击生效(取消勾选)");
+		}
+		finally
+		{
+			UnityEngine.Object.DestroyImmediate(markGo);
+		}
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 组合: setChecked 直接改状态, 不触发点击回调
+	// ═════════════════════════════════════════════════════════════════
+	private static void testSetCheckedNoCallback()
+	{
+		TestUGUICheckbox box = createCheckbox(out GameObject markGo);
+		try
+		{
+			int callbackCount = 0;
+			box.setCheckCallback((UGUICheckbox cb) => { ++callbackCount; });
+			box.setChecked(true);
+			box.setChecked(false);
+			box.setChecked(true);
+			assertEqual(0, callbackCount, "setChecked 不触发回调");
+			assertTrue(box.isChecked(), "setChecked(true) 状态生效");
+		}
+		finally
+		{
+			UnityEngine.Object.DestroyImmediate(markGo);
+		}
+	}
 }
 
 // ═════════════════════════════════════════════════════════════════
 // 测试辅助: 暴露 UGUICheckbox 的 protected 字段与方法
 // ═════════════════════════════════════════════════════════════════
+// 测试辅助: 暴露 protected onCheckClick 与 mMark 注入
 public class TestUGUICheckbox : UGUICheckbox
 {
 	public TestUGUICheckbox(IWindowObjectOwner parent) : base(parent) { }

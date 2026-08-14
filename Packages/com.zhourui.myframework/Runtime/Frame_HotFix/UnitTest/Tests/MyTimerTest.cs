@@ -20,6 +20,14 @@ public static class MyTimerTest
         testSetInterval();
         testNegativeDeltaTime();
         testGetTimePercentOverOne();
+        testStopRestartCycle();
+        testLoopMultipleFires();
+        testPercentMonotonic();
+        testIntervalChangeMidway();
+        testStartResetsCurTime();
+        testEnsureIntervalToggle();
+        testResetToIntervalMidway();
+        testInitTwiceResets();
     }
 
     // ─── init 与初始状态 ─────────────────────────────────────────────────
@@ -244,5 +252,124 @@ public static class MyTimerTest
         // curTime == interval 时 = 1.0
         t.mCurTime = 1.0f;
         assert(t.getTimePercent().isEqual(1.0f, 0.001f), "getTimePercent curTime=interval=1.0");
+    }
+
+    // ─── 组合场景 ────────────────────────────────────────────────────────
+
+    // start → stop → start 循环: 每次 start 重新计时
+    private static void testStopRestartCycle()
+    {
+        var t = new MyTimer();
+        for (int i = 0; i < 3; ++i)
+        {
+            // 每轮重新 init(上一轮 stop(true) 已重置 interval=-1 不再计时)
+            t.init(0.0f, 1.0f, false);
+            assert(t.isCounting(), "第 " + (i + 1) + " 轮 init 后计时中");
+            bool fired = t.tickTimer(0.3f);
+            assert(!fired, "第 " + (i + 1) + " 轮未到不触发");
+            t.stop(true);
+            assert(!t.isCounting(), "第 " + (i + 1) + " 轮 stop 后停止");
+            t.start();
+            assert(t.isCounting(), "第 " + (i + 1) + " 轮 start 重新计时");
+            assert(t.mCurTime.isEqual(0.0f), "第 " + (i + 1) + " 轮 start 后 curTime=0");
+            t.stop(true);
+        }
+    }
+
+    // 循环模式多次触发: 计数递增
+    private static void testLoopMultipleFires()
+    {
+        var t = new MyTimer();
+        t.init(0.0f, 1.0f, true);   // loop
+        int fireCount = 0;
+        for (int i = 0; i < 5; ++i)
+        {
+            bool fired = t.tickTimer(1.0f);
+            if (fired)
+            {
+                ++fireCount;
+            }
+        }
+        assertEqual(5, fireCount, "循环模式 5 次 tick 触发 5 次");
+    }
+
+    // tick 过程中 percent 单调递增
+    private static void testPercentMonotonic()
+    {
+        var t = new MyTimer();
+        t.init(0.0f, 1.0f, true);
+        float prev = 0.0f;
+        for (int i = 1; i <= 5; ++i)
+        {
+            t.tickTimer(0.1f);
+            float cur = t.getTimePercent();
+            assert(cur >= prev - 0.001f, "percent 不递减: " + cur + " vs " + prev);
+            prev = cur;
+        }
+    }
+
+    // 计时中途 setInterval 改小 → 更快触发
+    private static void testIntervalChangeMidway()
+    {
+        var t = new MyTimer();
+        t.init(0.0f, 2.0f, false);
+        t.tickTimer(1.0f);          // 1.0/2.0
+        assert(t.isCounting(), "中途仍在计时");
+        t.setInterval(1.0f);        // 间隔改为 1
+        bool fired = t.tickTimer(0.1f);   // 1.0+0.1 ≥ 1
+        assert(fired, "改小间隔后更快触发");
+    }
+
+    // start 重置 curTime
+    private static void testStartResetsCurTime()
+    {
+        var t = new MyTimer();
+        t.init(0.0f, 1.0f, false);
+        t.tickTimer(0.5f);
+        assert(t.mCurTime.isEqual(0.5f, 0.001f), "tick 后 curTime=0.5");
+        t.stop(true);
+        t.start();
+        assert(t.mCurTime.isEqual(0.0f, 0.001f), "start 重置 curTime=0");
+    }
+
+    // ensureInterval 切换: true 溢出清零, false 溢出携带
+    private static void testEnsureIntervalToggle()
+    {
+        var t = new MyTimer();
+        t.init(0.0f, 1.0f, true);
+        // true: tick(1.5) 溢出清零
+        t.setEnsureInterval(true);
+        t.tickTimer(1.5f);
+        assert(t.mCurTime.isEqual(0.0f, 0.001f), "ensureInterval=true 溢出清零");
+        // false: tick(1.5) 溢出携带(1.5-1=0.5)
+        t.setEnsureInterval(false);
+        t.tickTimer(1.5f);
+        assert(t.mCurTime.isEqual(0.5f, 0.001f), "ensureInterval=false 溢出携带 0.5");
+    }
+
+    // 计时中途 resetToInterval: curTime 回到 interval
+    private static void testResetToIntervalMidway()
+    {
+        var t = new MyTimer();
+        t.init(0.0f, 1.0f, true);
+        t.tickTimer(0.3f);
+        assert(t.mCurTime.isEqual(0.3f, 0.001f), "tick 后 curTime=0.3");
+        t.resetToInterval();
+        assert(t.mCurTime.isEqual(1.0f, 0.001f), "resetToInterval 后 curTime=interval=1");
+        // 重置后立即触发
+        bool fired = t.tickTimer(0.0f);
+        assert(fired, "curTime=interval 后 tick 立即触发");
+    }
+
+    // 重复 init: 状态完全重置
+    private static void testInitTwiceResets()
+    {
+        var t = new MyTimer();
+        t.init(0.0f, 1.0f, true);
+        t.tickTimer(0.5f);
+        t.init(0.0f, 2.0f, false);
+        assert(t.mCurTime.isEqual(0.0f, 0.001f), "二次 init 后 curTime=0");
+        assert(t.mTimeInterval.isEqual(2.0f, 0.001f), "二次 init 后 interval=2");
+        assert(!t.mLoop, "二次 init 后 loop=false");
     }
 }

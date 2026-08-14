@@ -20,6 +20,11 @@ public static class MyUGUIDropdownTest
 		testSetSelectGetSelect();
 		testGetText();
 		testClearOptions();
+		testOptionsSelectFullChain();
+		testClearThenReaddChain();
+		testAppendOptionsSequence();
+		testDefaultSelectZero();
+		testSetSelectLastIndex();
 	}
 
 	// ═════════════════════════════════════════════════════════════════
@@ -155,6 +160,113 @@ public static class MyUGUIDropdownTest
 			assertEqual(2, dd.getDropdown().options.Count, "清空前选项数 = 2");
 			dd.clearOptions();
 			assertEqual(0, dd.getDropdown().options.Count, "clearOptions 后选项数 = 0");
+		}
+		finally
+		{
+			UnityEngine.Object.DestroyImmediate(go);
+		}
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 组合序列: 5 个选项全量遍历选中 → 每个 getText 对应
+	// ═════════════════════════════════════════════════════════════════
+	private static void testOptionsSelectFullChain()
+	{
+		myUGUIDropdown dd = createDropdown(out GameObject go);
+		try
+		{
+			List<string> options = new List<string> { "item0", "item1", "item2", "item3", "item4" };
+			dd.addOptions(options);
+			for (int i = 0; i < options.Count; ++i)
+			{
+				dd.setSelect(i);
+				assertEqual(i, dd.getSelect(), "选中第 " + i + " 项");
+				assertEqual("item" + i, dd.getText(), "getText 对应第 " + i + " 项");
+			}
+		}
+		finally
+		{
+			UnityEngine.Object.DestroyImmediate(go);
+		}
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 组合序列: 清空 → 重新 addOptions → 选中 → 读取(选项生命周期)
+	// ═════════════════════════════════════════════════════════════════
+	private static void testClearThenReaddChain()
+	{
+		myUGUIDropdown dd = createDropdown(out GameObject go);
+		try
+		{
+			List<string> first = new List<string> { "A", "B" };
+			dd.addOptions(first);
+			dd.setSelect(1);
+			assertEqual("B", dd.getText(), "第一轮选中 B");
+			// 清空后重新填充
+			dd.clearOptions();
+			List<string> second = new List<string> { "X", "Y", "Z" };
+			dd.addOptions(second);
+			dd.setSelect(2);
+			assertEqual("Z", dd.getText(), "重填后选中 Z");
+			assertEqual(2, dd.getSelect(), "重填后 getSelect 2");
+		}
+		finally
+		{
+			UnityEngine.Object.DestroyImmediate(go);
+		}
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 组合序列: 多次 addOptions 累加选项
+	// ═════════════════════════════════════════════════════════════════
+	private static void testAppendOptionsSequence()
+	{
+		myUGUIDropdown dd = createDropdown(out GameObject go);
+		try
+		{
+			dd.addOptions(new List<string> { "a", "b" });
+			dd.addOptions(new List<string> { "c", "d" });
+			dd.setSelect(3);
+			assertEqual("d", dd.getText(), "两次追加后第 4 项为 d");
+			assertEqual(3, dd.getSelect(), "getSelect 3");
+		}
+		finally
+		{
+			UnityEngine.Object.DestroyImmediate(go);
+		}
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 默认选中: addOptions 后未 setSelect → 默认选中第 0 项
+	// ═════════════════════════════════════════════════════════════════
+	private static void testDefaultSelectZero()
+	{
+		myUGUIDropdown dd = createDropdown(out GameObject go);
+		try
+		{
+			dd.addOptions(new List<string> { "first", "second" });
+			assertEqual(0, dd.getSelect(), "未 setSelect 默认 getSelect 0");
+			assertEqual("first", dd.getText(), "默认选中首项文本");
+		}
+		finally
+		{
+			UnityEngine.Object.DestroyImmediate(go);
+		}
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 边界: 选中末项(最后一个下标)
+	// ═════════════════════════════════════════════════════════════════
+	private static void testSetSelectLastIndex()
+	{
+		myUGUIDropdown dd = createDropdown(out GameObject go);
+		try
+		{
+			dd.addOptions(new List<string> { "a", "b", "c" });
+			dd.setSelect(2);
+			assertEqual("c", dd.getText(), "末项文本 c");
+			dd.setSelect(0);
+			assertEqual("a", dd.getText(), "回到首项文本 a");
 		}
 		finally
 		{

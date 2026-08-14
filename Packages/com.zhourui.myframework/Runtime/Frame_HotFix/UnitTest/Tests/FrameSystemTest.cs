@@ -21,6 +21,8 @@ public static class FrameSystemTest
 		testInitAsyncCallsCallback();
 		testInitAsyncNullCallbackSafe();
 		testGetObjectDefaultNull();
+		testCompareInitTie();
+		testSetOrdersAfterCompare();
 	}
 
 	// ─── compareInit: 按 mInitOrder 升序比较 ────────────────────────
@@ -188,6 +190,51 @@ public static class FrameSystemTest
 		finally
 		{
 			sys.destroy();
+		}
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 组合场景
+	// ═════════════════════════════════════════════════════════════════
+
+	// compareInit 同序返回 0
+	private static void testCompareInitTie()
+	{
+		FrameSystem a = new FrameSystem();
+		FrameSystem b = new FrameSystem();
+		try
+		{
+			a.setInitOrder(7);
+			b.setInitOrder(7);
+			assertEqual(0, FrameSystem.compareInit(a, b), "同 initOrder 返回 0");
+		}
+		finally
+		{
+			a.destroy();
+			b.destroy();
+		}
+	}
+
+	// 组合: 设置顺序后比较结果变化
+	private static void testSetOrdersAfterCompare()
+	{
+		FrameSystem a = new FrameSystem();
+		FrameSystem b = new FrameSystem();
+		try
+		{
+			a.setInitOrder(30);
+			b.setInitOrder(10);
+			assertTrue(FrameSystem.compareInit(a, b) > 0, "大 order 排后");
+			a.setInitOrder(5);
+			assertTrue(FrameSystem.compareInit(a, b) < 0, "改小后排前");
+			a.setDestroyOrder(2);
+			b.setDestroyOrder(4);
+			assertTrue(FrameSystem.compareDestroy(a, b) < 0, "destroyOrder 比较生效");
+		}
+		finally
+		{
+			a.destroy();
+			b.destroy();
 		}
 	}
 }

@@ -40,11 +40,7 @@ public static class GameLayoutLifecycleTest
 			}
 			// 残留检查: GameObject.Find("TestLayout") 应返回 null(destroyWindow 已销毁)
 			GameObject leftover = GameObject.Find(TEST_LAYOUT_NAME);
-			if (leftover == null)
-			{
-				UnityEngine.Debug.Log("[GameLayoutLifecycleTest] 残留检查通过: " + TEST_LAYOUT_NAME + " 已销毁");
-			}
-			else
+			if (leftover != null)
 			{
 				UnityEngine.Debug.LogError("[GameLayoutLifecycleTest] 残留节点未清理: " + TEST_LAYOUT_NAME);
 				UObject.DestroyImmediate(leftover);

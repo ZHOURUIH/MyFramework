@@ -32,6 +32,11 @@ public static class CommandTest
 		// --- onInterrupted / debugInfo ---
 		testOnInterrupted();
 		testDebugInfo();
+		testMultipleCommandsCallbackCount();
+		testCallbackAndStateCombined();
+		testInterruptTwice();
+		testStateBackToNotExecuted();
+		testSetReceiverRoundTrip();
 	}
 
 	// ─── CMD<T> 创建 ─────────────────────────────────────────────────────
@@ -246,6 +251,77 @@ public static class CommandTest
 		assertTrue(info.Length > 0, "debugInfo: 应输出非空信息");
 
 		var receiver = new TestCmdReceiver();
+		mCommandSystem.pushCommand(cmd, receiver);
+	}
+
+	// ─── 组合场景 ──────────────────────────────────────────────────────────
+
+	// push 3 个命令 → start 回调各触发一次(计数 3)
+	private static void testMultipleCommandsCallbackCount()
+	{
+		int startCount = 0;
+		for (int i = 0; i < 3; ++i)
+		{
+			CMD(out TestCmd cmd);
+			cmd.addStartCommandCallback(_ => { ++startCount; });
+			var receiver = new TestCmdReceiver();
+			mCommandSystem.pushCommand(cmd, receiver);
+		}
+		assertEqual(3, startCount, "3 个命令 start 回调各触发一次");
+	}
+
+	// push 后: state 已执行 + start 回调已触发(组合验证)
+	private static void testCallbackAndStateCombined()
+	{
+		CMD(out TestCmd cmd);
+		bool startCalled = false;
+		cmd.addStartCommandCallback(_ => { startCalled = true; });
+		var receiver = new TestCmdReceiver();
+		mCommandSystem.pushCommand(cmd, receiver);
+		// 回调在 pushCommand 内触发(start→execute→end)
+		assertTrue(startCalled, "push 后 start 回调已触发");
+		// 注意: push 后命令立即被 destroyCmd 回收(resetProperty 复位 state=NOT_EXECUTE),
+		//       不能断言 EXECUTED —— EXECUTING/EXECUTED 仅在执行瞬间存在
+		assertEqual(EXECUTE_STATE.NOT_EXECUTE, cmd.getState(), "push 回收后 state 复位 NOT_EXECUTE");
+	}
+
+	// onInterrupted 两次 → 回调两次
+	private static void testInterruptTwice()
+	{
+		CMD(out TestCmd cmd);
+		int interruptCount = 0;
+		cmd.onInterrupt = () => { ++interruptCount; };
+		cmd.onInterrupted();
+		cmd.onInterrupted();
+		assertEqual(2, interruptCount, "onInterrupted 两次触发两次回调");
+
+		var receiver = new TestCmdReceiver();
+		mCommandSystem.pushCommand(cmd, receiver);
+	}
+
+	// resetProperty 是回收语义(ClassObject.resetProperty 置 mHasDestroy=true),
+	// resetProperty 后命令处于回收态, push 必然 logError("cmd is invalid") —— 无法安全验证回调清空, 删除
+	// state 可流转回 NOT_EXECUTE
+	private static void testStateBackToNotExecuted()
+	{
+		CMD(out TestCmd cmd);
+		cmd.setState(EXECUTE_STATE.EXECUTING);
+		cmd.setState(EXECUTE_STATE.EXECUTED);
+		cmd.setState(EXECUTE_STATE.NOT_EXECUTE);
+		assertEqual(EXECUTE_STATE.NOT_EXECUTE, cmd.getState(), "state 流转回 NOT_EXECUTE");
+
+		var receiver = new TestCmdReceiver();
+		mCommandSystem.pushCommand(cmd, receiver);
+	}
+
+	// setReceiver 往返
+	private static void testSetReceiverRoundTrip()
+	{
+		CMD(out TestCmd cmd);
+		var receiver = new TestCmdReceiver();
+		cmd.setReceiver(receiver);
+		assertTrue(ReferenceEquals(receiver, cmd.getReceiver()), "setReceiver 后 getReceiver 同一引用");
+
 		mCommandSystem.pushCommand(cmd, receiver);
 	}
 }

@@ -15,6 +15,17 @@ public static class ComponentKeyFrameTest
 		testStopFromPause();
 		testStopIdempotent();
 		testTremblingPercent();
+		testTremblingPercentFullRange();
+		testStopResetsTime();
+		testPauseIdempotentThenStop();
+		testSetOnceLengthRoundTrip();
+		testSetKeyframeIDRoundTrip();
+		testSetLoopToggle();
+		testTremblingHalfOnceLength();
+		testSetOffsetRoundTrip();
+		testNotifyBreakSafe();
+		testGetCurrentTimeDefault();
+		testGetCurValueDefault();
 	}
 
 	// ═════════════════════════════════════════════════════════════════
@@ -70,6 +81,118 @@ public static class ComponentKeyFrameTest
 		assertEqual(0.5f, kf.getTremblingPercent(), 0.001f, "0.5/1 = 0.5");
 		kf.setCurrentTimeForTest(0.0f);
 		assertEqual(0.0f, kf.getTremblingPercent(), 0.001f, "0/1 = 0");
+	}
+
+	// getTremblingPercent 全范围: mCurrentTime/mOnceLength(无 saturate, 超 1 直接返回)
+	private static void testTremblingPercentFullRange()
+	{
+		TestComponentKeyFrame kf = createKeyFrame();
+		kf.setCurrentTimeForTest(0.25f);
+		assertEqual(0.25f, kf.getTremblingPercent(), 0.001f, "0.25/1 = 0.25");
+		kf.setCurrentTimeForTest(1.0f);
+		assertEqual(1.0f, kf.getTremblingPercent(), 0.001f, "1/1 = 1");
+		kf.setCurrentTimeForTest(2.0f);
+		assertEqual(2.0f, kf.getTremblingPercent(), 0.001f, "2/1 = 2(无 saturate)");
+	}
+
+	// 组合: stop 复位播放时间
+	// 注意: stop 首行 `if (mPlayState == STOP && !force) return` 早退,
+	// 默认 STOP 状态直接 return 不复位时间 → 必须先从非 STOP 状态 stop
+	private static void testStopResetsTime()
+	{
+		TestComponentKeyFrame kf = createKeyFrame();
+		kf.setCurrentTimeForTest(0.5f);
+		assertEqual(0.5f, kf.getTremblingPercent(), 0.001f, "设置时间后 percent 0.5");
+		// 进入 PAUSE(非 STOP), stop 才会执行复位逻辑
+		kf.pause();
+		kf.stop();
+		assertTrue(kf.getPlayStateForTest() == PLAY_STATE.STOP, "stop 后 STOP");
+		assertEqual(0.0f, kf.getTremblingPercent(), 0.001f, "stop 复位时间 → percent 0");
+	}
+
+	// 组合: pause 幂等 + pause 后 stop 回 STOP
+	private static void testPauseIdempotentThenStop()
+	{
+		TestComponentKeyFrame kf = createKeyFrame();
+		kf.pause();
+		assertTrue(kf.getPlayStateForTest() == PLAY_STATE.PAUSE, "首次 pause → PAUSE");
+		kf.pause();
+		assertTrue(kf.getPlayStateForTest() == PLAY_STATE.PAUSE, "重复 pause 幂等");
+		kf.stop();
+		assertTrue(kf.getPlayStateForTest() == PLAY_STATE.STOP, "pause 后 stop → STOP");
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 深度组合: setter 往返 + trembling 数学
+	// ═════════════════════════════════════════════════════════════════
+
+	// setOnceLength 往返
+	private static void testSetOnceLengthRoundTrip()
+	{
+		TestComponentKeyFrame kf = createKeyFrame();
+		kf.setOnceLength(2.0f);
+		assertEqual(2.0f, kf.getOnceLengthForTest(), 0.001f, "setOnceLength(2) 读回 2");
+		kf.setOnceLength(0.5f);
+		assertEqual(0.5f, kf.getOnceLengthForTest(), 0.001f, "setOnceLength(0.5) 读回 0.5");
+	}
+
+	// setKeyframeID 往返
+	private static void testSetKeyframeIDRoundTrip()
+	{
+		TestComponentKeyFrame kf = createKeyFrame();
+		kf.setKeyframeID(KEY_CURVE.QUAD_IN);
+		assertEqual(KEY_CURVE.QUAD_IN, kf.getKeyframeID(), "setKeyframeID 读回");
+	}
+
+	// setLoop 切换
+	private static void testSetLoopToggle()
+	{
+		TestComponentKeyFrame kf = createKeyFrame();
+		kf.setLoop(false);
+		assertFalse(kf.isLoopForTest(), "setLoop(false) 后非循环");
+		kf.setLoop(true);
+		assertTrue(kf.isLoopForTest(), "setLoop(true) 恢复循环");
+	}
+
+	// trembling = currentTime / onceLength 数学
+	private static void testTremblingHalfOnceLength()
+	{
+		TestComponentKeyFrame kf = createKeyFrame();
+		kf.setCurrentTimeForTest(0.5f);
+		kf.setOnceLength(2.0f);
+		assertEqual(0.25f, kf.getTremblingPercent(), 0.001f, "trembling=0.5/2=0.25");
+	}
+
+	// setOffset 往返(offset 不影响 trembling 数学)
+	private static void testSetOffsetRoundTrip()
+	{
+		TestComponentKeyFrame kf = createKeyFrame();
+		kf.setOffset(0.5f);
+		assertEqual(0.5f, kf.getOffset(), 0.001f, "setOffset 读回");
+		kf.setOffset(-0.25f);
+		assertEqual(-0.25f, kf.getOffset(), 0.001f, "负 offset 读回");
+	}
+
+	// notifyBreak 空安全(IComponentBreakable)
+	private static void testNotifyBreakSafe()
+	{
+		TestComponentKeyFrame kf = createKeyFrame();
+		kf.notifyBreak();
+		// 无异常即通过
+	}
+
+	// 默认 currentTime 0
+	private static void testGetCurrentTimeDefault()
+	{
+		TestComponentKeyFrame kf = createKeyFrame();
+		assertEqual(0.0f, kf.getCurrentTime(), 0.001f, "默认 currentTime 0");
+	}
+
+	// 默认 curValue 0
+	private static void testGetCurValueDefault()
+	{
+		TestComponentKeyFrame kf = createKeyFrame();
+		assertEqual(0.0f, kf.getCurValue(), 0.001f, "默认 curValue 0");
 	}
 }
 

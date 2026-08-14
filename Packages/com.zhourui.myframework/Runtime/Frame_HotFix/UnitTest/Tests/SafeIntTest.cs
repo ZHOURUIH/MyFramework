@@ -26,6 +26,12 @@ public static class SafeIntTest
 		testInterleavedInstances();
 		testSameValueAcrossInstances_IndependentCipher();
 		testZeroAndPositiveSequence();
+		testConstructorValue();
+		testSetOverwriteSequence();
+		testStructCopyIndependent();
+		testEqualsReflexive();
+		testEqualsCopy();
+		testZeroAfterSet();
 	}
 
 	// ─── set / get 基本读写 ──────────────────────────────────────────────
@@ -233,5 +239,61 @@ public static class SafeIntTest
 			si.set(v);
 			assertEqual(v, si.get(), $"正数序列 {v}");
 		}
+	}
+
+	// ─── 组合场景 ────────────────────────────────────────────────────────
+
+	// 构造直接设值
+	private static void testConstructorValue()
+	{
+		SafeInt si = new SafeInt(42);
+		assertEqual(42, si.get(), "构造设值 42");
+		SafeInt negative = new SafeInt(-7);
+		assertEqual(-7, negative.get(), "构造设值 -7");
+	}
+
+	// 连续 set 覆盖序列
+	private static void testSetOverwriteSequence()
+	{
+		SafeInt si = new SafeInt();
+		si.set(1);
+		si.set(2);
+		si.set(3);
+		assertEqual(3, si.get(), "三次 set 后取最后值");
+		si.set(100);
+		assertEqual(100, si.get(), "再次 set 覆盖");
+	}
+
+	// 结构体复制独立: copy 改值不影响原实例
+	private static void testStructCopyIndependent()
+	{
+		SafeInt a = new SafeInt(5);
+		SafeInt copy = a;
+		copy.set(9);
+		assertEqual(5, a.get(), "原实例不受 copy 影响");
+		assertEqual(9, copy.get(), "copy 独立取值");
+	}
+
+	// Equals 反身性(内部加密字段结构相等)
+	private static void testEqualsReflexive()
+	{
+		SafeInt a = new SafeInt(7);
+		assertTrue(a.Equals(a), "a.Equals(a) 反身性成立");
+	}
+
+	// 结构体复制后 Equals 成立(字段完全一致)
+	private static void testEqualsCopy()
+	{
+		SafeInt a = new SafeInt(7);
+		SafeInt copy = a;
+		assertTrue(copy.Equals(a), "复制实例 Equals 成立");
+	}
+
+	// set(0) 后 get 0
+	private static void testZeroAfterSet()
+	{
+		SafeInt si = new SafeInt(5);
+		si.set(0);
+		assertEqual(0, si.get(), "set(0) 后 get 0");
 	}
 }

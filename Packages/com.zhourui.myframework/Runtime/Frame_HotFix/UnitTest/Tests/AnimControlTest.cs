@@ -22,6 +22,8 @@ public static class AnimControlTest
 		testSetPlayDirection();
 		testSetInterval();
 		testSetSpeed();
+		testGetSpeed();
+		testSetObject();
 		testUpdateNotPlaying();
 		testUpdateOnceComplete();
 		testUpdateLoopMode();
@@ -325,5 +327,26 @@ public static class AnimControlTest
 		ac.update(1.0f);
 		// playingCallback 应在帧切换时触发
 		assertTrue(lastFrame >= 0, "playingCallback 被触发");
+	}
+
+	// getSpeed: interval → speed 换算(intervalToSpeed(interval) = 0.0333/interval, MathUtility.cs:2595)
+	private static void testGetSpeed()
+	{
+		var ac = new AnimControl();
+		ac.setInterval(0.0333f);
+		assertEqual(1.0f, ac.getSpeed(), 0.01f, "interval 0.0333 → speed 1(30fps)");
+		ac.setInterval(0.0666f);
+		assertEqual(0.5f, ac.getSpeed(), 0.01f, "interval 0.0666 → speed 0.5");
+		ac.setInterval(0.01665f);
+		assertEqual(2.0f, ac.getSpeed(), 0.01f, "interval 0.01665 → speed 2");
+	}
+
+	// setObject: 纯字段存储控制窗口(无 getter, 验证不抛 + 非 null 对象与 null 均安全)
+	private static void testSetObject()
+	{
+		var ac = new AnimControl();
+		ac.setObject(new myUGUIObject());
+		ac.setObject(null);
+		// 无 getter, 无异常即通过
 	}
 }

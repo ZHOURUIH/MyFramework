@@ -14,6 +14,10 @@ public static class KeyFrameManagerTest
 		testGetKeyFrame_UnknownID_ReturnsNull();
 		testIsLoadDone_DefaultFalse();
 		testDestroy_ClearsList();
+		testGetKeyFrameMultipleBuiltin();
+		testLoadAllAfterDestroy();
+		testGetKeyFrameAllBuiltin();
+		testBuiltinCurveEndpointsFinite();
 	}
 
 	// loadAllCalculatedCurve: 静态纯填充, 无副作用, 可重复调用
@@ -120,5 +124,90 @@ public static class KeyFrameManagerTest
 		assertNull(mgr.getKeyFrame(KEY_CURVE.ZERO_ONE), "destroy 后曲线列表被清空");
 		// destroy 幂等: 二次调用不抛异常
 		mgr.destroy();
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 组合: 多个内置曲线都能取到且可 evaluate
+	// ═════════════════════════════════════════════════════════════════
+	private static void testGetKeyFrameMultipleBuiltin()
+	{
+		KeyFrameManager mgr = new KeyFrameManager();
+		try
+		{
+			MyCurve zeroOne = mgr.getKeyFrame(KEY_CURVE.ZERO_ONE);
+			MyCurve sineOut = mgr.getKeyFrame(KEY_CURVE.SINE_OUT);
+			MyCurve quadIn = mgr.getKeyFrame(KEY_CURVE.QUAD_IN);
+			assertTrue(zeroOne != null && sineOut != null && quadIn != null, "多个内置曲线均非空");
+			// 每个曲线在 0.5 处可 evaluate 且结果有限
+			float v0 = zeroOne.evaluate(0.5f);
+			float v1 = sineOut.evaluate(0.5f);
+			float v2 = quadIn.evaluate(0.5f);
+			assertTrue(!float.IsNaN(v0) && !float.IsNaN(v1) && !float.IsNaN(v2), "各曲线 evaluate 非 NaN");
+		}
+		finally
+		{
+			mgr.destroy();
+		}
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 组合: destroy 后静态 loadAllCalculatedCurve 仍正常(静态函数与实例状态无关)
+	// ═════════════════════════════════════════════════════════════════
+	private static void testLoadAllAfterDestroy()
+	{
+		KeyFrameManager mgr = new KeyFrameManager();
+		mgr.destroy();
+		// destroy 后静态填充仍正常工作
+		Dictionary<int, MyCurve> curveList = new();
+		KeyFrameManager.loadAllCalculatedCurve(curveList);
+		assertTrue(curveList.Count > 0, "destroy 后 loadAllCalculatedCurve 仍填充内置曲线");
+		assertTrue(curveList.ContainsKey(KEY_CURVE.ZERO_ONE), "destroy 后仍包含 ZERO_ONE");
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 组合: 全部内置曲线 ID 都能取到且可 evaluate
+	// ═════════════════════════════════════════════════════════════════
+	private static void testGetKeyFrameAllBuiltin()
+	{
+		KeyFrameManager mgr = new KeyFrameManager();
+		try
+		{
+			// 实际内置曲线范围 ZERO_ONE(2)..SINE_IN_OUT(35); MAX_BUILDIN_CURVE=100 是预留上限(含空洞)
+			int found = 0;
+			for (int id = KEY_CURVE.ZERO_ONE; id <= KEY_CURVE.SINE_IN_OUT; ++id)
+			{
+				MyCurve curve = mgr.getKeyFrame(id);
+				assertTrue(curve != null, "内置曲线 ID " + id + " 应存在");
+				float v = curve.evaluate(0.5f);
+				assertTrue(!float.IsNaN(v) && !float.IsInfinity(v), "内置曲线 ID " + id + " evaluate(0.5) 有限");
+				++found;
+			}
+			assertTrue(found >= 30, "内置曲线数量应不少于 30, 实际 " + found);
+		}
+		finally
+		{
+			mgr.destroy();
+		}
+	}
+
+	// 内置曲线端点 evaluate 有限(不炸)
+	private static void testBuiltinCurveEndpointsFinite()
+	{
+		KeyFrameManager mgr = new KeyFrameManager();
+		try
+		{
+			for (int id = KEY_CURVE.ZERO_ONE; id <= KEY_CURVE.SINE_IN_OUT; ++id)
+			{
+				MyCurve curve = mgr.getKeyFrame(id);
+				float v0 = curve.evaluate(0.0f);
+				float v1 = curve.evaluate(1.0f);
+				assertTrue(!float.IsNaN(v0) && !float.IsInfinity(v0), "ID " + id + " evaluate(0) 有限");
+				assertTrue(!float.IsNaN(v1) && !float.IsInfinity(v1), "ID " + id + " evaluate(1) 有限");
+			}
+		}
+		finally
+		{
+			mgr.destroy();
+		}
 	}
 }

@@ -16,6 +16,7 @@ public class SpanExtensionTest
 		testIsEmpty();
 		testContains();
 		testBytesToString();
+		testRandom();
 	}
 	
 	// 测试 ForI 方法
@@ -285,5 +286,23 @@ public class SpanExtensionTest
 		Span<byte> bytes3 = Encoding.UTF8.GetBytes("Test");
 		result = bytes3.bytesToString(null);
 		assertEqual("Test", result);
+	}
+
+	// random: 空 Span 返回 default, 单元素恒返回该元素, 多元素结果在范围内
+	private static void testRandom()
+	{
+		// 空 Span
+		Span<int> empty = new int[0];
+		assertEqual(0, empty.random(), "空 Span random 返回 default");
+		// 单元素
+		Span<int> single = new int[] { 42 };
+		assertEqual(42, single.random(), "单元素 random 恒返回该元素");
+		// 多元素: 结果在范围内
+		Span<int> multi = new int[] { 1, 2, 3, 4, 5 };
+		for (int i = 0; i < 20; ++i)
+		{
+			int v = multi.random();
+			assertTrue(v >= 1 && v <= 5, "random 结果在范围内: " + v);
+		}
 	}
 }

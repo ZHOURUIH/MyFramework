@@ -8,9 +8,11 @@ using UnityEngine.EventSystems;
 // myUGUIObject 中纯静态/轻量的方法
 public static class MyUGUIObjectTest
 {
-    public static void Run()
-    {
-        testDefaultClickSound();
+	public static void Run()
+	{
+		// 复现测试放第一位: 确保只要本类被调用就必然执行, 不受前面任何测试失败中断影响
+		testSetSiblingAfterDestroy();
+		testDefaultClickSound();
         testDestroyWindowNull();
     
 
@@ -46,7 +48,6 @@ public static class MyUGUIObjectTest
 		testCallbackStorage();
 		testAlphaWithChild();
 		testSibling();
-		testSetSiblingAfterDestroy();
 		testSortChild();
 		testAddLongPress();
 		testNotifyAnchorApply();
@@ -803,20 +804,34 @@ public static class MyUGUIObjectTest
 		myUGUIObject ui = new myUGUIObject();
 		ui.setObject(go);
 		ui.init();
+		RectTransform rt = ui.getRectTransform();
+		assertNotNull(rt, "init 后 getRectTransform 非 null");
+
 		// 按框架规范销毁窗口: setDestroyImmediately(true) + destroyWindow 立即销毁,
-		// 模拟窗口被销毁但 myUGUIObject 实例仍被外部持有(与线上 UIScene 场景一致)
+		// 与线上(UIScene 持有窗口引用, 窗口被销毁)路径一致
 		ui.setDestroyImmediately(true);
 		myUGUIObject.destroyWindow(ui, true);
+
+		// 销毁后 RectTransform 必须处于"已销毁"状态(UnityEngine.Object == null 判定, 所有模式成立)
+		bool rtDestroyed = rt == null;
+		assertTrue(rtDestroyed, "destroyWindow(true) 后 RectTransform 仍有效——销毁未生效, 请检查 destroyWindow 链路");
+
+		// 复现线上崩溃: setSibling → mTransform.GetSiblingIndex() 访问已销毁 RectTransform
+		// 编辑器交互模式抛 MissingReferenceException(消息含 "has been destroyed")
 		bool threw = false;
+		string exceptionMsg = "";
 		try
 		{
 			ui.setSibling(0);
 		}
-		catch (Exception)
+		catch (Exception e)
 		{
 			threw = true;
+			exceptionMsg = e.GetType().Name + ": " + e.Message;
 		}
-		assertTrue(threw, "复现: 已销毁窗口调用 setSibling 应抛异常(当前框架缺陷, 待修复)");
+		assertTrue(threw, "复现失败: 已销毁窗口调用 setSibling 未抛异常(RectTransform已销毁=" + rtDestroyed +
+			")——请在编辑器交互模式(非批处理/非Player)运行测试");
+		assertTrue(exceptionMsg.Contains("destroyed"), "复现出的异常不是'已销毁对象访问': " + exceptionMsg);
 	}
 
 	// sortChild: 按 sibling index 排序内部 mChildList

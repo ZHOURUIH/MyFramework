@@ -35,6 +35,16 @@ public static class InputSystemTest
 		testMultipleListenersIndependent();
 		testUnlistenNonExistent();
 		testSameKeyMultipleListeners();
+		testEnableKeyToggle();
+		testActiveInputToggle();
+		testIsSupportKeyDefault();
+		testSetMouseVisibleRestore();
+		testListenWithCombinationKey();
+		testUnlistenThenRelisten();
+		testListenMultipleCallbacksSameListener();
+		testMaskChangeDoesNotAffectListen();
+		testEnableKeyFalseStillListen();
+		testUnlistenOnlyOneListener();
 	}
 
 	// ═════════════════════════════════════════════════════════════════
@@ -245,6 +255,136 @@ public static class InputSystemTest
 		assertEqual(1, sys.GetKeyListenCount(KeyCode.W), "移除l1后剩l2的1个");
 		assertEqual(0, sys.GetListenerInfoCount(l1), "l1信息清空");
 		assertEqual(1, sys.GetListenerInfoCount(l2), "l2信息保留");
+	}
+	// setEnableKey/isEnableKey: 按键响应开关(纯字段)
+	private static void testEnableKeyToggle()
+	{
+		InputSystem input = new();
+		assertTrue(input.isEnableKey(), "默认启用按键");
+		input.setEnableKey(false);
+		assertFalse(input.isEnableKey(), "setEnableKey(false) 后禁用");
+		input.setEnableKey(true);
+		assertTrue(input.isEnableKey(), "setEnableKey(true) 恢复");
+	}
+
+	// setActiveInput/getActiveInput: 输入检测开关(纯字段)
+	private static void testActiveInputToggle()
+	{
+		InputSystem input = new();
+		assertTrue(input.getActiveInput(), "默认启用输入检测");
+		input.setActiveInput(false);
+		assertFalse(input.getActiveInput(), "setActiveInput(false) 后关闭");
+		input.setActiveInput(true);
+		assertTrue(input.getActiveInput(), "setActiveInput(true) 恢复");
+	}
+
+	// isSupportKey: 默认按键列表为空 → 任意键不支持
+	private static void testIsSupportKeyDefault()
+	{
+		InputSystem input = new();
+		assertFalse(input.isSupportKey(KeyCode.W), "默认空按键列表 isSupportKey false");
+		assertFalse(input.isSupportKey(KeyCode.Space), "默认空按键列表 isSupportKey false");
+	}
+
+	// setMouseVisible: 编辑器下可调用, 测后恢复光标状态
+	private static void testSetMouseVisibleRestore()
+	{
+		InputSystem input = new();
+		bool origin = Cursor.visible;
+		try
+		{
+			input.setMouseVisible(false);
+			assertFalse(Cursor.visible, "setMouseVisible(false) 生效");
+			input.setMouseVisible(true);
+			assertTrue(Cursor.visible, "setMouseVisible(true) 生效");
+		}
+		finally
+		{
+			Cursor.visible = origin;
+		}
+	}
+
+	// listenKeyCurrentDown 组合键参数: 注册正常写入
+	private static void testListenWithCombinationKey()
+	{
+		var sys = new TestInputSystem();
+		var listener = new TestListener();
+		sys.listenKeyCurrentDown(KeyCode.W, () => { }, listener, COMBINATION_KEY.CTRL);
+		assertEqual(1, sys.GetKeyListenCount(KeyCode.W), "组合键注册后 W 键 1 个回调");
+		assertEqual(1, sys.GetListenerInfoCount(listener), "监听者注册 1 条信息");
+		sys.listenKeyCurrentDown(KeyCode.W, () => { }, listener, COMBINATION_KEY.SHIFT);
+		assertEqual(2, sys.GetKeyListenCount(KeyCode.W), "同键再次注册累计 2 个回调");
+	}
+
+	// listen null 回调: 不崩, 注册信息仍写入
+	// unlisten 后重新 listen: 再次注册正常
+	private static void testUnlistenThenRelisten()
+	{
+		var sys = new TestInputSystem();
+		var listener = new TestListener();
+		sys.listenKeyCurrentDown(KeyCode.W, () => { }, listener);
+		sys.unlistenKey(listener);
+		assertEqual(0, sys.GetKeyListenCount(KeyCode.W), "unlisten 后 W 键回调清空");
+		assertEqual(0, sys.GetListenerInfoCount(listener), "unlisten 后监听者信息清空");
+		// 重新注册
+		sys.listenKeyCurrentDown(KeyCode.W, () => { }, listener);
+		assertEqual(1, sys.GetKeyListenCount(KeyCode.W), "unlisten 后重新注册正常");
+		assertEqual(1, sys.GetListenerInfoCount(listener), "重新注册监听者信息 1 条");
+	}
+
+	// 同一监听者多键多回调: 各键独立计数
+	private static void testListenMultipleCallbacksSameListener()
+	{
+		var sys = new TestInputSystem();
+		var listener = new TestListener();
+		sys.listenKeyCurrentDown(KeyCode.W, () => { }, listener);
+		sys.listenKeyCurrentDown(KeyCode.A, () => { }, listener);
+		sys.listenKeyCurrentDown(KeyCode.S, () => { }, listener);
+		sys.listenKeyCurrentDown(KeyCode.D, () => { }, listener);
+		assertEqual(1, sys.GetKeyListenCount(KeyCode.W), "W 键 1 个回调");
+		assertEqual(1, sys.GetKeyListenCount(KeyCode.D), "D 键 1 个回调");
+		assertEqual(4, sys.GetListenerInfoCount(listener), "监听者累计 4 条信息");
+	}
+
+	// mask 变化不影响已注册的 listen
+	private static void testMaskChangeDoesNotAffectListen()
+	{
+		var sys = new TestInputSystem();
+		var listener = new TestListener();
+		sys.listenKeyCurrentDown(KeyCode.W, () => { }, listener);
+		assertEqual(1, sys.GetKeyListenCount(KeyCode.W), "注册 1 个回调");
+		// 切换 mask 不影响 listen 存储
+		sys.setMask(FOCUS_MASK.SCENE);
+		sys.setMask(FOCUS_MASK.UI);
+		assertEqual(1, sys.GetKeyListenCount(KeyCode.W), "mask 切换后 W 键回调不变");
+		assertEqual(1, sys.GetListenerInfoCount(listener), "mask 切换后监听者信息不变");
+	}
+
+	// setEnableKey(false) 只影响按键响应, 不影响 listen 注册
+	private static void testEnableKeyFalseStillListen()
+	{
+		var sys = new TestInputSystem();
+		var listener = new TestListener();
+		sys.setEnableKey(false);
+		assertFalse(sys.isEnableKey(), "禁用按键响应");
+		// 禁用状态下注册监听仍正常写入
+		sys.listenKeyCurrentDown(KeyCode.W, () => { }, listener);
+		assertEqual(1, sys.GetKeyListenCount(KeyCode.W), "禁用按键时 listen 仍注册成功");
+	}
+
+	// 两个监听者, unlisten 一个不影响另一个
+	private static void testUnlistenOnlyOneListener()
+	{
+		var sys = new TestInputSystem();
+		var listenerA = new TestListener();
+		var listenerB = new TestListener();
+		sys.listenKeyCurrentDown(KeyCode.W, () => { }, listenerA);
+		sys.listenKeyCurrentDown(KeyCode.W, () => { }, listenerB);
+		assertEqual(2, sys.GetKeyListenCount(KeyCode.W), "同键两个监听者 2 个回调");
+		sys.unlistenKey(listenerA);
+		assertEqual(1, sys.GetKeyListenCount(KeyCode.W), "unlisten A 后剩 1 个回调");
+		assertEqual(0, sys.GetListenerInfoCount(listenerA), "A 信息已清空");
+		assertEqual(1, sys.GetListenerInfoCount(listenerB), "B 信息保留");
 	}
 }
 

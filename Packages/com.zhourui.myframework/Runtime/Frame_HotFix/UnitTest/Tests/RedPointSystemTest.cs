@@ -72,6 +72,8 @@ public static class RedPointSystemTest
 		testReparentRecomputesState();
 		testFullRefreshRecomputesTree();
 		testCountUISync();
+		testNotifyRedPointChanged();
+		testRemovePointUI();
 	}
 
 	// 创建局部 RedPointSystem
@@ -386,6 +388,40 @@ public static class RedPointSystemTest
 		assertFalse(ui.isActive(), "count=0 UI 不激活");
 		assertEqual("0", text.mLastText, "文本显示0");
 
+		sys.destroyRedPoint(count);
+		DestroyUI(ui);
+	}
+
+	// notifyRedPointChanged: 叶节点手动通知改变(合法路径, 无子节点)
+	private static void testNotifyRedPointChanged()
+	{
+		var sys = CreateSystem();
+		var leaf = CreateLeaf(sys);
+		// 叶节点手动通知(无子节点 → 合法, 不报错)
+		sys.notifyRedPointChanged(leaf);
+		// 通知本身不改变状态
+		assertFalse(leaf.isEnable(), "通知后叶节点状态不变(默认 false)");
+		// 启用后再次通知 → 状态保持
+		leaf.setEnable(true);
+		sys.notifyRedPointChanged(leaf);
+		assertTrue(leaf.isEnable(), "通知后已启用状态保持");
+	}
+
+	// removePointUI: 移除绑定后 setCount 不再更新文本
+	private static void testRemovePointUI()
+	{
+		var sys = CreateSystem();
+		RedPointCount count = sys.createRedPoint<RedPointCount>();
+		var ui = CreateUI();
+		var text = new TestUGUIText();
+		// 绑定并更新
+		count.setPointUI(ui, text);
+		count.setCount(5);
+		assertEqual("5", text.mLastText, "绑定后 setCount 更新文本");
+		// 移除绑定后 setCount 不再更新文本
+		count.removePointUI(ui, text);
+		count.setCount(3);
+		assertEqual("5", text.mLastText, "移除后 setCount 不再更新文本(保持 5)");
 		sys.destroyRedPoint(count);
 		DestroyUI(ui);
 	}

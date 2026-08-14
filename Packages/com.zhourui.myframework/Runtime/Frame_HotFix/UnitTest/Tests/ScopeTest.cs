@@ -28,6 +28,11 @@ public static class ScopeTest
 		testDicScope();
 		testHashSetScope();
 		testHashSetScope2();
+		testDisposeExplicit();
+		testDisposeExplicit2();
+		testNestedDifferentScopeTypes();
+		testNestedSameTypeScope();
+		testSequentialScopes();
 		testMyStringBuilderScope();
 		testMyStringBuilderScope2();
 	}
@@ -152,6 +157,138 @@ public static class ScopeTest
 			assertEqual(1, s0.Count, "s0 可写读");
 			assertEqual(1, s1.Count, "s1 可写读");
 		}
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// Dispose 显式调用 — 释放后对象回到池, 再次获取不崩
+	// ═════════════════════════════════════════════════════════════════
+	private static void testDisposeExplicit()
+	{
+		// ListScope.Dispose
+		ListScope<int> listScope = new ListScope<int>(out var list);
+		assertNotNull(list, "ListScope 获取 List 非空");
+		list.Add(7);
+		listScope.Dispose();
+		// ListScope2.Dispose(双 List)
+		ListScope2<int> listScope2 = new ListScope2<int>(out var l0, out var l1);
+		l0.Add(1);
+		l1.Add(2);
+		assertEqual(1, l0.Count, "l0 可写");
+		assertEqual(1, l1.Count, "l1 可写");
+		listScope2.Dispose();
+		// ArrayScope.Dispose(数组)
+		ArrayScope<int> arrayScope = new ArrayScope<int>(out var arr, 4);
+		assertEqual(4, arr.Length, "ArrayScope 数组长度 4");
+		arr[0] = 9;
+		arrayScope.Dispose();
+		// Dispose 后再次使用不崩(对象池可继续分配)
+		using (new ListScope<int>(out var list2))
+		{
+			assertNotNull(list2, "Dispose 后重新获取 List 正常");
+		}
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// Dispose 显式调用 2 — ClassScope/ClassScope2/DicScope/HashSetScope2
+	// ═════════════════════════════════════════════════════════════════
+	private static void testDisposeExplicit2()
+	{
+		// ClassScope.Dispose
+		ClassScope<TestScopeObject> classScope = new ClassScope<TestScopeObject>(out var c0);
+		assertNotNull(c0, "ClassScope 获取对象非空");
+		classScope.Dispose();
+		// ClassScope2.Dispose(双对象)
+		ClassScope2<TestScopeObject> classScope2 = new ClassScope2<TestScopeObject>(out var c1, out var c2);
+		assertNotNull(c1, "ClassScope2 第一个对象非空");
+		assertNotNull(c2, "ClassScope2 第二个对象非空");
+		classScope2.Dispose();
+		// DicScope.Dispose
+		DicScope<string, int> dicScope = new DicScope<string, int>(out var dict);
+		assertNotNull(dict, "DicScope 获取字典非空");
+		dict["k"] = 1;
+		dicScope.Dispose();
+		// HashSetScope2.Dispose(双 HashSet)
+		HashSetScope2<int> hashScope2 = new HashSetScope2<int>(out var h0, out var h1);
+		assertNotNull(h0, "HashSetScope2 第一个集合非空");
+		assertNotNull(h1, "HashSetScope2 第二个集合非空");
+		h0.Add(3);
+		hashScope2.Dispose();
+		// Dispose 后重新使用不崩
+		using (new DicScope<string, int>(out var dict2))
+		{
+			assertNotNull(dict2, "Dispose 后重新获取字典正常");
+		}
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 嵌套组合: 不同类型 scope 嵌套使用
+	// ═════════════════════════════════════════════════════════════════
+	private static void testNestedDifferentScopeTypes()
+	{
+		using (new ListScope<int>(out var list))
+		{
+			list.Add(1);
+			list.Add(2);
+			// 内嵌 DicScope
+			using (new DicScope<string, int>(out var dict))
+			{
+				dict["a"] = list.Count;
+				assertEqual(2, dict["a"], "内嵌字典读取外层列表 count");
+				// 再内嵌 HashSetScope
+				using (new HashSetScope<int>(out var set))
+				{
+					set.Add(10);
+					assertTrue(set.Contains(10), "最内层集合可写");
+				}
+			}
+			// 外层列表不受内层释放影响
+			assertEqual(2, list.Count, "内层 scope 释放后外层列表完好");
+			assertEqual(1, list[0], "外层列表元素 1 完好");
+		}
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 嵌套组合: 同类型 scope 嵌套
+	// ═════════════════════════════════════════════════════════════════
+	private static void testNestedSameTypeScope()
+	{
+		using (new ListScope<int>(out var outer))
+		{
+			outer.Add(1);
+			using (new ListScope<int>(out var inner))
+			{
+				inner.Add(2);
+				assertEqual(2, inner[0], "内层列表可写");
+			}
+			assertEqual(1, outer.Count, "外层列表不受内层影响");
+			assertEqual(1, outer[0], "外层元素完好");
+		}
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 顺序组合: 多个 scope 交替获取与释放
+	// ═════════════════════════════════════════════════════════════════
+	private static void testSequentialScopes()
+	{
+		// 顺序使用 3 个 scope(各自独立作用域)
+		int sum = 0;
+		using (new ListScope<int>(out var list1))
+		{
+			list1.Add(10);
+			sum += list1[0];
+		}
+		using (new ListScope<int>(out var list2))
+		{
+			list2.Add(20);
+			list2.Add(30);
+			sum += list2[0] + list2[1];
+		}
+		using (new ListScope<int>(out var list3))
+		{
+			list3.Add(40);
+			sum += list3[0];
+		}
+		assertEqual(100, sum, "顺序 scope 求和 10+20+30+40=100");
 	}
 
 	// ═════════════════════════════════════════════════════════════════

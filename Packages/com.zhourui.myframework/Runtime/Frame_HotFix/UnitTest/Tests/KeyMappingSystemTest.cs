@@ -21,6 +21,13 @@ public static class KeyMappingSystemTest
         testSetKeyMappingKeyNone();
         testGetKeyListNameNone();
         testGetKeyMappingList();
+        testGetKeyNameDefault();
+        testKeyMappingResetProperty();
+        testKeyListenInfoResetProperty();
+        testFullPipeline();
+        testMultipleMappingsIndependent();
+        testSetDefaultKeyMappingOverwrite();
+        testSetKeyMappingKeepsDefault();
     }
 
     static KeyMappingSystem createSystem()
@@ -165,5 +172,110 @@ public static class KeyMappingSystemTest
         assertTrue(list.ContainsKey(1), "list contains mapping 1");
         assertTrue(list.ContainsKey(2), "list contains mapping 2");
         assertEqual(2, list.Count, "list has 2 entries");
+    }
+
+    // ---- getKeyName default (未注册键返回空串) ----
+    static void testGetKeyNameDefault()
+    {
+        KeyMappingSystem sys = createSystem();
+        assertEqual("", sys.getKeyName(KeyCode.Q), "getKeyName 未注册键返回空串");
+        assertEqual("", sys.getKeyName(KeyCode.None), "getKeyName(None) 返回空串");
+    }
+
+    // ---- KeyMapping.resetProperty: 纯字段复位 ----
+    static void testKeyMappingResetProperty()
+    {
+        KeyMapping mapping = new KeyMapping();
+        mapping.mMappingID = 7;
+        mapping.mDefaultKey = KeyCode.A;
+        mapping.mKey = KeyCode.B;
+        mapping.mMappingName = "Move";
+        mapping.resetProperty();
+        assertEqual(0, mapping.mMappingID, "resetProperty 后 mMappingID=0");
+        assertEqual(KeyCode.None, mapping.mDefaultKey, "resetProperty 后 mDefaultKey=None");
+        assertEqual(KeyCode.None, mapping.mKey, "resetProperty 后 mKey=None");
+        assertTrue(mapping.mMappingName == null, "resetProperty 后 mMappingName=null");
+    }
+
+    // ---- KeyListenInfo.resetProperty: 纯字段复位 ----
+    static void testKeyListenInfoResetProperty()
+    {
+        KeyListenInfo info = new KeyListenInfo();
+        info.mCallback = () => { };
+        info.mKey = KeyCode.W;
+        info.mCombinationKey = COMBINATION_KEY.CTRL;
+        info.resetProperty();
+        assertTrue(info.mCallback == null, "resetProperty 后 mCallback=null");
+        assertEqual(KeyCode.None, info.mKey, "resetProperty 后 mKey=None");
+        assertEqual(COMBINATION_KEY.NONE, info.mCombinationKey, "resetProperty 后组合键=NONE");
+    }
+
+    // ---- 全链路组合: 注册 → 查询 → 更新 → 默认键 → actionName → 列表 ----
+    static void testFullPipeline()
+    {
+        KeyMappingSystem sys = createSystem();
+        // 注册
+        assertTrue(sys.setKeyMapping(1, KeyCode.W, "Move"), "注册 Move");
+        assertTrue(sys.setKeyMapping(2, KeyCode.Space, "Jump"), "注册 Jump");
+        // 查询
+        assertEqual(KeyCode.W, sys.getKeyMapping(1), "查询映射 1");
+        assertEqual("Move", sys.getKeyMappingActionName(1), "查询 actionName");
+        // 更新(同 ID)
+        assertTrue(sys.setKeyMapping(1, KeyCode.UpArrow), "更新映射 1 按键");
+        assertEqual(KeyCode.UpArrow, sys.getKeyMapping(1), "更新后按键为 UpArrow");
+        assertEqual("Move", sys.getKeyMappingActionName(1), "更新不覆盖 actionName");
+        // 设置默认键
+        sys.setDefaultKeyMapping(1, KeyCode.W);
+        assertEqual(KeyCode.W, sys.getDefaultMappingKey(1), "默认键设置为 W");
+        assertEqual(KeyCode.UpArrow, sys.getKeyMapping(1), "当前键不受默认键影响");
+        // 列表完整性
+        var list = sys.getKeyMappingList();
+        assertEqual(2, list.Count, "列表含 2 组映射");
+        assertTrue(list.ContainsKey(2), "列表含映射 2");
+    }
+
+    // ---- 多组映射独立更新 ----
+    static void testMultipleMappingsIndependent()
+    {
+        KeyMappingSystem sys = createSystem();
+        sys.setKeyMapping(1, KeyCode.W, "Move");
+        sys.setKeyMapping(2, KeyCode.A, "Left");
+        sys.setKeyMapping(3, KeyCode.S, "Back");
+        // 更新映射 2 不影响其他
+        sys.setKeyMapping(2, KeyCode.D, "Right");
+        assertEqual(KeyCode.W, sys.getKeyMapping(1), "映射 1 不变");
+        assertEqual(KeyCode.D, sys.getKeyMapping(2), "映射 2 已更新");
+        assertEqual(KeyCode.S, sys.getKeyMapping(3), "映射 3 不变");
+        assertEqual("Right", sys.getKeyMappingActionName(2), "映射 2 actionName 更新");
+        assertEqual(3, sys.getKeyMappingList().Count, "3 组映射都在");
+    }
+
+    // ═════════════════════════════════════════════════════════════════
+    // 组合场景
+    // ═════════════════════════════════════════════════════════════════
+
+    // setDefaultKeyMapping 两次覆盖: 第二次生效
+    static void testSetDefaultKeyMappingOverwrite()
+    {
+        KeyMappingSystem sys = createSystem();
+        sys.setKeyMapping(1, KeyCode.W, "Move");
+        sys.setDefaultKeyMapping(1, KeyCode.A);
+        assertEqual(KeyCode.A, sys.getDefaultMappingKey(1), "第一次默认 A");
+        sys.setDefaultKeyMapping(1, KeyCode.S);
+        assertEqual(KeyCode.S, sys.getDefaultMappingKey(1), "第二次覆盖为 S");
+        // 当前绑定 key 不受默认值影响
+        assertEqual(KeyCode.W, sys.getKeyMapping(1), "当前绑定仍 W");
+    }
+
+    // setKeyMapping 覆盖后 getDefaultMappingKey 保留原默认
+    static void testSetKeyMappingKeepsDefault()
+    {
+        KeyMappingSystem sys = createSystem();
+        sys.setKeyMapping(1, KeyCode.W, "Move");
+        sys.setDefaultKeyMapping(1, KeyCode.A);
+        // 覆盖当前绑定为 D, 默认值 A 保留
+        sys.setKeyMapping(1, KeyCode.D, "Move");
+        assertEqual(KeyCode.D, sys.getKeyMapping(1), "当前绑定更新为 D");
+        assertEqual(KeyCode.A, sys.getDefaultMappingKey(1), "默认值 A 保留");
     }
 }

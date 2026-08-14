@@ -14,6 +14,12 @@ public static class NetPacketTest
 		testDebugInfo();
 		testShowInfoDefault();
 		testResetProperty();
+		testEqualsDifferentInstances();
+		testHashCodeUnique();
+		testSetPacketTypeSequence();
+		testResetPropertyClearsType();
+		testDebugInfoContainsType();
+		testExecuteAfterReset();
 	}
 
 	// 测试用子类(非抽象,用于覆盖基类虚方法)
@@ -102,5 +108,60 @@ public static class NetPacketTest
 		{
 			throw new System.Exception("Assertion failed: " + message);
 		}
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 深度组合
+	// ═════════════════════════════════════════════════════════════════
+
+	// 不同实例 Equals false(mPacketID 不同)
+	private static void testEqualsDifferentInstances()
+	{
+		var a = new TestPacket();
+		var b = new TestPacket();
+		assertFalse(a.Equals(b), "不同实例 Equals false");
+	}
+
+	// 不同实例 GetHashCode 不同
+	private static void testHashCodeUnique()
+	{
+		var a = new TestPacket();
+		var b = new TestPacket();
+		assertNotEquals(a, b, "不同实例 HashCode 不同");
+	}
+
+	// 多次 setPacketType 覆盖
+	private static void testSetPacketTypeSequence()
+	{
+		var pkt = new TestPacket();
+		pkt.setPacketType(1);
+		pkt.setPacketType(2);
+		pkt.setPacketType(3);
+		assertEqual((ushort)3, pkt.getPacketType(), "三次 set 后取最后值");
+	}
+
+	// resetProperty 清 mType(代码中 mType=0 实际执行)
+	private static void testResetPropertyClearsType()
+	{
+		var pkt = new TestPacket();
+		pkt.setPacketType(1234);
+		pkt.resetProperty();
+		assertEqual((ushort)0, pkt.getPacketType(), "resetProperty 后 type 复位 0");
+	}
+
+	// debugInfo 含类型名
+	private static void testDebugInfoContainsType()
+	{
+		var pkt = new TestPacket();
+		assertTrue(pkt.debugInfo().Contains("TestPacket"), "debugInfo 含类名");
+	}
+
+	// resetProperty 后 execute 仍空操作
+	private static void testExecuteAfterReset()
+	{
+		var pkt = new TestPacket();
+		pkt.resetProperty();
+		pkt.execute();
+		// 无异常即通过
 	}
 }

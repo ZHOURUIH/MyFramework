@@ -171,6 +171,10 @@ public static class MathUtilityTest
 		testSpeedIntervalRoundtrip();
 		testTimeConversionRoundtrip();
 		testNearestFarthestChain();
+		testBezierPathLengthMonotonic();
+		testLerpChainComposition();
+		testProjectionReflectionChain();
+		testMinMaxLerpChain();
 		testIndexToXYRoundtrip();
 	}
 
@@ -2049,5 +2053,98 @@ public static class MathUtilityTest
 		assertEqual(0, intPosToIndex(0, 0, width), "原点 index=0");
 		assertEqual(width - 1, intPosToIndex(width - 1, 0, width), "第一行末 index=width-1");
 		assertEqual(width, intPosToIndex(0, 1, width), "第二行起点 index=width");
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 组合链 1: Bezier 细分 → 路径长度单调收敛(越细分路径越长, 逼近曲线真实长度)
+	// ═════════════════════════════════════════════════════════════════
+	private static void testBezierPathLengthMonotonic()
+	{
+		// 返回版本 getBezierPoints(List<Vector3>, bool, int) 需要 List 而非 IList
+		List<Vector3> pts = new List<Vector3> { new(0, 0, 0), new(1, 2, 0), new(3, 1, 0), new(4, 3, 0) };
+		float prevLength = 0.0f;
+		for (int detail = 2; detail <= 40; detail += 2)
+		{
+			List<Vector3> curve = getBezierPoints(pts, false, detail);
+			float len = generatePathLength(curve);
+			assertTrue(len >= prevLength - 0.001f, "细分越多路径越长: detail=" + detail + " len=" + len + " prev=" + prevLength);
+			prevLength = len;
+		}
+		// 极限验证: 细分 40 段路径长于细分 2 段
+		List<Vector3> coarse = getBezierPoints(pts, false, 2);
+		List<Vector3> fine = getBezierPoints(pts, false, 40);
+		assertTrue(generatePathLength(fine) > generatePathLength(coarse), "细分 40 段路径长于细分 2 段");
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 组合链 2: 多段插值组合等价于单次插值(插值结合律)
+	// v1 = lerp(a, b, t1); v2 = lerp(v1, b, t2) == lerp(a, b, t1 + t2 - t1*t2)
+	// ═════════════════════════════════════════════════════════════════
+	private static void testLerpChainComposition()
+	{
+		float a = 10.0f;
+		float b = 100.0f;
+		float t1 = 0.4f;
+		float t2 = 0.5f;
+		float v1 = lerp(a, b, t1);
+		float v2 = lerp(v1, b, t2);
+		float combined = t1 + t2 - t1 * t2;
+		float direct = lerp(a, b, combined);
+		assertTrue(v2.isEqual(direct, 0.0001f), "两段插值组合等价直接插值: v2=" + v2 + " direct=" + direct);
+		// 三段链
+		float t3 = 0.3f;
+		float v3 = lerp(v2, b, t3);
+		float c2 = combined + t3 - combined * t3;
+		float direct2 = lerp(a, b, c2);
+		assertTrue(v3.isEqual(direct2, 0.0001f), "三段插值组合等价直接插值");
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 组合链 3: 投影分解 + 反射两次还原
+	// v = 投影分量 + 垂直分量; 对同一法线反射两次回到原向量
+	// ═════════════════════════════════════════════════════════════════
+	private static void testProjectionReflectionChain()
+	{
+		Vector3 v = new(3.0f, 4.0f, 0.0f);
+		Vector3 normal = new(1.0f, 0.0f, 0.0f);
+		// 投影分量 + 垂直分量 = 原向量
+		Vector3 proj = getProjection(v, normal);
+		Vector3 rest = v - proj;
+		assertTrue((proj + rest).isEqual(v, 0.0001f), "投影+垂直分量还原原向量");
+		// 投影分量与法线平行
+		Vector3 cross = proj.cross(normal);
+		assertTrue(cross.isZero(0.0001f), "投影分量与法线平行");
+		// 反射两次还原: getReflection 内部 normalize 入射线, 返回单位方向向量,
+		// 两次反射后应还原为原方向(与原向量 normalize 一致)
+		Vector3 reflected = getReflection(v, normal);
+		Vector3 reflectedTwice = getReflection(reflected, normal);
+		assertTrue(reflectedTwice.isEqual(v.normalize(), 0.0001f), "反射两次还原原方向: " + reflectedTwice + " vs " + v.normalize());
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 组合链 4: min/max 夹逼 + lerp 结果始终在区间内 + 逐分量 min<=max
+	// ═════════════════════════════════════════════════════════════════
+	private static void testMinMaxLerpChain()
+	{
+		float minV = 10.0f;
+		float maxV = 90.0f;
+		for (int i = 0; i <= 10; ++i)
+		{
+			float t = i / 10.0f;
+			float v = lerp(minV, maxV, t);
+			assertTrue(v >= getMin(minV, maxV) && v <= getMax(minV, maxV), "插值结果在区间内 t=" + t);
+		}
+		// getMinVector3/getMaxVector3 组合
+		Vector3 va = new(5, 20, 15);
+		Vector3 vb = new(10, 3, 30);
+		Vector3 minVec = getMinVector3(va, vb);
+		Vector3 maxVec = getMaxVector3(va, vb);
+		assertEqual(5.0f, minVec.x, 0.0001f, "minVec.x = min(5,10)");
+		assertEqual(20.0f, maxVec.y, 0.0001f, "maxVec.y = max(20,3)");
+		assertEqual(30.0f, maxVec.z, 0.0001f, "maxVec.z = max(15,30)");
+		for (int i = 0; i < 3; ++i)
+		{
+			assertTrue(minVec[i] <= maxVec[i], "逐分量 min <= max, index=" + i);
+		}
 	}
 }

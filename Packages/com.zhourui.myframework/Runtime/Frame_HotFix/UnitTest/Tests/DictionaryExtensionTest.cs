@@ -72,6 +72,7 @@ public static class DictionaryExtensionTest
         testContainsValuePredicate();
         testFindKeyByKeyPredicateOut();
         testFindValueByKeyPredicateOut();
+        testSetOnly();
     }
 
     // ─── isEmpty / count ─────────────────────────────────────────────────
@@ -806,6 +807,20 @@ public static class DictionaryExtensionTest
         var empty = new Dictionary<int, string>();
         found = empty.findValue((Predicate<int>)(k => true), out string emptyVal);
         assert(!found, "findValue Key pred out empty → false");
+    }
+
+    // setOnly: 仅当 key 存在时更新值(不存在忽略, 不新增)
+    private static void testSetOnly()
+    {
+        var dict = new Dictionary<string, int>();
+        dict["a"] = 1;
+        // key 存在 → 更新
+        dict.setOnly("a", 99);
+        assertEqual(99, dict["a"], "setOnly 已存在 key 更新值");
+        // key 不存在 → 忽略(不新增)
+        dict.setOnly("zz", 5);
+        assertFalse(dict.ContainsKey("zz"), "setOnly 不存在的 key 不新增");
+        assertEqual(1, dict.Count, "setOnly 后 count 不变");
     }
 
     public class TestDictClass : ClassObject { }

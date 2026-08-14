@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using static TestAssert;
 
 // ExcelTable 纯逻辑函数测试：decodeFile 解密/checkPath 路径检查/checkStringValue 文本检查
@@ -17,6 +18,26 @@ public static class ExcelTableTest
 		testCheckStringValueSame();
 		testCheckStringValueDifferent();
 		testCheckStringValueOneEmpty();
+		testTableNameGetSet();
+		testIsFileOpenedInitialFalse();
+		testSetTableFileBytesOpened();
+		testParseFileEmptyBuffer();
+		testSetTableFileBytesThenParse();
+		testSetDataTypeAndResourceAvailable();
+		testCheckStringValueListSame();
+		testCheckStringValueUshortSame();
+		testCheckAllDataEmptySafe();
+		testDecodeFileSameTableDeterministic();
+		testDecodeFileLengthPreserved();
+		testDecodeFileLargeBuffer();
+		testDecodeFileAllZero();
+		testDecodeFileRoundTripMultiple();
+		testDecodeFileAllFF();
+		testDecodeFileEmptyTableName();
+		testDecodeFileLongTableName();
+		testDecodeFileDifferentLengths();
+		testSetTableFileBytesNullSafe();
+		testIsFileOpenedAfterSetBytes();
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	private static void testDecodeFileBasic()
@@ -163,5 +184,256 @@ public static class ExcelTableTest
 	private static void testCheckStringValueOneEmpty()
 	{
 		// checkStringValue 对空/非空不匹配会 logError（源码预期行为），跳过
+	}
+
+	// ── 实例组合场景 ─────────────────────────────────────────────────
+
+	// setTableName/getTableName 往返
+	private static void testTableNameGetSet()
+	{
+		ExcelTable table = new ExcelTable();
+		assertTrue(table.getTableName() == null, "默认表名为 null");
+		table.setTableName("TestTable");
+		assertEqual("TestTable", table.getTableName(), "setTableName 读回");
+	}
+
+	// 新表未打开文件
+	private static void testIsFileOpenedInitialFalse()
+	{
+		ExcelTable table = new ExcelTable();
+		assertFalse(table.isFileOpened(), "新表 isFileOpened false");
+	}
+
+	// setTableFileBytes 后 isFileOpened true(组合: 设置文件字节打开状态)
+	private static void testSetTableFileBytesOpened()
+	{
+		ExcelTable table = new ExcelTable();
+		table.setTableName("Test");
+		table.setTableFileBytes(new byte[] { 1, 2, 3, 4 });
+		assertTrue(table.isFileOpened(), "setTableFileBytes 后 isFileOpened true");
+	}
+
+	// parseFile 空缓冲: 无异常且不打开(无数据可解析)
+	private static void testParseFileEmptyBuffer()
+	{
+		ExcelTable table = new ExcelTable();
+		table.setTableName("Test");
+		table.parseFile(new byte[0]);
+		// 空数据无内容可解析, 不会打开文件
+		assertFalse(table.isFileOpened(), "parseFile 空缓冲后 isFileOpened false");
+	}
+
+	// 组合: setTableFileBytes 置数据 → 打开; 置 null → 关闭
+	private static void testSetTableFileBytesThenParse()
+	{
+		ExcelTable table = new ExcelTable();
+		table.setTableName("Test");
+		byte[] data = { 0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70, 0x80 };
+		table.setTableFileBytes(data);
+		assertTrue(table.isFileOpened(), "setTableFileBytes 后打开");
+		// 置 null 清理文件字节 → 关闭状态
+		table.setTableFileBytes(null);
+		assertFalse(table.isFileOpened(), "setTableFileBytes(null) 后关闭");
+	}
+
+	// setDataType / setResourceAvailable 调用安全
+	private static void testSetDataTypeAndResourceAvailable()
+	{
+		ExcelTable table = new ExcelTable();
+		table.setDataType(typeof(ExcelData));
+		table.setResourceAvailable(true);
+		table.setResourceAvailable(false);
+		// 无异常即通过
+	}
+
+	// checkStringValue 列表版本: 相同列表不报错
+	private static void testCheckStringValueListSame()
+	{
+		ExcelTable table = new ExcelTable();
+		table.setTableName("Test");
+		List<string> cur = new List<string> { "a", "b", "c" };
+		List<string> suppose = new List<string> { "a", "b", "c" };
+		table.checkStringValue(cur, suppose, 1);
+		// 相同列表无异常即通过
+	}
+
+	// checkStringValue ushort id 版本: 相同值不报错
+	private static void testCheckStringValueUshortSame()
+	{
+		ExcelTable table = new ExcelTable();
+		table.setTableName("Test");
+		table.checkStringValue("hello", "hello", (ushort)5);
+		// 相同值无异常即通过
+	}
+
+	// 空表 checkAllData: 基类默认空实现, 无数据不报错
+	private static void testCheckAllDataEmptySafe()
+	{
+		ExcelTable table = new ExcelTable();
+		table.setTableName("Test");
+		table.checkAllData();
+		// 空表无异常即通过
+	}
+	// 注: checkPath 依赖真实文件系统(编辑器下 isFileExist 检查, 文件不存在→logError),
+	//     且反斜杠/空格分支是源码固定 logError —— 测试环境不可安全测试, 已删除
+
+	// ═════════════════════════════════════════════════════════════════
+	// decodeFile 组合(纯静态函数, 可安全测试)
+	// ═════════════════════════════════════════════════════════════════
+
+	// 同表名同 buffer 两次 decode → 结果一致(确定性)
+	private static void testDecodeFileSameTableDeterministic()
+	{
+		byte[] data1 = new byte[] { 0x11, 0x22, 0x33, 0x44 };
+		byte[] data2 = (byte[])data1.Clone();
+		ExcelTable.decodeFile(data1, "SameTable");
+		ExcelTable.decodeFile(data2, "SameTable");
+		for (int i = 0; i < data1.Length; ++i)
+		{
+			assertEqual(data1[i], data2[i], "同表名同 buffer 第 " + i + " 字节一致");
+		}
+	}
+
+	// decode 后长度不变
+	private static void testDecodeFileLengthPreserved()
+	{
+		byte[] data = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
+		int length = data.Length;
+		ExcelTable.decodeFile(data, "LenTable");
+		assertEqual(length, data.Length, "decode 后长度不变");
+	}
+
+	// 大 buffer(1000 字节)decode 不崩
+	private static void testDecodeFileLargeBuffer()
+	{
+		byte[] data = new byte[1000];
+		for (int i = 0; i < data.Length; ++i)
+		{
+			data[i] = (byte)(i * 7);
+		}
+		ExcelTable.decodeFile(data, "LargeTable");
+		// 无异常且长度保持
+		assertEqual(1000, data.Length, "大 buffer decode 后长度保持");
+	}
+
+	// 全 0 buffer
+	private static void testDecodeFileAllZero()
+	{
+		byte[] data = new byte[16];
+		byte[] original = (byte[])data.Clone();
+		ExcelTable.decodeFile(data, "ZeroTable");
+		bool changed = false;
+		for (int i = 0; i < data.Length; ++i)
+		{
+			if (data[i] != original[i])
+			{
+				changed = true;
+				break;
+			}
+		}
+		assertTrue(changed, "全 0 buffer decode 后应变化(有内容时)");
+	}
+
+	// 多种表名各自解码确定性(相同输入相同输出)
+	private static void testDecodeFileRoundTripMultiple()
+	{
+		string[] tables = { "TableA", "TableB", "TableC" };
+		foreach (string table in tables)
+		{
+			byte[] data1 = new byte[] { 0x55, 0x66, 0x77, 0x88, 0x99 };
+			byte[] data2 = (byte[])data1.Clone();
+			ExcelTable.decodeFile(data1, table);
+			ExcelTable.decodeFile(data2, table);
+			for (int i = 0; i < data1.Length; ++i)
+			{
+				assertEqual(data1[i], data2[i], "表 " + table + " 确定性第 " + i + " 字节");
+			}
+		}
+	}
+
+	// 全 0xFF buffer 解码确定性
+	private static void testDecodeFileAllFF()
+	{
+		byte[] data1 = new byte[8];
+		for (int i = 0; i < data1.Length; ++i)
+		{
+			data1[i] = 0xFF;
+		}
+		byte[] data2 = (byte[])data1.Clone();
+		ExcelTable.decodeFile(data1, "FFTable");
+		ExcelTable.decodeFile(data2, "FFTable");
+		for (int i = 0; i < data1.Length; ++i)
+		{
+			assertEqual(data1[i], data2[i], "全 FF 第 " + i + " 字节确定性");
+		}
+	}
+
+	// 空表名 decode 不崩且确定性
+	private static void testDecodeFileEmptyTableName()
+	{
+		byte[] data1 = new byte[] { 1, 2, 3, 4 };
+		byte[] data2 = (byte[])data1.Clone();
+		ExcelTable.decodeFile(data1, "");
+		ExcelTable.decodeFile(data2, "");
+		for (int i = 0; i < data1.Length; ++i)
+		{
+			assertEqual(data1[i], data2[i], "空表名第 " + i + " 字节确定性");
+		}
+	}
+
+	// 长表名(MD5 输入变化)确定性
+	private static void testDecodeFileLongTableName()
+	{
+		byte[] data1 = new byte[] { 0x0A, 0x1B, 0x2C, 0x3D };
+		byte[] data2 = (byte[])data1.Clone();
+		string longName = "ThisIsAVeryLongTableName_20260814_ForTestingPurpose_ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+		ExcelTable.decodeFile(data1, longName);
+		ExcelTable.decodeFile(data2, longName);
+		for (int i = 0; i < data1.Length; ++i)
+		{
+			assertEqual(data1[i], data2[i], "长表名第 " + i + " 字节确定性");
+		}
+	}
+
+	// 不同长度 buffer 各自解码确定性
+	private static void testDecodeFileDifferentLengths()
+	{
+		int[] lengths = { 1, 2, 3, 7, 16, 33 };
+		foreach (int len in lengths)
+		{
+			byte[] data1 = new byte[len];
+			for (int i = 0; i < len; ++i)
+			{
+				data1[i] = (byte)(i * 3 + 1);
+			}
+			byte[] data2 = (byte[])data1.Clone();
+			ExcelTable.decodeFile(data1, "Len" + len);
+			ExcelTable.decodeFile(data2, "Len" + len);
+			for (int i = 0; i < len; ++i)
+			{
+				assertEqual(data1[i], data2[i], "长度 " + len + " 第 " + i + " 字节确定性");
+			}
+		}
+	}
+
+	// setTableFileBytes(null) 空安全(纯赋值)
+	private static void testSetTableFileBytesNullSafe()
+	{
+		ExcelTable table = new ExcelTable();
+		table.setTableFileBytes(null);
+		table.setTableFileBytes(new byte[] { 1, 2, 3 });
+		table.setTableFileBytes(null);
+		// 无异常即通过
+	}
+
+	// isFileOpened 随 bytes 设置变化
+	private static void testIsFileOpenedAfterSetBytes()
+	{
+		ExcelTable table = new ExcelTable();
+		assertFalse(table.isFileOpened(), "默认未打开");
+		table.setTableFileBytes(new byte[] { 9, 8, 7 });
+		assertTrue(table.isFileOpened(), "设置 bytes 后已打开");
+		table.setTableFileBytes(null);
+		assertFalse(table.isFileOpened(), "清空 bytes 后未打开");
 	}
 }
