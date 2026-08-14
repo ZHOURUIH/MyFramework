@@ -2,7 +2,7 @@
 	"name": "com.zhourui.easyecs",
 	"displayName": "EasyECS",
 	"version": "1.0.0",
-	"description": "Use ECS as OOP",
+	"description": "OOP-compatible SoA data layout optimizer for Unity.",
 	"keywords": [
 		"unity",
 		"ecs",
@@ -13,6 +13,13 @@
 		"email": "785130190@qq.com",
 		"url": "https://github.com/ZHOURUIH/MyFramework"
 	},
+	"samples": [
+		{
+			"displayName": "Benchmark",
+			"description": "EasyECS correctness, lifecycle and performance benchmark.",
+			"path": "Samples~/Benchmark"
+		}
+	],
 	"dependencies": {
 	}
 }
