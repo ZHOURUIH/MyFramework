@@ -763,6 +763,32 @@ Demo 已经在 `Packages/manifest.json` 中配置 MyFramework、HybridCLR 和 Ob
 
 ---
 
+### ⚡ EasyECS 数据布局优化
+
+MyFramework 中包含独立的 **EasyECS** 插件，用于在尽量保持普通 OOP 开发方式的前提下，将热点数据自动转换为更适合 CPU Cache 的 SoA（Structure of Arrays）存储布局。
+
+EasyECS 不是 Unity Entities / DOTS 的替代品，也不是一套完整 ECS Framework。
+
+它主要解决的是：
+
+> 已有 OOP 项目不希望整体迁移 ECS，但又希望针对角色、怪物、子弹、位置、速度、战斗属性等大量热点数据进行 SoA 优化的问题。
+
+普通 Struct 只需要添加 Attribute：
+
+```csharp
+using EasyECS;
+
+[ECS]
+public struct RoleData
+{
+	public int mHP;
+	public float mSpeed;
+	public float mPositionX;
+	public float mPositionY;
+	[NotECS] public int mID;
+	[NotECS] public int mModelID;
+}
+```
 
 ## 💬 社区交流
 
