@@ -26,6 +26,11 @@ public static class ComponentKeyFrameTest
 		testNotifyBreakSafe();
 		testGetCurrentTimeDefault();
 		testGetCurValueDefault();
+		testSetDoingCallbackInterrupt();
+		testSetDoingCallbackNull();
+		testSetDoneCallbackInterrupt();
+		testSetUpdateInFixedTickToggle();
+		testNotifyBreakClearsCallbacks();
 	}
 
 	// ═════════════════════════════════════════════════════════════════
@@ -193,6 +198,66 @@ public static class ComponentKeyFrameTest
 	{
 		TestComponentKeyFrame kf = createKeyFrame();
 		assertEqual(0.0f, kf.getCurValue(), 0.001f, "默认 curValue 0");
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 回调中断语义: setCallback 时旧回调以 isBreak=true 被调用
+	// ═════════════════════════════════════════════════════════════════
+
+	// setDoingCallback 替换时旧回调中断
+	private static void testSetDoingCallbackInterrupt()
+	{
+		TestComponentKeyFrame kf = createKeyFrame();
+		bool oldCalled = false;
+		bool oldBreak = false;
+		kf.setDoingCallback((com, isBreak) =>
+		{
+			oldCalled = true;
+			oldBreak = isBreak;
+		});
+		kf.setDoingCallback((com, isBreak) => { });
+		assertTrue(oldCalled, "旧回调被调用");
+		assertTrue(oldBreak, "旧回调以中断标记调用");
+	}
+
+	// setDoingCallback(null) 使旧回调中断
+	private static void testSetDoingCallbackNull()
+	{
+		TestComponentKeyFrame kf = createKeyFrame();
+		bool oldCalled = false;
+		kf.setDoingCallback((com, isBreak) => { oldCalled = true; });
+		kf.setDoingCallback(null);
+		assertTrue(oldCalled, "set null 时旧回调中断调用");
+	}
+
+	// setDoneCallback 替换时旧回调中断
+	private static void testSetDoneCallbackInterrupt()
+	{
+		TestComponentKeyFrame kf = createKeyFrame();
+		bool oldCalled = false;
+		kf.setDoneCallback((com, isBreak) => { oldCalled = true; });
+		kf.setDoneCallback((com, isBreak) => { });
+		assertTrue(oldCalled, "done 旧回调被调用");
+	}
+
+	// setUpdateInFixedTick 切换不炸
+	private static void testSetUpdateInFixedTickToggle()
+	{
+		TestComponentKeyFrame kf = createKeyFrame();
+		kf.setUpdateInFixedTick(true);
+		kf.setUpdateInFixedTick(false);
+		// 无异常即通过
+	}
+
+	// notifyBreak 清空回调: 再次 set null 不触发中断
+	private static void testNotifyBreakClearsCallbacks()
+	{
+		TestComponentKeyFrame kf = createKeyFrame();
+		kf.setDoingCallback((com, isBreak) => { });
+		kf.setDoneCallback((com, isBreak) => { });
+		kf.notifyBreak();
+		// notifyBreak 内部 set null, 已清空无中断调用
+		// 无异常即通过
 	}
 }
 

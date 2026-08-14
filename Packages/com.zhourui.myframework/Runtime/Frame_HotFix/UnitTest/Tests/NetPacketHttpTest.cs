@@ -20,6 +20,10 @@ public static class NetPacketHttpTest
 		testMultiInstanceUrlIndependent();
 		testWriteReadInterleaved();
 		testGetUrlEmpty();
+		testExecuteSealedNoop();
+		testResetPropertyKeepsUrl();
+		testMultiInstanceWriteIndependent();
+		testReadAfterReset();
 	}
 
 	// 默认请求方式 POST
@@ -129,6 +133,47 @@ public static class NetPacketHttpTest
 	{
 		TestHttpPacket packet = new TestHttpPacket("");
 		assertEqual("", packet.getUrl(), "空 URL 读回");
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 深度组合
+	// ═════════════════════════════════════════════════════════════════
+
+	// execute sealed 空操作
+	private static void testExecuteSealedNoop()
+	{
+		NetPacketHttp packet = new NetPacketHttp();
+		packet.execute();
+		TestHttpPacket t = new TestHttpPacket("http://example.com/api");
+		t.execute();
+		// 无异常即通过
+	}
+
+	// resetProperty 保留 URL(注释明确 mURL 不重置)
+	private static void testResetPropertyKeepsUrl()
+	{
+		TestHttpPacket packet = new TestHttpPacket("http://keep.com/api");
+		packet.resetProperty();
+		assertEqual("http://keep.com/api", packet.getUrl(), "resetProperty 后 URL 保留");
+	}
+
+	// 两实例 write 独立
+	private static void testMultiInstanceWriteIndependent()
+	{
+		TestHttpPacket a = new TestHttpPacket("http://a.com/api");
+		TestHttpPacket b = new TestHttpPacket("http://b.com/api");
+		assertEqual("hello", a.write(), "a write 结果");
+		assertEqual("hello", b.write(), "b write 结果");
+	}
+
+	// reset 后 read 计数仍递增
+	private static void testReadAfterReset()
+	{
+		TestHttpPacket packet = new TestHttpPacket("http://example.com/api");
+		packet.read("a");
+		packet.resetProperty();
+		packet.read("b");
+		assertEqual(1, packet.mReadCount, "resetProperty 清计数(mReadCount=0) 后 read 重新计数");
 	}
 }
 

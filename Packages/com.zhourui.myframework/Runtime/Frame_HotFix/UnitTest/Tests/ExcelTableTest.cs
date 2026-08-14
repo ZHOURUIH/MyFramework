@@ -38,6 +38,11 @@ public static class ExcelTableTest
 		testDecodeFileDifferentLengths();
 		testSetTableFileBytesNullSafe();
 		testIsFileOpenedAfterSetBytes();
+		testDecodeFileAllBytesChanged();
+		testDecodeFileOutputNotIdentity();
+		testDecodeFileDistinctPositions();
+		testDecodeFileKeyWrapLong();
+		testDecodeFileTableNameAffectsOutput();
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	private static void testDecodeFileBasic()
@@ -435,5 +440,88 @@ public static class ExcelTableTest
 		assertTrue(table.isFileOpened(), "设置 bytes 后已打开");
 		table.setTableFileBytes(null);
 		assertFalse(table.isFileOpened(), "清空 bytes 后未打开");
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// decodeFile 变化性验证(不可逆: XOR+位置偏移)
+	// ═════════════════════════════════════════════════════════════════
+
+	// 多字节全部变化(不易碰撞的数据)
+	private static void testDecodeFileAllBytesChanged()
+	{
+		byte[] data = new byte[] { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80 };
+		byte[] original = (byte[])data.Clone();
+		ExcelTable.decodeFile(data, "ChangeTable");
+		for (int i = 0; i < data.Length; ++i)
+		{
+			assertTrue(data[i] != original[i], "第 " + i + " 字节应变化");
+		}
+	}
+
+	// decode 输出非恒等(有内容时输出 != 输入)
+	private static void testDecodeFileOutputNotIdentity()
+	{
+		byte[] data = new byte[] { 5, 5, 5, 5, 5 };
+		byte[] original = (byte[])data.Clone();
+		ExcelTable.decodeFile(data, "IdTable");
+		bool same = true;
+		for (int i = 0; i < data.Length; ++i)
+		{
+			if (data[i] != original[i])
+			{
+				same = false;
+				break;
+			}
+		}
+		assertFalse(same, "decode 输出不应恒等");
+	}
+
+	// 不同位置字节变化不同(位置偏移 (i<<1) 生效)
+	private static void testDecodeFileDistinctPositions()
+	{
+		byte[] data = new byte[32];
+		for (int i = 0; i < data.Length; ++i)
+		{
+			data[i] = 0x11;
+		}
+		byte[] original = (byte[])data.Clone();
+		ExcelTable.decodeFile(data, "PosTable");
+		// 位置 1 与位置 2 的变化量应不同(偏移不同)
+		int delta1 = (data[1] - original[1]) & 0xFF;
+		int delta2 = (data[2] - original[2]) & 0xFF;
+		assertTrue(delta1 != delta2, "相邻位置变化量应不同, 实际 " + delta1 + "/" + delta2);
+	}
+
+	// 长 buffer(200 字节)decode 后首尾均变化(key 循环 + 偏移)
+	private static void testDecodeFileKeyWrapLong()
+	{
+		byte[] data = new byte[200];
+		for (int i = 0; i < data.Length; ++i)
+		{
+			data[i] = (byte)(i % 7);
+		}
+		byte[] original = (byte[])data.Clone();
+		ExcelTable.decodeFile(data, "WrapTable");
+		assertTrue(data[0] != original[0], "首字节变化");
+		assertTrue(data[199] != original[199], "尾字节变化");
+	}
+
+	// 相同位置不同表名变化不同(表名影响 key)
+	private static void testDecodeFileTableNameAffectsOutput()
+	{
+		byte[] data1 = new byte[] { 9, 9, 9, 9 };
+		byte[] data2 = (byte[])data1.Clone();
+		ExcelTable.decodeFile(data1, "T1");
+		ExcelTable.decodeFile(data2, "T2");
+		bool different = false;
+		for (int i = 0; i < data1.Length; ++i)
+		{
+			if (data1[i] != data2[i])
+			{
+				different = true;
+				break;
+			}
+		}
+		assertTrue(different, "不同表名输出应不同");
 	}
 }

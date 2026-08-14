@@ -45,6 +45,7 @@ public class FrameHotFixTest
         Register("FrameSystemTest", FrameSystemTest.Run);
         Register("FrameUtilityTest", FrameUtilityTest.Run);
         Register("GameObjectPoolTest", GameObjectPoolTest.Run);
+        Register("GamePluginManagerTest", GamePluginManagerTest.Run);
         Register("GameEventRegisteInfoTest", GameEventRegisteInfoTest.Run);
         Register("GameEffectTest", GameEffectTest.Run);
         Register("QuickEffectTest", QuickEffectTest.Run);

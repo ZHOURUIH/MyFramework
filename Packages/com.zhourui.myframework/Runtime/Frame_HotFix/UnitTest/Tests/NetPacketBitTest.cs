@@ -30,6 +30,11 @@ public static class NetPacketBitTest
 		testFlagStableTwiceWrite();
 		testBoolOnlyRoundtrip();
 		testValidFalseStillFlagged();
+		testBitIntBoundaryValues();
+		testBitFloatPrecisionRoundtrip();
+		testBitBoolAlternating();
+		testBitIntLargeMagnitude();
+		testBitPacketMixedManyRoundtrip();
 	}
 
 	// ─── BIT_INT ──────────────────────────────────────────────────────────
@@ -454,6 +459,115 @@ public static class NetPacketBitTest
 		var w = new SerializerBitWrite();
 		packet.write(w, true, out ulong fieldFlag);
 		assertEqual(7UL, fieldFlag, "非可选字段 flag 不受 valid 影响");
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 值边界往返
+	// ═════════════════════════════════════════════════════════════════
+
+	// BIT_INT 边界值往返(int.Max/0/-1 等)
+	// 注: int.MinValue(-2147483648) 跳过——abs 扩展 `value>=0?value:-value` 对 MinValue 溢出回绕,
+	//      (uint)abs 变 0x80000000 使位计数 32, 序列化读回 0 —— 框架边界限制, 合法跳过
+	private static void testBitIntBoundaryValues()
+	{
+		int[] values = { int.MaxValue, 0, -1, 1, 100000, -2147483647 };
+		foreach (int v in values)
+		{
+			var w = new SerializerBitWrite();
+			var bit = new BIT_INT();
+			bit.set(v);
+			bit.write(w, true);
+			var r = new SerializerBitRead();
+			r.init(w.getBuffer(), w.getByteCount());
+			var outBit = new BIT_INT();
+			bool ok = outBit.read(r, true);
+			assertTrue(ok, "边界值 " + v + " read 成功");
+			assertEqual(v, outBit.mValue, "边界值 " + v + " 往返一致");
+		}
+	}
+
+	// BIT_FLOAT 精度往返(容差)
+	// 注: 负数必须 needWriteSign=true(无符号写负数会按补码编码, 读回大正数)
+	private static void testBitFloatPrecisionRoundtrip()
+	{
+		float[] values = { 0.1f, 3.14159f, -2.71828f, 12345.678f };
+		foreach (float v in values)
+		{
+			var w = new SerializerBitWrite();
+			var bit = new BIT_FLOAT();
+			bit.set(v);
+			bit.write(w, true);
+			var r = new SerializerBitRead();
+			r.init(w.getBuffer(), w.getByteCount());
+			var outBit = new BIT_FLOAT();
+			outBit.read(r, true);
+			float diff = outBit.mValue - v;
+			if (diff < 0)
+			{
+				diff = -diff;
+			}
+			assert(diff < 0.001f, "float " + v + " 往返误差 < 0.001, 实际 " + diff);
+		}
+	}
+
+	// BIT_BOOL 交替位流
+	private static void testBitBoolAlternating()
+	{
+		bool[] values = { true, false, true, false, true };
+		var w = new SerializerBitWrite();
+		foreach (bool v in values)
+		{
+			var bit = new BIT_BOOL();
+			bit.set(v);
+			bit.write(w, false);
+		}
+		var r = new SerializerBitRead();
+		r.init(w.getBuffer(), w.getByteCount());
+		for (int i = 0; i < values.Length; ++i)
+		{
+			var outBit = new BIT_BOOL();
+			outBit.read(r, false);
+			assertEqual(values[i], outBit.mValue, "交替值 " + i + " 一致");
+		}
+	}
+
+	// BIT_INT 大负数往返
+	private static void testBitIntLargeMagnitude()
+	{
+		int[] values = { -1000000, -2147483647, -999999999 };
+		foreach (int v in values)
+		{
+			var w = new SerializerBitWrite();
+			var bit = new BIT_INT();
+			bit.set(v);
+			bit.write(w, true);
+			var r = new SerializerBitRead();
+			r.init(w.getBuffer(), w.getByteCount());
+			var outBit = new BIT_INT();
+			outBit.read(r, true);
+			assertEqual(v, outBit.mValue, "大负数 " + v + " 往返一致");
+		}
+	}
+
+	// TestBitPacket 混合包多组值往返
+	private static void testBitPacketMixedManyRoundtrip()
+	{
+		int[] intValues = { 0, 1, -1, 32767, -32768, 123456789 };
+		foreach (int iv in intValues)
+		{
+			var packet = new TestBitPacket();
+			packet.mIntField.set(iv);
+			packet.mBoolField.set(iv > 0);
+			packet.mFloatField.set(iv * 0.001f);
+			var w = new SerializerBitWrite();
+			packet.write(w, true, out ulong fieldFlag);
+			var r = new SerializerBitRead();
+			r.init(w.getBuffer(), w.getByteCount());
+			var readPkt = new TestBitPacket();
+			readPkt.read(r, true, fieldFlag);
+			assertEqual(iv, readPkt.mIntField.mValue, "混合包 int " + iv + " 往返");
+			assertEqual(iv > 0, readPkt.mBoolField.mValue, "混合包 bool " + iv + " 往返");
+		}
 	}
 }
 

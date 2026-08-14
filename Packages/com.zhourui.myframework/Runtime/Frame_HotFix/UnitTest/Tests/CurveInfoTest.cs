@@ -12,6 +12,10 @@ public static class CurveInfoTest
 		testMultipleInstances();
 		testEmptyName();
 		testThreeCurvesIndependent();
+		testLargeID();
+		testNegativeID();
+		testNameWithSpecialChars();
+		testSharedCurveReference();
 	}
 
 	// 构造字段读回
@@ -68,5 +72,36 @@ public static class CurveInfoTest
 		assertEqual(103, c.mID, "c ID");
 		assertFalse(ReferenceEquals(a.mCurve, b.mCurve), "a/b 曲线独立");
 		assertTrue(c.mCurve == null, "c 曲线 null");
+	}
+
+	// 大 ID 读回
+	private static void testLargeID()
+	{
+		CurveInfo info = new CurveInfo(999999, "large", new AnimationCurve());
+		assertEqual(999999, info.mID, "大 ID 读回");
+	}
+
+	// 负 ID 读回(纯数据类不校验)
+	private static void testNegativeID()
+	{
+		CurveInfo info = new CurveInfo(-5, "neg", new AnimationCurve());
+		assertEqual(-5, info.mID, "负 ID 读回");
+	}
+
+	// 特殊字符名字读回
+	private static void testNameWithSpecialChars()
+	{
+		CurveInfo info = new CurveInfo(7, "curve_带中文.特殊!符号", new AnimationCurve());
+		assertEqual("curve_带中文.特殊!符号", info.mName, "特殊字符名字读回");
+	}
+
+	// 两 info 共享同一 curve 引用
+	private static void testSharedCurveReference()
+	{
+		AnimationCurve shared = new AnimationCurve();
+		CurveInfo a = new CurveInfo(1, "a", shared);
+		CurveInfo b = new CurveInfo(2, "b", shared);
+		assertTrue(ReferenceEquals(a.mCurve, shared), "a 与 shared 同引用");
+		assertTrue(ReferenceEquals(b.mCurve, shared), "b 与 shared 同引用");
 	}
 }

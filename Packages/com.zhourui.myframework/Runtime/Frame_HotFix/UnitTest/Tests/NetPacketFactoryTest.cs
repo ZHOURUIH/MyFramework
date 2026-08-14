@@ -34,6 +34,11 @@ public static class NetPacketFactoryTest
 		testSetConnectRoundTrip();
 		testCreateDestroyManyMixedCycles();
 		testPacketTypeIndependent();
+		testDestroyThenRecreateType();
+		testSetConnectNullSafe();
+		testCreateManySameType();
+		testPacketTypeMaxValue();
+		testTypeIDHighBits();
 	}
 
 	// ═════════════════════════════════════════════════════════════════
@@ -213,5 +218,55 @@ public static class NetPacketFactoryTest
 		assertEqual((ushort)1001, b.getPacketType(), "b typeID");
 		mNetPacketFactory.destroyPacket(a);
 		mNetPacketFactory.destroyPacket(b);
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 深度组合
+	// ═════════════════════════════════════════════════════════════════
+
+	// 销毁后重建 typeID 保留(显式 typeID 每次创建设置)
+	private static void testDestroyThenRecreateType()
+	{
+		NetPacket a = mNetPacketFactory.createSocketPacket(typeof(TestFactoryPacket), 2000);
+		mNetPacketFactory.destroyPacket(a);
+		NetPacket b = mNetPacketFactory.createSocketPacket(typeof(TestFactoryPacket), 2001);
+		assertEqual((ushort)2001, b.getPacketType(), "重建后 typeID 为新的显式值");
+		mNetPacketFactory.destroyPacket(b);
+	}
+
+	// setConnect(null) 空安全
+	private static void testSetConnectNullSafe()
+	{
+		NetPacket packet = mNetPacketFactory.createSocketPacket(typeof(TestFactoryPacket), 2100);
+		packet.setConnect(null);
+		assertNull(packet.getConnect(), "setConnect(null) 后 getConnect null");
+		mNetPacketFactory.destroyPacket(packet);
+	}
+
+	// 同类型多次创建 typeID 独立
+	private static void testCreateManySameType()
+	{
+		for (int i = 0; i < 5; ++i)
+		{
+			NetPacket packet = mNetPacketFactory.createSocketPacket(typeof(TestFactoryPacket), (ushort)(2200 + i));
+			assertEqual((ushort)(2200 + i), packet.getPacketType(), "第 " + i + " 个 typeID");
+			mNetPacketFactory.destroyPacket(packet);
+		}
+	}
+
+	// typeID 最大值
+	private static void testPacketTypeMaxValue()
+	{
+		NetPacket packet = mNetPacketFactory.createSocketPacket(typeof(TestFactoryPacket), ushort.MaxValue);
+		assertEqual(ushort.MaxValue, packet.getPacketType(), "typeID 最大值读回");
+		mNetPacketFactory.destroyPacket(packet);
+	}
+
+	// typeID 高位值
+	private static void testTypeIDHighBits()
+	{
+		NetPacket packet = mNetPacketFactory.createSocketPacket(typeof(TestFactoryPacket), 0xABCD);
+		assertEqual((ushort)0xABCD, packet.getPacketType(), "typeID 高位值读回");
+		mNetPacketFactory.destroyPacket(packet);
 	}
 }

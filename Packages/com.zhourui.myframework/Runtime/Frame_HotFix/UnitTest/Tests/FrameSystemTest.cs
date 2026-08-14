@@ -23,6 +23,11 @@ public static class FrameSystemTest
 		testGetObjectDefaultNull();
 		testCompareInitTie();
 		testSetOrdersAfterCompare();
+		testEmptyVirtualsSafe();
+		testSetCreateObjectNoThrow();
+		testDestroyThenEmptyVirtualsSafe();
+		testSetOrdersIndependentOfDestroy();
+		testDestroyTwiceSafe();
 	}
 
 	// ─── compareInit: 按 mInitOrder 升序比较 ────────────────────────
@@ -196,6 +201,73 @@ public static class FrameSystemTest
 	// ═════════════════════════════════════════════════════════════════
 	// 组合场景
 	// ═════════════════════════════════════════════════════════════════
+
+	// 空虚方法调用安全(lateInit/willDestroy/resourceAvailable/onDrawGizmos)
+	private static void testEmptyVirtualsSafe()
+	{
+		FrameSystem sys = new FrameSystem();
+		try
+		{
+			sys.lateInit();
+			sys.willDestroy();
+			sys.resourceAvailable();
+			sys.onDrawGizmos();
+			// 无异常即通过
+		}
+		finally
+		{
+			sys.destroy();
+		}
+	}
+
+	// setCreateObject 切换不炸
+	private static void testSetCreateObjectNoThrow()
+	{
+		FrameSystem sys = new FrameSystem();
+		try
+		{
+			sys.setCreateObject(true);
+			sys.setCreateObject(false);
+			// 无异常即通过
+		}
+		finally
+		{
+			sys.destroy();
+		}
+	}
+
+	// destroy 后空虚方法仍可调用
+	private static void testDestroyThenEmptyVirtualsSafe()
+	{
+		FrameSystem sys = new FrameSystem();
+		sys.destroy();
+		sys.lateInit();
+		sys.willDestroy();
+		sys.resourceAvailable();
+		// 无异常即通过
+	}
+
+	// 顺序 setter 与 destroy 互不影响
+	private static void testSetOrdersIndependentOfDestroy()
+	{
+		FrameSystem a = new FrameSystem();
+		FrameSystem b = new FrameSystem();
+		a.setInitOrder(5);
+		a.destroy();
+		b.setInitOrder(5);
+		assertEqual(0, FrameSystem.compareInit(a, b), "destroy 后比较仍正常");
+		a.setInitOrder(9);
+		assertTrue(FrameSystem.compareInit(a, b) > 0, "destroy 后 set 仍生效");
+	}
+
+	// destroy 幂等
+	private static void testDestroyTwiceSafe()
+	{
+		FrameSystem sys = new FrameSystem();
+		sys.destroy();
+		sys.destroy();
+		// 无异常即通过
+	}
 
 	// compareInit 同序返回 0
 	private static void testCompareInitTie()
