@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -77,13 +77,19 @@ namespace ECSSourceGenerator
 				}
 				Backend backend;
 				string backendReason;
-				if (allowUnsafe && structSymbol.IsUnmanagedType)
+				if (forceSafeRegistry)
+				{
+					backend = Backend.SafeRegistry;
+					backendReason = "ECS_FORCE_SAFE_REGISTRY";
+					needLeakTracker = true;
+				}
+				else if (allowUnsafe && structSymbol.IsUnmanagedType)
 				{
 					backend = Backend.Unsafe;
 					backendReason = "AllowUnsafe=true,Unmanaged=true";
 					needLeakTracker = true;
 				}
-				else if (hasSpan && !forceSafeRegistry)
+				else if (hasSpan)
 				{
 					backend = Backend.SafeSpan;
 					backendReason = allowUnsafe ? "ContainsManagedField,Span=true" : "AllowUnsafe=false,Span=true";
@@ -91,7 +97,7 @@ namespace ECSSourceGenerator
 				else
 				{
 					backend = Backend.SafeRegistry;
-					backendReason = forceSafeRegistry ? "ECS_FORCE_SAFE_REGISTRY" : "SpanUnavailable";
+					backendReason = "SpanUnavailable";
 					needLeakTracker = true;
 				}
 				string source = generateCode(structSymbol, ecsFields, aosFields, backend, backendReason);
@@ -221,11 +227,818 @@ namespace ECSSourceGenerator
 					generateSafeRegistryList(builder, accessibility, typeName, fullTypeName, ecsFields, aosFields, backendReason);
 					break;
 			}
+			generateDictionary(builder, accessibility, typeName, fullTypeName, ecsFields, backend);
 			if (!string.IsNullOrEmpty(namespaceName))
 			{
 				builder.AppendLine("}");
 			}
 			return builder.ToString();
+		}
+		private static void generateDictionary(StringBuilder builder, string accessibility, string typeName, string fullTypeName, List<IFieldSymbol> ecsFields, Backend backend)
+		{
+			builder.AppendLine(accessibility + " sealed class " + typeName + "ECSDictionary<TKey> : global::System.IDisposable");
+			builder.AppendLine("{");
+			builder.AppendLine("\tprivate readonly global::System.Collections.Generic.Dictionary<TKey, int> mIndexMap;");
+			builder.AppendLine("\tprivate readonly " + typeName + "ECSList mValues;");
+			builder.AppendLine("\tprivate TKey[] mKeys;");
+			builder.AppendLine("\tprivate bool mDisposed;");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\tprivate int mVersion;");
+			builder.AppendLine("#endif");
+			generateDictionaryEntry(builder, typeName, backend);
+			generateDictionaryEnumerator(builder, typeName, backend);
+			generateDictionaryKeyEnumerable(builder, typeName);
+			generateDictionaryValueEnumerable(builder, typeName);
+			builder.AppendLine("\tpublic int Count");
+			builder.AppendLine("\t{");
+			appendAggressiveInlining(builder, 2);
+			builder.AppendLine("\t\tget");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\t\tvalidateAlive();");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\t\treturn mValues.Count;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tpublic int Capacity");
+			builder.AppendLine("\t{");
+			appendAggressiveInlining(builder, 2);
+			builder.AppendLine("\t\tget");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\t\tvalidateAlive();");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\t\treturn mValues.Capacity;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tpublic global::System.Collections.Generic.IEqualityComparer<TKey> Comparer");
+			builder.AppendLine("\t{");
+			appendAggressiveInlining(builder, 2);
+			builder.AppendLine("\t\tget");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\t\tvalidateAlive();");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\t\treturn mIndexMap.Comparer;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tpublic KeyEnumerable Keys");
+			builder.AppendLine("\t{");
+			appendAggressiveInlining(builder, 2);
+			builder.AppendLine("\t\tget");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\t\tvalidateAlive();");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\t\treturn new KeyEnumerable(this);");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tpublic ValueEnumerable Values");
+			builder.AppendLine("\t{");
+			appendAggressiveInlining(builder, 2);
+			builder.AppendLine("\t\tget");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\t\tvalidateAlive();");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\t\treturn new ValueEnumerable(this);");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tpublic " + typeName + "Ref this[TKey key]");
+			builder.AppendLine("\t{");
+			appendAggressiveInlining(builder, 2);
+			builder.AppendLine("\t\tget");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\t\tvalidateAlive();");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\t\treturn mValues[mIndexMap[key]];");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tpublic " + typeName + "ECSDictionary(int capacity = 4) : this(capacity, null)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tpublic " + typeName + "ECSDictionary(global::System.Collections.Generic.IEqualityComparer<TKey> comparer) : this(4, comparer)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tpublic " + typeName + "ECSDictionary(int capacity, global::System.Collections.Generic.IEqualityComparer<TKey> comparer)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tif (capacity < 1)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tcapacity = 1;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tmIndexMap = new global::System.Collections.Generic.Dictionary<TKey, int>(capacity, comparer);");
+			builder.AppendLine("\t\tmKeys = new TKey[capacity];");
+			builder.AppendLine("\t\tmValues = new " + typeName + "ECSList(capacity);");
+			builder.AppendLine("\t}");
+			appendAggressiveInlining(builder, 1);
+			builder.AppendLine("\tpublic Enumerator GetEnumerator()");
+			builder.AppendLine("\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\tvalidateAlive();");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\treturn new Enumerator(this);");
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tpublic void Add(TKey key, " + fullTypeName + " value)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\tvalidateAlive();");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\taddValue(key, value);");
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tpublic bool TryAdd(TKey key, " + fullTypeName + " value)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\tvalidateAlive();");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\tif (mIndexMap.ContainsKey(key))");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\treturn false;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\taddValue(key, value);");
+			builder.AppendLine("\t\treturn true;");
+			builder.AppendLine("\t}");
+			appendAggressiveInlining(builder, 1);
+			builder.AppendLine("\tpublic bool ContainsKey(TKey key)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\tvalidateAlive();");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\treturn mIndexMap.ContainsKey(key);");
+			builder.AppendLine("\t}");
+			appendAggressiveInlining(builder, 1);
+			builder.AppendLine("\tpublic bool TryGetValue(TKey key, out " + typeName + "Ref value)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\tvalidateAlive();");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\tif (!mIndexMap.TryGetValue(key, out int index))");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tvalue = default;");
+			builder.AppendLine("\t\t\treturn false;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tvalue = mValues[index];");
+			builder.AppendLine("\t\treturn true;");
+			builder.AppendLine("\t}");
+			appendAggressiveInlining(builder, 1);
+			builder.AppendLine("\tpublic bool TryGetIndex(TKey key, out int index)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\tvalidateAlive();");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\treturn mIndexMap.TryGetValue(key, out index);");
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tpublic bool Remove(TKey key)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\tvalidateAlive();");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\tif (!mIndexMap.TryGetValue(key, out int removeIndex))");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\treturn false;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tint lastIndex = mValues.Count - 1;");
+			builder.AppendLine("\t\tTKey lastKey = mKeys[lastIndex];");
+			builder.AppendLine("\t\tmValues.RemoveAtSwapBack(removeIndex);");
+			builder.AppendLine("\t\tif (removeIndex != lastIndex)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tmKeys[removeIndex] = lastKey;");
+			builder.AppendLine("\t\t\tmIndexMap[lastKey] = removeIndex;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tmKeys[lastIndex] = default(TKey);");
+			builder.AppendLine("\t\tmIndexMap.Remove(key);");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\t++mVersion;");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\treturn true;");
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tpublic void Clear()");
+			builder.AppendLine("\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\tvalidateAlive();");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\tint count = mValues.Count;");
+			builder.AppendLine("\t\tif (count == 0)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\treturn;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tglobal::System.Array.Clear(mKeys, 0, count);");
+			builder.AppendLine("\t\tmIndexMap.Clear();");
+			builder.AppendLine("\t\tmValues.Clear();");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\t++mVersion;");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t}");
+			appendAggressiveInlining(builder, 1);
+			builder.AppendLine("\tpublic TKey getKeyAt(int index)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\tvalidateIndex(index);");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\treturn mKeys[index];");
+			builder.AppendLine("\t}");
+			appendAggressiveInlining(builder, 1);
+			builder.AppendLine("\tpublic " + typeName + "Ref getValueAt(int index)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\tvalidateIndex(index);");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\treturn mValues[index];");
+			builder.AppendLine("\t}");
+			foreach (IFieldSymbol field in ecsFields)
+			{
+				string fieldAccessibility = field.DeclaredAccessibility == Accessibility.Public ? "public" : "internal";
+				string columnType = typeName + "ECSList." + getColumnTypeName(field.Name);
+				string methodName = getColumnMethodName(field.Name);
+				appendAggressiveInlining(builder, 1);
+				builder.AppendLine("\t" + fieldAccessibility + " " + columnType + " " + methodName + "()");
+				builder.AppendLine("\t{");
+				builder.AppendLine("#if UNITY_EDITOR");
+				builder.AppendLine("\t\tvalidateAlive();");
+				builder.AppendLine("#endif");
+				builder.AppendLine("\t\treturn mValues." + methodName + "();");
+				builder.AppendLine("\t}");
+			}
+			builder.AppendLine("\tpublic void Dispose()");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tif (mDisposed)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\treturn;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\t++mVersion;");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\tmDisposed = true;");
+			builder.AppendLine("\t\tmIndexMap.Clear();");
+			builder.AppendLine("\t\tif (mKeys != null)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tglobal::System.Array.Clear(mKeys, 0, mKeys.Length);");
+			builder.AppendLine("\t\t\tmKeys = null;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tmValues.Dispose();");
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tprivate void addValue(TKey key, " + fullTypeName + " value)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tint index = mValues.Count;");
+			builder.AppendLine("\t\tmIndexMap.Add(key, index);");
+			builder.AppendLine("\t\ttry");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tensureKeyCapacity(index + 1);");
+			builder.AppendLine("\t\t\tmKeys[index] = key;");
+			builder.AppendLine("\t\t\tmValues.Add(value);");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\t\t++mVersion;");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tcatch");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tif (mKeys != null && (uint)index < (uint)mKeys.Length)");
+			builder.AppendLine("\t\t\t{");
+			builder.AppendLine("\t\t\t\tmKeys[index] = default(TKey);");
+			builder.AppendLine("\t\t\t}");
+			builder.AppendLine("\t\t\tmIndexMap.Remove(key);");
+			builder.AppendLine("\t\t\tthrow;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tprivate void ensureKeyCapacity(int minimumCapacity)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tif (mKeys.Length >= minimumCapacity)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\treturn;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tint newCapacity = mKeys.Length;");
+			builder.AppendLine("\t\tif (newCapacity < 1)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tnewCapacity = 1;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\twhile (newCapacity < minimumCapacity)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tnewCapacity *= 2;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tglobal::System.Array.Resize(ref mKeys, newCapacity);");
+			builder.AppendLine("\t}");
+			builder.AppendLine("#if UNITY_EDITOR");
+			appendAggressiveInlining(builder, 1);
+			builder.AppendLine("\tprivate void validateAlive()");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tif (mDisposed)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tthrow new global::System.ObjectDisposedException(\"" + typeName + "ECSDictionary\");");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t}");
+			appendAggressiveInlining(builder, 1);
+			builder.AppendLine("\tprivate void validateIndex(int index)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tvalidateAlive();");
+			builder.AppendLine("\t\tif ((uint)index >= (uint)mValues.Count)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tthrow new global::System.ArgumentOutOfRangeException(nameof(index), \"" + typeName + "ECSDictionary索引越界,Index:\" + index + \",Count:\" + mValues.Count);");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t}");
+			appendAggressiveInlining(builder, 1);
+			builder.AppendLine("\tprivate void validateEnumeratorVersion(int version)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tvalidateAlive();");
+			builder.AppendLine("\t\tif (version != mVersion)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tthrow new global::System.InvalidOperationException(\"" + typeName + "ECSDictionary在遍历期间发生了结构变化\");");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t}");
+			appendAggressiveInlining(builder, 1);
+			builder.AppendLine("\tprivate void validateEnumeratorCurrent(int index, int count, int version)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tvalidateEnumeratorVersion(version);");
+			builder.AppendLine("\t\tif ((uint)index >= (uint)count)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tthrow new global::System.InvalidOperationException(\"" + typeName + "ECSDictionary Enumerator的Current当前无效\");");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t}");
+			builder.AppendLine("#endif");
+			builder.AppendLine("}");
+		}
+		private static void generateDictionaryEntry(StringBuilder builder, string typeName, Backend backend)
+		{
+			builder.AppendLine("#if UNITY_EDITOR");
+			generateDictionaryEntryEditor(builder, typeName);
+			builder.AppendLine("#else");
+			if (backend == Backend.Unsafe)
+			{
+				generateUnsafeDictionaryEntryPlayer(builder, typeName);
+			}
+			else if (backend == Backend.SafeSpan)
+			{
+				generateSafeSpanDictionaryEntryPlayer(builder, typeName);
+			}
+			else
+			{
+				generateSafeRegistryDictionaryEntryPlayer(builder, typeName);
+			}
+			builder.AppendLine("#endif");
+		}
+		private static void generateDictionaryEntryEditor(StringBuilder builder, string typeName)
+		{
+			builder.AppendLine("\tpublic ref struct Entry");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tprivate readonly TKey mKey;");
+			builder.AppendLine("\t\tprivate " + typeName + "Ref mValue;");
+			builder.AppendLine("\t\tprivate readonly " + typeName + "ECSDictionary<TKey> mOwner;");
+			builder.AppendLine("\t\tprivate readonly int mVersion;");
+			appendAggressiveInlining(builder, 2);
+			builder.AppendLine("\t\tinternal Entry(TKey key, " + typeName + "Ref value, " + typeName + "ECSDictionary<TKey> owner, int version)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tmKey = key;");
+			builder.AppendLine("\t\t\tmValue = value;");
+			builder.AppendLine("\t\t\tmOwner = owner;");
+			builder.AppendLine("\t\t\tmVersion = version;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tpublic TKey Key");
+			builder.AppendLine("\t\t{");
+			appendAggressiveInlining(builder, 3);
+			builder.AppendLine("\t\t\tget");
+			builder.AppendLine("\t\t\t{");
+			builder.AppendLine("\t\t\t\tmOwner.validateEnumeratorVersion(mVersion);");
+			builder.AppendLine("\t\t\t\treturn mKey;");
+			builder.AppendLine("\t\t\t}");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tpublic " + typeName + "Ref Value");
+			builder.AppendLine("\t\t{");
+			appendAggressiveInlining(builder, 3);
+			builder.AppendLine("\t\t\tget");
+			builder.AppendLine("\t\t\t{");
+			builder.AppendLine("\t\t\t\tmOwner.validateEnumeratorVersion(mVersion);");
+			builder.AppendLine("\t\t\t\treturn mValue;");
+			builder.AppendLine("\t\t\t}");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t}");
+		}
+		private static void generateUnsafeDictionaryEntryPlayer(StringBuilder builder, string typeName)
+		{
+			builder.AppendLine("\tpublic unsafe ref struct Entry");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tprivate readonly TKey mKey;");
+			builder.AppendLine("\t\tprivate readonly " + typeName + "Storage* mStorage;");
+			builder.AppendLine("\t\tprivate readonly int mIndex;");
+			appendAggressiveInlining(builder, 2);
+			builder.AppendLine("\t\tinternal Entry(TKey key, " + typeName + "Storage* storage, int index)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tmKey = key;");
+			builder.AppendLine("\t\t\tmStorage = storage;");
+			builder.AppendLine("\t\t\tmIndex = index;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tpublic TKey Key");
+			builder.AppendLine("\t\t{");
+			appendAggressiveInlining(builder, 3);
+			builder.AppendLine("\t\t\tget");
+			builder.AppendLine("\t\t\t{");
+			builder.AppendLine("\t\t\t\treturn mKey;");
+			builder.AppendLine("\t\t\t}");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tpublic " + typeName + "Ref Value");
+			builder.AppendLine("\t\t{");
+			appendAggressiveInlining(builder, 3);
+			builder.AppendLine("\t\t\tget");
+			builder.AppendLine("\t\t\t{");
+			builder.AppendLine("\t\t\t\treturn new " + typeName + "Ref(mStorage, mIndex);");
+			builder.AppendLine("\t\t\t}");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t}");
+		}
+		private static void generateSafeSpanDictionaryEntryPlayer(StringBuilder builder, string typeName)
+		{
+			builder.AppendLine("\tpublic ref struct Entry");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tprivate readonly TKey mKey;");
+			builder.AppendLine("\t\tprivate readonly " + typeName + "Storage[] mStorage;");
+			builder.AppendLine("\t\tprivate readonly int mIndex;");
+			appendAggressiveInlining(builder, 2);
+			builder.AppendLine("\t\tinternal Entry(TKey key, " + typeName + "Storage[] storage, int index)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tmKey = key;");
+			builder.AppendLine("\t\t\tmStorage = storage;");
+			builder.AppendLine("\t\t\tmIndex = index;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tpublic TKey Key");
+			builder.AppendLine("\t\t{");
+			appendAggressiveInlining(builder, 3);
+			builder.AppendLine("\t\t\tget");
+			builder.AppendLine("\t\t\t{");
+			builder.AppendLine("\t\t\t\treturn mKey;");
+			builder.AppendLine("\t\t\t}");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tpublic " + typeName + "Ref Value");
+			builder.AppendLine("\t\t{");
+			appendAggressiveInlining(builder, 3);
+			builder.AppendLine("\t\t\tget");
+			builder.AppendLine("\t\t\t{");
+			builder.AppendLine("\t\t\t\treturn new " + typeName + "Ref(mStorage, mIndex);");
+			builder.AppendLine("\t\t\t}");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t}");
+		}
+		private static void generateSafeRegistryDictionaryEntryPlayer(StringBuilder builder, string typeName)
+		{
+			builder.AppendLine("\tpublic readonly struct Entry");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tprivate readonly TKey mKey;");
+			builder.AppendLine("\t\tprivate readonly int mStorageID;");
+			builder.AppendLine("\t\tprivate readonly int mIndex;");
+			appendAggressiveInlining(builder, 2);
+			builder.AppendLine("\t\tinternal Entry(TKey key, int storageID, int index)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tmKey = key;");
+			builder.AppendLine("\t\t\tmStorageID = storageID;");
+			builder.AppendLine("\t\t\tmIndex = index;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tpublic TKey Key");
+			builder.AppendLine("\t\t{");
+			appendAggressiveInlining(builder, 3);
+			builder.AppendLine("\t\t\tget");
+			builder.AppendLine("\t\t\t{");
+			builder.AppendLine("\t\t\t\treturn mKey;");
+			builder.AppendLine("\t\t\t}");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tpublic " + typeName + "Ref Value");
+			builder.AppendLine("\t\t{");
+			appendAggressiveInlining(builder, 3);
+			builder.AppendLine("\t\t\tget");
+			builder.AppendLine("\t\t\t{");
+			builder.AppendLine("\t\t\t\treturn new " + typeName + "Ref(mStorageID, mIndex);");
+			builder.AppendLine("\t\t\t}");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t}");
+		}
+		private static void generateDictionaryEnumerator(StringBuilder builder, string typeName, Backend backend)
+		{
+			builder.AppendLine("#if UNITY_EDITOR");
+			generateDictionaryEnumeratorEditor(builder, typeName);
+			builder.AppendLine("#else");
+			if (backend == Backend.Unsafe)
+			{
+				generateUnsafeDictionaryEnumeratorPlayer(builder, typeName);
+			}
+			else if (backend == Backend.SafeSpan)
+			{
+				generateSafeSpanDictionaryEnumeratorPlayer(builder, typeName);
+			}
+			else
+			{
+				generateSafeRegistryDictionaryEnumeratorPlayer(builder, typeName);
+			}
+			builder.AppendLine("#endif");
+		}
+		private static void generateDictionaryEnumeratorEditor(StringBuilder builder, string typeName)
+		{
+			builder.AppendLine("\tpublic ref struct Enumerator");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tprivate readonly TKey[] mKeys;");
+			builder.AppendLine("\t\tprivate readonly " + typeName + "ECSList mValues;");
+			builder.AppendLine("\t\tprivate readonly int mCount;");
+			builder.AppendLine("\t\tprivate int mIndex;");
+			builder.AppendLine("\t\tprivate Entry mCurrent;");
+			builder.AppendLine("\t\tprivate readonly " + typeName + "ECSDictionary<TKey> mOwner;");
+			builder.AppendLine("\t\tprivate readonly int mVersion;");
+			appendAggressiveInlining(builder, 2);
+			builder.AppendLine("\t\tinternal Enumerator(" + typeName + "ECSDictionary<TKey> owner)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tmKeys = owner.mKeys;");
+			builder.AppendLine("\t\t\tmValues = owner.mValues;");
+			builder.AppendLine("\t\t\tmCount = owner.mValues.Count;");
+			builder.AppendLine("\t\t\tmIndex = -1;");
+			builder.AppendLine("\t\t\tmCurrent = default;");
+			builder.AppendLine("\t\t\tmOwner = owner;");
+			builder.AppendLine("\t\t\tmVersion = owner.mVersion;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tpublic Entry Current");
+			builder.AppendLine("\t\t{");
+			appendAggressiveInlining(builder, 3);
+			builder.AppendLine("\t\t\tget");
+			builder.AppendLine("\t\t\t{");
+			builder.AppendLine("\t\t\t\tmOwner.validateEnumeratorCurrent(mIndex, mCount, mVersion);");
+			builder.AppendLine("\t\t\t\treturn mCurrent;");
+			builder.AppendLine("\t\t\t}");
+			builder.AppendLine("\t\t}");
+			appendAggressiveInlining(builder, 2);
+			builder.AppendLine("\t\tpublic bool MoveNext()");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tmOwner.validateEnumeratorVersion(mVersion);");
+			builder.AppendLine("\t\t\tint index = mIndex + 1;");
+			builder.AppendLine("\t\t\tif ((uint)index >= (uint)mCount)");
+			builder.AppendLine("\t\t\t{");
+			builder.AppendLine("\t\t\t\tmIndex = mCount;");
+			builder.AppendLine("\t\t\t\tmCurrent = default;");
+			builder.AppendLine("\t\t\t\treturn false;");
+			builder.AppendLine("\t\t\t}");
+			builder.AppendLine("\t\t\tmIndex = index;");
+			builder.AppendLine("\t\t\tmCurrent = new Entry(mKeys[index], mValues[index], mOwner, mVersion);");
+			builder.AppendLine("\t\t\treturn true;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t}");
+		}
+		private static void generateUnsafeDictionaryEnumeratorPlayer(StringBuilder builder, string typeName)
+		{
+			builder.AppendLine("\tpublic unsafe ref struct Enumerator");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tprivate readonly TKey[] mKeys;");
+			builder.AppendLine("\t\tprivate readonly " + typeName + "Storage* mStorage;");
+			builder.AppendLine("\t\tprivate readonly int mCount;");
+			builder.AppendLine("\t\tprivate int mIndex;");
+			appendAggressiveInlining(builder, 2);
+			builder.AppendLine("\t\tinternal Enumerator(" + typeName + "ECSDictionary<TKey> owner)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tmKeys = owner.mKeys;");
+			builder.AppendLine("\t\t\tmStorage = owner.mValues.getDictionaryStorage();");
+			builder.AppendLine("\t\t\tmCount = owner.mValues.Count;");
+			builder.AppendLine("\t\t\tmIndex = -1;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tpublic Entry Current");
+			builder.AppendLine("\t\t{");
+			appendAggressiveInlining(builder, 3);
+			builder.AppendLine("\t\t\tget");
+			builder.AppendLine("\t\t\t{");
+			builder.AppendLine("\t\t\t\treturn new Entry(mKeys[mIndex], mStorage, mIndex);");
+			builder.AppendLine("\t\t\t}");
+			builder.AppendLine("\t\t}");
+			appendAggressiveInlining(builder, 2);
+			builder.AppendLine("\t\tpublic bool MoveNext()");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tint index = mIndex + 1;");
+			builder.AppendLine("\t\t\tif ((uint)index >= (uint)mCount)");
+			builder.AppendLine("\t\t\t{");
+			builder.AppendLine("\t\t\t\tmIndex = mCount;");
+			builder.AppendLine("\t\t\t\treturn false;");
+			builder.AppendLine("\t\t\t}");
+			builder.AppendLine("\t\t\tmIndex = index;");
+			builder.AppendLine("\t\t\treturn true;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t}");
+		}
+		private static void generateSafeSpanDictionaryEnumeratorPlayer(StringBuilder builder, string typeName)
+		{
+			builder.AppendLine("\tpublic ref struct Enumerator");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tprivate readonly TKey[] mKeys;");
+			builder.AppendLine("\t\tprivate readonly " + typeName + "Storage[] mStorage;");
+			builder.AppendLine("\t\tprivate readonly int mCount;");
+			builder.AppendLine("\t\tprivate int mIndex;");
+			appendAggressiveInlining(builder, 2);
+			builder.AppendLine("\t\tinternal Enumerator(" + typeName + "ECSDictionary<TKey> owner)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tmKeys = owner.mKeys;");
+			builder.AppendLine("\t\t\tmStorage = owner.mValues.getDictionaryStorage();");
+			builder.AppendLine("\t\t\tmCount = owner.mValues.Count;");
+			builder.AppendLine("\t\t\tmIndex = -1;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tpublic Entry Current");
+			builder.AppendLine("\t\t{");
+			appendAggressiveInlining(builder, 3);
+			builder.AppendLine("\t\t\tget");
+			builder.AppendLine("\t\t\t{");
+			builder.AppendLine("\t\t\t\treturn new Entry(mKeys[mIndex], mStorage, mIndex);");
+			builder.AppendLine("\t\t\t}");
+			builder.AppendLine("\t\t}");
+			appendAggressiveInlining(builder, 2);
+			builder.AppendLine("\t\tpublic bool MoveNext()");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tint index = mIndex + 1;");
+			builder.AppendLine("\t\t\tif ((uint)index >= (uint)mCount)");
+			builder.AppendLine("\t\t\t{");
+			builder.AppendLine("\t\t\t\tmIndex = mCount;");
+			builder.AppendLine("\t\t\t\treturn false;");
+			builder.AppendLine("\t\t\t}");
+			builder.AppendLine("\t\t\tmIndex = index;");
+			builder.AppendLine("\t\t\treturn true;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t}");
+		}
+		private static void generateSafeRegistryDictionaryEnumeratorPlayer(StringBuilder builder, string typeName)
+		{
+			builder.AppendLine("\tpublic struct Enumerator");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tprivate readonly TKey[] mKeys;");
+			builder.AppendLine("\t\tprivate readonly int mStorageID;");
+			builder.AppendLine("\t\tprivate readonly int mCount;");
+			builder.AppendLine("\t\tprivate int mIndex;");
+			appendAggressiveInlining(builder, 2);
+			builder.AppendLine("\t\tinternal Enumerator(" + typeName + "ECSDictionary<TKey> owner)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tmKeys = owner.mKeys;");
+			builder.AppendLine("\t\t\tmStorageID = owner.mValues.getDictionaryStorageID();");
+			builder.AppendLine("\t\t\tmCount = owner.mValues.Count;");
+			builder.AppendLine("\t\t\tmIndex = -1;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tpublic Entry Current");
+			builder.AppendLine("\t\t{");
+			appendAggressiveInlining(builder, 3);
+			builder.AppendLine("\t\t\tget");
+			builder.AppendLine("\t\t\t{");
+			builder.AppendLine("\t\t\t\treturn new Entry(mKeys[mIndex], mStorageID, mIndex);");
+			builder.AppendLine("\t\t\t}");
+			builder.AppendLine("\t\t}");
+			appendAggressiveInlining(builder, 2);
+			builder.AppendLine("\t\tpublic bool MoveNext()");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tint index = mIndex + 1;");
+			builder.AppendLine("\t\t\tif ((uint)index >= (uint)mCount)");
+			builder.AppendLine("\t\t\t{");
+			builder.AppendLine("\t\t\t\tmIndex = mCount;");
+			builder.AppendLine("\t\t\t\treturn false;");
+			builder.AppendLine("\t\t\t}");
+			builder.AppendLine("\t\t\tmIndex = index;");
+			builder.AppendLine("\t\t\treturn true;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t}");
+		}
+		private static void generateDictionaryKeyEnumerable(StringBuilder builder, string typeName)
+		{
+			builder.AppendLine("\tpublic readonly struct KeyEnumerable");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tprivate readonly " + typeName + "ECSDictionary<TKey> mOwner;");
+			appendAggressiveInlining(builder, 2);
+			builder.AppendLine("\t\tinternal KeyEnumerable(" + typeName + "ECSDictionary<TKey> owner)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tmOwner = owner;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tpublic int Count");
+			builder.AppendLine("\t\t{");
+			appendAggressiveInlining(builder, 3);
+			builder.AppendLine("\t\t\tget");
+			builder.AppendLine("\t\t\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\t\t\tmOwner.validateAlive();");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\t\t\treturn mOwner.mValues.Count;");
+			builder.AppendLine("\t\t\t}");
+			builder.AppendLine("\t\t}");
+			appendAggressiveInlining(builder, 2);
+			builder.AppendLine("\t\tpublic KeyEnumerator GetEnumerator()");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\t\tmOwner.validateAlive();");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\t\treturn new KeyEnumerator(mOwner);");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tpublic struct KeyEnumerator");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tprivate readonly " + typeName + "ECSDictionary<TKey> mOwner;");
+			builder.AppendLine("\t\tprivate readonly int mCount;");
+			builder.AppendLine("\t\tprivate int mIndex;");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\tprivate readonly int mVersion;");
+			builder.AppendLine("#endif");
+			appendAggressiveInlining(builder, 2);
+			builder.AppendLine("\t\tinternal KeyEnumerator(" + typeName + "ECSDictionary<TKey> owner)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tmOwner = owner;");
+			builder.AppendLine("\t\t\tmCount = owner.mValues.Count;");
+			builder.AppendLine("\t\t\tmIndex = -1;");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\t\tmVersion = owner.mVersion;");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tpublic TKey Current");
+			builder.AppendLine("\t\t{");
+			appendAggressiveInlining(builder, 3);
+			builder.AppendLine("\t\t\tget");
+			builder.AppendLine("\t\t\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\t\t\tmOwner.validateEnumeratorCurrent(mIndex, mCount, mVersion);");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\t\t\treturn mOwner.mKeys[mIndex];");
+			builder.AppendLine("\t\t\t}");
+			builder.AppendLine("\t\t}");
+			appendAggressiveInlining(builder, 2);
+			builder.AppendLine("\t\tpublic bool MoveNext()");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\t\tmOwner.validateEnumeratorVersion(mVersion);");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\t\tint nextIndex = mIndex + 1;");
+			builder.AppendLine("\t\t\tif ((uint)nextIndex < (uint)mCount)");
+			builder.AppendLine("\t\t\t{");
+			builder.AppendLine("\t\t\t\tmIndex = nextIndex;");
+			builder.AppendLine("\t\t\t\treturn true;");
+			builder.AppendLine("\t\t\t}");
+			builder.AppendLine("\t\t\tmIndex = mCount;");
+			builder.AppendLine("\t\t\treturn false;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t}");
+		}
+		private static void generateDictionaryValueEnumerable(StringBuilder builder, string typeName)
+		{
+			builder.AppendLine("\tpublic readonly struct ValueEnumerable");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tprivate readonly " + typeName + "ECSDictionary<TKey> mOwner;");
+			appendAggressiveInlining(builder, 2);
+			builder.AppendLine("\t\tinternal ValueEnumerable(" + typeName + "ECSDictionary<TKey> owner)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tmOwner = owner;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tpublic int Count");
+			builder.AppendLine("\t\t{");
+			appendAggressiveInlining(builder, 3);
+			builder.AppendLine("\t\t\tget");
+			builder.AppendLine("\t\t\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\t\t\tmOwner.validateAlive();");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\t\t\treturn mOwner.mValues.Count;");
+			builder.AppendLine("\t\t\t}");
+			builder.AppendLine("\t\t}");
+			appendAggressiveInlining(builder, 2);
+			builder.AppendLine("\t\tpublic ValueEnumerator GetEnumerator()");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\t\tmOwner.validateAlive();");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\t\treturn new ValueEnumerator(mOwner);");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tpublic struct ValueEnumerator");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tprivate readonly " + typeName + "ECSDictionary<TKey> mOwner;");
+			builder.AppendLine("\t\tprivate readonly int mCount;");
+			builder.AppendLine("\t\tprivate int mIndex;");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\tprivate readonly int mVersion;");
+			builder.AppendLine("#endif");
+			appendAggressiveInlining(builder, 2);
+			builder.AppendLine("\t\tinternal ValueEnumerator(" + typeName + "ECSDictionary<TKey> owner)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tmOwner = owner;");
+			builder.AppendLine("\t\t\tmCount = owner.mValues.Count;");
+			builder.AppendLine("\t\t\tmIndex = -1;");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\t\tmVersion = owner.mVersion;");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tpublic " + typeName + "Ref Current");
+			builder.AppendLine("\t\t{");
+			appendAggressiveInlining(builder, 3);
+			builder.AppendLine("\t\t\tget");
+			builder.AppendLine("\t\t\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\t\t\tmOwner.validateEnumeratorCurrent(mIndex, mCount, mVersion);");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\t\t\treturn mOwner.mValues[mIndex];");
+			builder.AppendLine("\t\t\t}");
+			builder.AppendLine("\t\t}");
+			appendAggressiveInlining(builder, 2);
+			builder.AppendLine("\t\tpublic bool MoveNext()");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\t\tmOwner.validateEnumeratorVersion(mVersion);");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\t\tint nextIndex = mIndex + 1;");
+			builder.AppendLine("\t\t\tif ((uint)nextIndex < (uint)mCount)");
+			builder.AppendLine("\t\t\t{");
+			builder.AppendLine("\t\t\t\tmIndex = nextIndex;");
+			builder.AppendLine("\t\t\t\treturn true;");
+			builder.AppendLine("\t\t\t}");
+			builder.AppendLine("\t\t\tmIndex = mCount;");
+			builder.AppendLine("\t\t\treturn false;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t}");
 		}
 		private static void generateAoSBlock(StringBuilder builder, string typeName, List<IFieldSymbol> fields)
 		{
@@ -710,6 +1523,7 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\tprivate bool mDisposed;");
 			generateEditorValidationFields(builder, true);
 			generateUnsafeProperties(builder, typeName);
+			generateUnsafeDictionaryStorageAccessor(builder, typeName);
 			foreach (IFieldSymbol field in ecsFields)
 			{
 				generateUnsafeColumn(builder, typeName, field);
@@ -736,6 +1550,7 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\tprivate bool mDisposed;");
 			generateEditorValidationFields(builder, false);
 			generateSafeSpanProperties(builder, typeName);
+			generateSafeSpanDictionaryStorageAccessor(builder, typeName);
 			foreach (IFieldSymbol field in ecsFields)
 			{
 				generateSafeSpanColumn(builder, typeName, field);
@@ -760,6 +1575,7 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\tprivate bool mDisposed;");
 			generateEditorValidationFields(builder, true);
 			generateSafeRegistryProperties(builder, typeName);
+			generateSafeRegistryDictionaryStorageAccessor(builder);
 			foreach (IFieldSymbol field in ecsFields)
 			{
 				generateSafeRegistryColumn(builder, typeName, field);
@@ -770,6 +1586,30 @@ namespace ECSSourceGenerator
 			generateSafeRegistryDispose(builder, typeName);
 			generateEditorValidationMethods(builder, typeName, true);
 			builder.AppendLine("}");
+		}
+		private static void generateUnsafeDictionaryStorageAccessor(StringBuilder builder, string typeName)
+		{
+			appendAggressiveInlining(builder, 1);
+			builder.AppendLine("\tinternal " + typeName + "Storage* getDictionaryStorage()");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\treturn mStorage;");
+			builder.AppendLine("\t}");
+		}
+		private static void generateSafeSpanDictionaryStorageAccessor(StringBuilder builder, string typeName)
+		{
+			appendAggressiveInlining(builder, 1);
+			builder.AppendLine("\tinternal " + typeName + "Storage[] getDictionaryStorage()");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\treturn mStorage;");
+			builder.AppendLine("\t}");
+		}
+		private static void generateSafeRegistryDictionaryStorageAccessor(StringBuilder builder)
+		{
+			appendAggressiveInlining(builder, 1);
+			builder.AppendLine("\tinternal int getDictionaryStorageID()");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\treturn mStorageID;");
+			builder.AppendLine("\t}");
 		}
 		private static void generateEditorValidationFields(StringBuilder builder, bool trackDispose)
 		{
@@ -1081,16 +1921,46 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t\t{");
 			builder.AppendLine("\t\t\tcapacity = 1;");
 			builder.AppendLine("\t\t}");
-			builder.AppendLine("\t\tmStorageMemory = global::System.Runtime.InteropServices.Marshal.AllocHGlobal(sizeof(" + typeName + "Storage));");
-			builder.AppendLine("\t\tmStorage = (" + typeName + "Storage*)mStorageMemory.ToPointer();");
-			builder.AppendLine("\t\t" + typeName + "Storage initialStorage;");
-			builder.AppendLine("\t\tallocateColumns(capacity, out mRawMemory, out initialStorage);");
-			builder.AppendLine("\t\t*mStorage = initialStorage;");
-			builder.AppendLine("\t\tmCapacity = capacity;");
+			builder.AppendLine("\t\ttry");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tmStorageMemory = global::System.Runtime.InteropServices.Marshal.AllocHGlobal(sizeof(" + typeName + "Storage));");
+			builder.AppendLine("\t\t\tmStorage = (" + typeName + "Storage*)mStorageMemory.ToPointer();");
+			builder.AppendLine("\t\t\t" + typeName + "Storage initialStorage;");
+			builder.AppendLine("\t\t\tallocateColumns(capacity, out mRawMemory, out initialStorage);");
+			builder.AppendLine("\t\t\t*mStorage = initialStorage;");
+			builder.AppendLine("\t\t\tmCapacity = capacity;");
 			builder.AppendLine("#if UNITY_EDITOR");
-			builder.AppendLine("\t\tmRefGeneration = new int[capacity];");
-			builder.AppendLine("\t\tmDebugLifecycleID = global::ECSSourceGeneratorGenerated.ECSListLeakTracker.register(\"" + typeName + "ECSList\", \"Unsafe\");");
+			builder.AppendLine("\t\t\tmRefGeneration = new int[capacity];");
+			builder.AppendLine("\t\t\tmDebugLifecycleID = global::ECSSourceGeneratorGenerated.ECSListLeakTracker.register(\"" + typeName + "ECSList\", \"Unsafe\");");
 			builder.AppendLine("#endif");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tcatch");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\t\tif (mDebugLifecycleID != 0)");
+			builder.AppendLine("\t\t\t{");
+			builder.AppendLine("\t\t\t\tglobal::ECSSourceGeneratorGenerated.ECSListLeakTracker.unregister(mDebugLifecycleID);");
+			builder.AppendLine("\t\t\t\tmDebugLifecycleID = 0;");
+			builder.AppendLine("\t\t\t}");
+			builder.AppendLine("\t\t\tmRefGeneration = null;");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\t\tif (mRawMemory != global::System.IntPtr.Zero)");
+			builder.AppendLine("\t\t\t{");
+			builder.AppendLine("\t\t\t\tglobal::System.Runtime.InteropServices.Marshal.FreeHGlobal(mRawMemory);");
+			builder.AppendLine("\t\t\t\tmRawMemory = global::System.IntPtr.Zero;");
+			builder.AppendLine("\t\t\t}");
+			builder.AppendLine("\t\t\tif (mStorageMemory != global::System.IntPtr.Zero)");
+			builder.AppendLine("\t\t\t{");
+			builder.AppendLine("\t\t\t\tglobal::System.Runtime.InteropServices.Marshal.FreeHGlobal(mStorageMemory);");
+			builder.AppendLine("\t\t\t\tmStorageMemory = global::System.IntPtr.Zero;");
+			builder.AppendLine("\t\t\t\tmStorage = null;");
+			builder.AppendLine("\t\t\t}");
+			builder.AppendLine("\t\t\tmCount = 0;");
+			builder.AppendLine("\t\t\tmCapacity = 0;");
+			builder.AppendLine("\t\t\tmDisposed = true;");
+			builder.AppendLine("\t\t\tglobal::System.GC.SuppressFinalize(this);");
+			builder.AppendLine("\t\t\tthrow;");
+			builder.AppendLine("\t\t}");
 			builder.AppendLine("\t}");
 			builder.AppendLine("\t~" + typeName + "ECSList()");
 			builder.AppendLine("\t{");
@@ -1146,12 +2016,36 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t\t{");
 			builder.AppendLine("\t\t\tcapacity = 1;");
 			builder.AppendLine("\t\t}");
-			builder.AppendLine("\t\tmStorageID = " + typeName + "StorageRegistry.add(capacity);");
-			builder.AppendLine("\t\tmCapacity = capacity;");
+			builder.AppendLine("\t\ttry");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tmStorageID = " + typeName + "StorageRegistry.add(capacity);");
+			builder.AppendLine("\t\t\tmCapacity = capacity;");
 			builder.AppendLine("#if UNITY_EDITOR");
-			builder.AppendLine("\t\tmRefGeneration = new int[capacity];");
-			builder.AppendLine("\t\tmDebugLifecycleID = global::ECSSourceGeneratorGenerated.ECSListLeakTracker.register(\"" + typeName + "ECSList\", \"SafeRegistry\");");
+			builder.AppendLine("\t\t\tmRefGeneration = new int[capacity];");
+			builder.AppendLine("\t\t\tmDebugLifecycleID = global::ECSSourceGeneratorGenerated.ECSListLeakTracker.register(\"" + typeName + "ECSList\", \"SafeRegistry\");");
 			builder.AppendLine("#endif");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tcatch");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\t\tif (mDebugLifecycleID != 0)");
+			builder.AppendLine("\t\t\t{");
+			builder.AppendLine("\t\t\t\tglobal::ECSSourceGeneratorGenerated.ECSListLeakTracker.unregister(mDebugLifecycleID);");
+			builder.AppendLine("\t\t\t\tmDebugLifecycleID = 0;");
+			builder.AppendLine("\t\t\t}");
+			builder.AppendLine("\t\t\tmRefGeneration = null;");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\t\tif (mStorageID >= 0)");
+			builder.AppendLine("\t\t\t{");
+			builder.AppendLine("\t\t\t\t" + typeName + "StorageRegistry.remove(mStorageID);");
+			builder.AppendLine("\t\t\t\tmStorageID = -1;");
+			builder.AppendLine("\t\t\t}");
+			builder.AppendLine("\t\t\tmCount = 0;");
+			builder.AppendLine("\t\t\tmCapacity = 0;");
+			builder.AppendLine("\t\t\tmDisposed = true;");
+			builder.AppendLine("\t\t\tglobal::System.GC.SuppressFinalize(this);");
+			builder.AppendLine("\t\t\tthrow;");
+			builder.AppendLine("\t\t}");
 			builder.AppendLine("\t}");
 			builder.AppendLine("\t~" + typeName + "ECSList()");
 			builder.AppendLine("\t{");
@@ -1400,6 +2294,11 @@ namespace ECSSourceGenerator
 		{
 			builder.AppendLine("\tprivate void resize(int capacity)");
 			builder.AppendLine("\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\tint[] newRefGeneration = new int[capacity];");
+			builder.AppendLine("\t\tint generationCopyCount = mRefGeneration.Length < capacity ? mRefGeneration.Length : capacity;");
+			builder.AppendLine("\t\tglobal::System.Array.Copy(mRefGeneration, newRefGeneration, generationCopyCount);");
+			builder.AppendLine("#endif");
 			builder.AppendLine("\t\tglobal::System.IntPtr newRawMemory;");
 			builder.AppendLine("\t\t" + typeName + "Storage newStorage;");
 			builder.AppendLine("\t\tallocateColumns(capacity, out newRawMemory, out newStorage);");
@@ -1416,7 +2315,7 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t\t*mStorage = newStorage;");
 			builder.AppendLine("\t\tmCapacity = capacity;");
 			builder.AppendLine("#if UNITY_EDITOR");
-			builder.AppendLine("\t\tglobal::System.Array.Resize(ref mRefGeneration, capacity);");
+			builder.AppendLine("\t\tmRefGeneration = newRefGeneration;");
 			builder.AppendLine("#endif");
 			builder.AppendLine("\t}");
 		}
@@ -1438,23 +2337,34 @@ namespace ECSSourceGenerator
 		}
 		private static void generateSafeResizeBody(StringBuilder builder, string typeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields)
 		{
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\tint[] newRefGeneration = new int[capacity];");
+			builder.AppendLine("\t\tint generationCopyCount = mRefGeneration.Length < capacity ? mRefGeneration.Length : capacity;");
+			builder.AppendLine("\t\tglobal::System.Array.Copy(mRefGeneration, newRefGeneration, generationCopyCount);");
+			builder.AppendLine("#endif");
 			foreach (IFieldSymbol field in ecsFields)
 			{
 				string fieldType = getTypeName(field.Type);
 				string localName = "new_" + field.Name;
 				builder.AppendLine("\t\t" + fieldType + "[] " + localName + " = new " + fieldType + "[capacity];");
 				builder.AppendLine("\t\tglobal::System.Array.Copy(storage." + fieldAccess(field) + ", " + localName + ", mCount);");
-				builder.AppendLine("\t\tstorage." + fieldAccess(field) + " = " + localName + ";");
 			}
 			if (aosFields.Count > 0)
 			{
 				builder.AppendLine("\t\t" + typeName + "AoSBlock[] newAoS = new " + typeName + "AoSBlock[capacity];");
 				builder.AppendLine("\t\tglobal::System.Array.Copy(storage.mAoS, newAoS, mCount);");
+			}
+			foreach (IFieldSymbol field in ecsFields)
+			{
+				builder.AppendLine("\t\tstorage." + fieldAccess(field) + " = new_" + field.Name + ";");
+			}
+			if (aosFields.Count > 0)
+			{
 				builder.AppendLine("\t\tstorage.mAoS = newAoS;");
 			}
 			builder.AppendLine("\t\tmCapacity = capacity;");
 			builder.AppendLine("#if UNITY_EDITOR");
-			builder.AppendLine("\t\tglobal::System.Array.Resize(ref mRefGeneration, capacity);");
+			builder.AppendLine("\t\tmRefGeneration = newRefGeneration;");
 			builder.AppendLine("#endif");
 		}
 		private static void generateUnsafeAllocateColumns(StringBuilder builder, string typeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields)

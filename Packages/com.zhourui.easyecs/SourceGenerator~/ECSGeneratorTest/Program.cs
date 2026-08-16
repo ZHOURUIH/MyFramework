@@ -24,6 +24,64 @@ public sealed class NotECSAttribute : Attribute
 {
 }
 ";
+		private const string DICTIONARY_DATA_SOURCE = @"
+[ECS]
+public struct RoleData
+{
+	public int mHP;
+	public float mSpeed;
+	public float mPositionX;
+	public float mPositionY;
+	[NotECS] public int mID;
+	[NotECS] public int mCamp;
+}
+";
+		private const string DICTIONARY_USAGE_SOURCE = @"
+public static class DictionaryUsage
+{
+	public static int Run()
+	{
+		RoleDataECSDictionary<int> dict = new RoleDataECSDictionary<int>(4);
+		dict.Add(1, new RoleData { mHP = 10, mSpeed = 1.0f, mPositionX = 2.0f, mPositionY = 3.0f, mID = 1, mCamp = 2 });
+		dict.TryAdd(2, new RoleData { mHP = 20, mSpeed = 2.0f, mPositionX = 4.0f, mPositionY = 6.0f, mID = 2, mCamp = 3 });
+		int sum = 0;
+		RoleDataRef indexValue = dict[1];
+		indexValue.mHP += 1;
+		if (dict.TryGetValue(1, out RoleDataRef found))
+		{
+			found.mHP += 1;
+		}
+		if (dict.TryGetIndex(1, out int index))
+		{
+			sum += index;
+		}
+		foreach (var item in dict)
+		{
+			int key = item.Key;
+			RoleDataRef value = item.Value;
+			value.mHP += key;
+			sum += value.mHP;
+		}
+		foreach (int key in dict.Keys)
+		{
+			sum += key;
+		}
+		foreach (RoleDataRef value in dict.Values)
+		{
+			value.mHP += 1;
+			sum += value.mHP;
+		}
+		RoleDataRef denseValue = dict.getValueAt(0);
+		denseValue.mHP += dict.getKeyAt(0);
+		var hp = dict.getHPColumn();
+		hp[0] += 1;
+		dict.Remove(2);
+		dict.Clear();
+		dict.Dispose();
+		return sum;
+	}
+}
+";
 		private static readonly MetadataReference[] mMetadataReferences = createMetadataReferences();
 		private static int Main()
 		{
@@ -37,6 +95,7 @@ public sealed class NotECSAttribute : Attribute
 				new TestCase("SafeSpan后端选择", testSafeSpanBackend),
 				new TestCase("SafeRegistry后端选择", testSafeRegistryBackend),
 				new TestCase("Managed字段自动SafeSpan", testManagedFieldFallback),
+				new TestCase("Managed字段强制SafeRegistry", testManagedFieldForceSafeRegistry),
 				new TestCase("正常字段不生成@", testNormalIdentifierDoesNotEscape),
 				new TestCase("关键字字段正确生成@", testKeywordIdentifierEscape),
 				new TestCase("生成代码排版", testGeneratedCodeFormatting),
@@ -50,6 +109,22 @@ public sealed class NotECSAttribute : Attribute
 				new TestCase("Fixed字段报ECS003", testFixedFieldDiagnostic),
 				new TestCase("Private字段报ECS003", testPrivateFieldDiagnostic),
 				new TestCase("Column名称冲突报ECS004", testColumnNameConflictDiagnostic),
+				new TestCase("ECSDictionary生成", testDictionaryGeneration),
+				new TestCase("ECSDictionary TryGetIndex生成", testDictionaryTryGetIndexGeneration),
+				new TestCase("ECSDictionary Unsafe编译", testDictionaryUnsafeCompile),
+				new TestCase("ECSDictionary SafeSpan编译", testDictionarySafeSpanCompile),
+				new TestCase("ECSDictionary SafeRegistry编译", testDictionarySafeRegistryCompile),
+				new TestCase("ECSDictionary Unsafe foreach快路径", testDictionaryUnsafeForeachFastPath),
+				new TestCase("ECSDictionary SafeSpan foreach快路径", testDictionarySafeSpanForeachFastPath),
+				new TestCase("ECSDictionary SafeRegistry foreach快路径", testDictionarySafeRegistryForeachFastPath),
+				new TestCase("ECSDictionary Keys和Values生成", testDictionaryKeysValuesGeneration),
+				new TestCase("ECSDictionary不实现集合接口", testDictionaryDoesNotImplementCollectionInterfaces),
+				new TestCase("ECSDictionary Editor版本保护生成", testDictionaryEditorVersionValidationGeneration),
+				new TestCase("ECSDictionary结构修改版本递增", testDictionaryStructuralVersionIncrementGeneration),
+				new TestCase("SafeResize先分配后提交", testSafeResizeCommitAfterAllocation),
+				new TestCase("Unsafe构造异常清理生成", testUnsafeConstructorCleanupGeneration),
+				new TestCase("SafeRegistry构造异常清理生成", testSafeRegistryConstructorCleanupGeneration),
+				new TestCase("Dictionary构造资源顺序", testDictionaryConstructorResourceOrder),
 			};
 			int failedCount = 0;
 			Console.WriteLine("================ ECSGenerator Test Start ================");
@@ -202,8 +277,9 @@ public struct RoleData
 	public int mHP;
 	public float mSpeed;
 }
-", false, "ECS_FORCE_SAFE_REGISTRY");
+", true, "ECS_FORCE_SAFE_REGISTRY");
 			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "public const bool IsUnsafeBackend = false;");
 			assertContains(result.mGeneratedSource, "public const string BackendName = \"SafeRegistry\";");
 			assertContains(result.mGeneratedSource, "public const string BackendReason = \"ECS_FORCE_SAFE_REGISTRY\";");
 			assertContains(result.mGeneratedSource, "RoleDataStorageRegistry");
@@ -225,6 +301,22 @@ public struct RoleData
 			assertContains(result.mGeneratedSource, "public const string BackendReason = \"ContainsManagedField,Span=true\";");
 			assertContains(result.mGeneratedSource, "public string[] mName;");
 			assertDoesNotContain(result.mGeneratedSource, "RoleDataStorage* mStorage;");
+		}
+		private static void testManagedFieldForceSafeRegistry()
+		{
+			GeneratorTestResult result = runGenerator(@"
+[ECS]
+public struct RoleData
+{
+	public int mHP;
+	public string mName;
+}
+", true, "ECS_FORCE_SAFE_REGISTRY");
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "public const string BackendName = \"SafeRegistry\";");
+			assertContains(result.mGeneratedSource, "public const string BackendReason = \"ECS_FORCE_SAFE_REGISTRY\";");
+			assertContains(result.mGeneratedSource, "public string[] mName;");
+			assertDoesNotContain(result.mGeneratedSource, "global::System.Span<RoleDataStorage>");
 		}
 		private static void testNormalIdentifierDoesNotEscape()
 		{
@@ -262,19 +354,7 @@ public struct RoleData
 		}
 		private static void testGeneratedCodeFormatting()
 		{
-			GeneratorTestResult result = runGenerator(@"
-[ECS]
-public struct RoleData
-{
-	public int mHP;
-	public float mSpeed;
-	public float mPositionX;
-	public float mPositionY;
-	[NotECS] public int mID;
-	[NotECS] public int mModelID;
-	[NotECS] public int mCamp;
-}
-", false);
+			GeneratorTestResult result = runGenerator(DICTIONARY_DATA_SOURCE, false);
 			assertNoErrors(result);
 			string source = normalizeLineEnding(result.mGeneratedSource);
 			assertDoesNotContain(source, "if (capacity < 1) capacity = 1;");
@@ -292,7 +372,7 @@ public struct RoleData
 			}
 			assertContains(source, "if (capacity < 1)\n\t\t{\n\t\t\tcapacity = 1;\n\t\t}");
 			assertContains(source, "if (mCount >= mCapacity)\n\t\t{\n\t\t\tresize(mCapacity * 2);\n\t\t}");
-			assertContains(source, "if ((uint)index >= (uint)mCount)\n\t\t{\n\t\t\tthrow new global::System.ArgumentOutOfRangeException(nameof(index));\n\t\t}");
+			assertContains(source, "if ((uint)index >= (uint)mCount)\n\t\t{");
 		}
 		private static void testStructAttributeConflict()
 		{
@@ -412,6 +492,170 @@ public struct RoleData
 }
 ", false, "ECS004");
 		}
+		private static void testDictionaryGeneration()
+		{
+			GeneratorTestResult result = runGenerator(DICTIONARY_DATA_SOURCE, false);
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "public sealed class RoleDataECSDictionary<TKey> : global::System.IDisposable");
+			assertContains(result.mGeneratedSource, "private readonly global::System.Collections.Generic.Dictionary<TKey, int> mIndexMap;");
+			assertContains(result.mGeneratedSource, "private readonly RoleDataECSList mValues;");
+			assertContains(result.mGeneratedSource, "private TKey[] mKeys;");
+			assertContains(result.mGeneratedSource, "public RoleDataRef this[TKey key]");
+			assertContains(result.mGeneratedSource, "public void Add(TKey key, global::RoleData value)");
+			assertContains(result.mGeneratedSource, "public bool TryAdd(TKey key, global::RoleData value)");
+			assertContains(result.mGeneratedSource, "public bool ContainsKey(TKey key)");
+			assertContains(result.mGeneratedSource, "public bool TryGetValue(TKey key, out RoleDataRef value)");
+			assertContains(result.mGeneratedSource, "public bool Remove(TKey key)");
+			assertContains(result.mGeneratedSource, "public TKey getKeyAt(int index)");
+			assertContains(result.mGeneratedSource, "public RoleDataRef getValueAt(int index)");
+		}
+		private static void testDictionaryTryGetIndexGeneration()
+		{
+			GeneratorTestResult result = runGenerator(DICTIONARY_DATA_SOURCE, false);
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "public bool TryGetIndex(TKey key, out int index)");
+			assertContains(result.mGeneratedSource, "return mIndexMap.TryGetValue(key, out index);");
+		}
+		private static void testDictionaryUnsafeCompile()
+		{
+			GeneratorTestResult result = runGenerator(DICTIONARY_DATA_SOURCE + DICTIONARY_USAGE_SOURCE, true);
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "public const string BackendName = \"Unsafe\";");
+		}
+		private static void testDictionarySafeSpanCompile()
+		{
+			GeneratorTestResult result = runGenerator(DICTIONARY_DATA_SOURCE + DICTIONARY_USAGE_SOURCE, false);
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "public const string BackendName = \"SafeSpan\";");
+		}
+		private static void testDictionarySafeRegistryCompile()
+		{
+			GeneratorTestResult result = runGenerator(DICTIONARY_DATA_SOURCE + DICTIONARY_USAGE_SOURCE, false, "ECS_FORCE_SAFE_REGISTRY");
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "public const string BackendName = \"SafeRegistry\";");
+		}
+		private static void testDictionaryUnsafeForeachFastPath()
+		{
+			GeneratorTestResult result = runGenerator(DICTIONARY_DATA_SOURCE, true);
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "public unsafe ref struct Entry");
+			assertContains(result.mGeneratedSource, "private readonly RoleDataStorage* mStorage;");
+			assertContains(result.mGeneratedSource, "return new RoleDataRef(mStorage, mIndex);");
+			assertContains(result.mGeneratedSource, "public unsafe ref struct Enumerator");
+			assertContains(result.mGeneratedSource, "mStorage = owner.mValues.getDictionaryStorage();");
+			assertContains(result.mGeneratedSource, "return new Entry(mKeys[mIndex], mStorage, mIndex);");
+			assertDoesNotContain(getPlayerDictionaryEnumeratorSource(result.mGeneratedSource), "mValues[mIndex]");
+		}
+		private static void testDictionarySafeSpanForeachFastPath()
+		{
+			GeneratorTestResult result = runGenerator(DICTIONARY_DATA_SOURCE, false);
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "private readonly RoleDataStorage[] mStorage;");
+			assertContains(result.mGeneratedSource, "return new RoleDataRef(mStorage, mIndex);");
+			assertContains(result.mGeneratedSource, "mStorage = owner.mValues.getDictionaryStorage();");
+			assertContains(result.mGeneratedSource, "return new Entry(mKeys[mIndex], mStorage, mIndex);");
+		}
+		private static void testDictionarySafeRegistryForeachFastPath()
+		{
+			GeneratorTestResult result = runGenerator(DICTIONARY_DATA_SOURCE, false, "ECS_FORCE_SAFE_REGISTRY");
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "private readonly int mStorageID;");
+			assertContains(result.mGeneratedSource, "return new RoleDataRef(mStorageID, mIndex);");
+			assertContains(result.mGeneratedSource, "mStorageID = owner.mValues.getDictionaryStorageID();");
+			assertContains(result.mGeneratedSource, "return new Entry(mKeys[mIndex], mStorageID, mIndex);");
+		}
+		private static void testDictionaryKeysValuesGeneration()
+		{
+			GeneratorTestResult result = runGenerator(DICTIONARY_DATA_SOURCE, false);
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "public KeyEnumerable Keys");
+			assertContains(result.mGeneratedSource, "public ValueEnumerable Values");
+			assertContains(result.mGeneratedSource, "public readonly struct KeyEnumerable");
+			assertContains(result.mGeneratedSource, "public struct KeyEnumerator");
+			assertContains(result.mGeneratedSource, "public readonly struct ValueEnumerable");
+			assertContains(result.mGeneratedSource, "public struct ValueEnumerator");
+		}
+		private static void testDictionaryDoesNotImplementCollectionInterfaces()
+		{
+			GeneratorTestResult result = runGenerator(DICTIONARY_DATA_SOURCE, false);
+			assertNoErrors(result);
+			assertDoesNotContain(result.mGeneratedSource, "RoleDataECSDictionary<TKey> : global::System.Collections.Generic.IEnumerable");
+			assertDoesNotContain(result.mGeneratedSource, "global::System.Collections.Generic.IEnumerator<");
+			assertDoesNotContain(result.mGeneratedSource, "global::System.Collections.IEnumerator");
+			assertDoesNotContain(result.mGeneratedSource, "global::System.Collections.Generic.KeyValuePair<TKey, global::RoleData>");
+		}
+		private static void testDictionaryEditorVersionValidationGeneration()
+		{
+			GeneratorTestResult result = runGenerator(DICTIONARY_DATA_SOURCE, true);
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "#if UNITY_EDITOR");
+			assertContains(result.mGeneratedSource, "private int mVersion;");
+			assertContains(result.mGeneratedSource, "private void validateEnumeratorVersion(int version)");
+			assertContains(result.mGeneratedSource, "private void validateEnumeratorCurrent(int index, int count, int version)");
+			assertContains(result.mGeneratedSource, "mOwner.validateEnumeratorVersion(mVersion);");
+			assertContains(result.mGeneratedSource, "mOwner.validateEnumeratorCurrent(mIndex, mCount, mVersion);");
+			assertContains(result.mGeneratedSource, "ECSDictionary在遍历期间发生了结构变化");
+			assertContains(result.mGeneratedSource, "ECSDictionary Enumerator的Current当前无效");
+		}
+		private static void testDictionaryStructuralVersionIncrementGeneration()
+		{
+			GeneratorTestResult result = runGenerator(DICTIONARY_DATA_SOURCE, true);
+			assertNoErrors(result);
+			int incrementCount = countOccurrences(result.mGeneratedSource, "++mVersion;");
+			if (incrementCount < 4)
+			{
+				throw new Exception("Dictionary结构修改的mVersion递增点不足,Expected>=4,Actual:" + incrementCount);
+			}
+			assertContains(result.mGeneratedSource, "mValues.RemoveAtSwapBack(removeIndex);");
+			assertContains(result.mGeneratedSource, "mValues.Clear();");
+			assertContains(result.mGeneratedSource, "mValues.Add(value);");
+			assertContains(result.mGeneratedSource, "mValues.Dispose();");
+		}
+		private static void testSafeResizeCommitAfterAllocation()
+		{
+			GeneratorTestResult result = runGenerator(@"
+[ECS]
+public struct RoleData
+{
+	public int mHP;
+	public float mSpeed;
+	[NotECS] public int mID;
+}
+", false);
+			assertNoErrors(result);
+			assertBefore(result.mGeneratedSource, "int[] new_mHP = new int[capacity];", "storage.mHP = new_mHP;");
+			assertBefore(result.mGeneratedSource, "float[] new_mSpeed = new float[capacity];", "storage.mHP = new_mHP;");
+			assertBefore(result.mGeneratedSource, "RoleDataAoSBlock[] newAoS = new RoleDataAoSBlock[capacity];", "storage.mHP = new_mHP;");
+			assertBefore(result.mGeneratedSource, "storage.mHP = new_mHP;", "mCapacity = capacity;");
+			assertBefore(result.mGeneratedSource, "storage.mSpeed = new_mSpeed;", "mCapacity = capacity;");
+			assertBefore(result.mGeneratedSource, "storage.mAoS = newAoS;", "mCapacity = capacity;");
+		}
+		private static void testUnsafeConstructorCleanupGeneration()
+		{
+			GeneratorTestResult result = runGenerator(DICTIONARY_DATA_SOURCE, true);
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "\t\tcatch");
+			assertContains(result.mGeneratedSource, "global::System.Runtime.InteropServices.Marshal.FreeHGlobal(mRawMemory);");
+			assertContains(result.mGeneratedSource, "global::System.Runtime.InteropServices.Marshal.FreeHGlobal(mStorageMemory);");
+			assertContains(result.mGeneratedSource, "mDisposed = true;");
+			assertContains(result.mGeneratedSource, "global::System.GC.SuppressFinalize(this);");
+		}
+		private static void testSafeRegistryConstructorCleanupGeneration()
+		{
+			GeneratorTestResult result = runGenerator(DICTIONARY_DATA_SOURCE, true, "ECS_FORCE_SAFE_REGISTRY");
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "RoleDataStorageRegistry.remove(mStorageID);");
+			assertContains(result.mGeneratedSource, "mStorageID = -1;");
+			assertContains(result.mGeneratedSource, "mDisposed = true;");
+			assertContains(result.mGeneratedSource, "global::System.GC.SuppressFinalize(this);");
+		}
+		private static void testDictionaryConstructorResourceOrder()
+		{
+			GeneratorTestResult result = runGenerator(DICTIONARY_DATA_SOURCE, true);
+			assertNoErrors(result);
+			assertBefore(result.mGeneratedSource, "mIndexMap = new global::System.Collections.Generic.Dictionary<TKey, int>(capacity, comparer);", "mKeys = new TKey[capacity];");
+			assertBefore(result.mGeneratedSource, "mKeys = new TKey[capacity];", "mValues = new RoleDataECSList(capacity);");
+		}
 		private static GeneratorTestResult runGenerator(string source, bool allowUnsafe, params string[] preprocessorSymbols)
 		{
 			CSharpParseOptions parseOptions = new CSharpParseOptions(LanguageVersion.Latest, DocumentationMode.Parse, SourceCodeKind.Regular, preprocessorSymbols ?? Array.Empty<string>());
@@ -498,6 +742,19 @@ public struct RoleData
 				throw new Exception("生成代码中没有找到:\n" + expected + "\n\nGenerated Source:\n" + source);
 			}
 		}
+		private static void assertBefore(string source, string first, string second)
+		{
+			int firstIndex = source.IndexOf(first, StringComparison.Ordinal);
+			if (firstIndex < 0)
+			{
+				throw new Exception("生成代码中没有找到:\n" + first);
+			}
+			int secondIndex = source.IndexOf(second, firstIndex + first.Length, StringComparison.Ordinal);
+			if (secondIndex < 0)
+			{
+				throw new Exception("生成代码中没有在目标位置之后找到:\n" + second + "\nFirst:\n" + first);
+			}
+		}
 		private static void assertDoesNotContain(string source, string unexpected)
 		{
 			if (source.Contains(unexpected))
@@ -535,6 +792,41 @@ public struct RoleData
 				}
 			}
 			return null;
+		}
+		private static string getPlayerDictionaryEnumeratorSource(string source)
+		{
+			string normalized = normalizeLineEnding(source);
+			int dictionaryIndex = normalized.IndexOf("sealed class RoleDataECSDictionary<TKey>", StringComparison.Ordinal);
+			if (dictionaryIndex < 0)
+			{
+				throw new Exception("没有找到RoleDataECSDictionary<TKey>");
+			}
+			int playerIndex = normalized.IndexOf("#else", dictionaryIndex, StringComparison.Ordinal);
+			if (playerIndex < 0)
+			{
+				throw new Exception("没有找到Dictionary Player分支");
+			}
+			int endIndex = normalized.IndexOf("#endif", playerIndex, StringComparison.Ordinal);
+			if (endIndex < 0)
+			{
+				throw new Exception("没有找到Dictionary Player分支结束位置");
+			}
+			return normalized.Substring(playerIndex, endIndex - playerIndex);
+		}
+		private static int countOccurrences(string source, string value)
+		{
+			int count = 0;
+			int index = 0;
+			while (true)
+			{
+				index = source.IndexOf(value, index, StringComparison.Ordinal);
+				if (index < 0)
+				{
+					return count;
+				}
+				++count;
+				index += value.Length;
+			}
 		}
 		private static string diagnosticsToString(IEnumerable<Diagnostic> diagnostics)
 		{

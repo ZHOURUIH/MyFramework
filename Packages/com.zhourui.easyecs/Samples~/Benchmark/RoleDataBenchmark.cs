@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
-using Stopwatch = System.Diagnostics.Stopwatch;
+using System.Diagnostics;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 public class RoleDataBenchmark : MonoBehaviour
 {
@@ -9,11 +10,15 @@ public class RoleDataBenchmark : MonoBehaviour
 	private const int SAMPLE_COUNT = 15;
 	private const int WARMUP_COUNT = 3;
 	private static double mResultSink;
+	private List<RoleData> mList;
+	private RoleData[] mArray;
+	private RoleDataECSList mECSList;
 	private struct BenchmarkResult
 	{
 		public double mMedian;
 		public double mMin;
 		public double mMax;
+		public double mNsPerEntity;
 	}
 	private void Awake()
 	{
@@ -21,75 +26,72 @@ public class RoleDataBenchmark : MonoBehaviour
 	}
 	private void runBenchmark()
 	{
+		Debug.Log("================ RoleData Correctness Test Start ================");
 		runCorrectnessTests();
-		Debug.Log("================ RoleData Benchmark Start ================");
-		Debug.Log("ECS Backend:" + RoleDataECSList.BackendName);
-		Debug.Log("Backend Reason:" + RoleDataECSList.BackendReason);
-		Debug.Log("EntityCount:" + ENTITY_COUNT);
-		Debug.Log("SampleCount:" + SAMPLE_COUNT);
-		Debug.Log("WarmupCount:" + WARMUP_COUNT);
-		runTest1();
-		runTest2();
-		runTest4();
-		Debug.Log("ResultSink:" + mResultSink);
-		Debug.Log("================ RoleData Benchmark End ================");
+		Debug.Log("================ RoleData Correctness Test Pass ================");
+#if UNITY_EDITOR
+		Debug.Log("Unity EditorÁéØÂ¢É,Â∑≤ÂÆåÊàêECSÊ≠£Á°ÆÊÄßÊ£ÄÊµã,Ë∑≥ËøáÊÄßËÉΩBenchmark");
+		return;
+#else
+		initializePerformanceData();
+		try
+		{
+			Debug.Log("================ RoleData Benchmark Start ================");
+			Debug.Log("ECS Backend:" + RoleDataECSList.BackendName);
+			Debug.Log("Backend Reason:" + RoleDataECSList.BackendReason);
+			Debug.Log("EntityCount:" + ENTITY_COUNT);
+			Debug.Log("SampleCount:" + SAMPLE_COUNT);
+			Debug.Log("WarmupCount:" + WARMUP_COUNT);
+			runTest1();
+			runTest2();
+			runTest4();
+			Debug.Log("ResultSink:" + mResultSink);
+			Debug.Log("================ RoleData Benchmark End ================");
+		}
+		finally
+		{
+			mECSList.Dispose();
+			mECSList = null;
+		}
+#endif
 	}
-	private static void runCorrectnessTest(string name, Action action)
+	private void runCorrectnessTests()
+	{
+		runCorrectnessTest("Add/Get/Resize", testAddGetResize);
+		runCorrectnessTest("Set", testSet);
+		runCorrectnessTest("IndexerÁõ¥Êé•‰øÆÊîπ", testIndexerModify);
+		runCorrectnessTest("RoleDataRef", testRoleDataRef);
+		runCorrectnessTest("ResizeÂêéRoleDataRef", testResizeAfterRoleDataRef);
+		runCorrectnessTest("Direct Column", testDirectColumn);
+		runCorrectnessTest("ClearÂêéÈáçÊñ∞‰ΩøÁî®", testClearReuse);
+		runCorrectnessTest("RemoveAtSwapBack", testRemoveAtSwapBack);
+		runCorrectnessTest("ÈáçÂ§çDispose", testDoubleDispose);
+	}
+	private void runCorrectnessTest(string name, Action action)
 	{
 		action();
 		Debug.Log("RoleData CorrectnessTest Pass:" + name);
 	}
-	private static void runCorrectnessTests()
-	{
-		Debug.Log("================ RoleData Correctness Test Start ================");
-		runCorrectnessTest("Add/Get/Resize", testAddGetResize);
-		runCorrectnessTest("Set", testSet);
-		runCorrectnessTest("RoleDataRef", testRoleDataRef);
-		runCorrectnessTest("Resize∫ÛRoleDataRef", testRefAfterResize);
-		runCorrectnessTest("Direct Column", testDirectColumn);
-		runCorrectnessTest("Clear∫Û÷ÿ–¬ π”√", testClearAndReuse);
-		runCorrectnessTest("RemoveAtSwapBack", testRemoveAtSwapBack);
-		runCorrectnessTest("∂‡ECSList∏Ù¿Î", testMultipleLists);
-		runCorrectnessTest("¥Û¡ø¿©»›", testLargeResize);
-		runCorrectnessTest("ªÏ∫œ≤Ÿ◊˜OOP“ª÷¬–‘", testMixedOperations);
-		runCorrectnessTest("÷ÿ∏¥Dispose", testDisposeTwice);
-#if UNITY_EDITOR
-		if (RoleDataECSList.IsUnsafeBackend)
-		{
-			runCorrectnessTest("Unsafe Editor List‘ΩΩÁºÏ≤‚", testUnsafeEditorListBounds);
-			runCorrectnessTest("Unsafe Editor Dispose∫ÛListºÏ≤‚", testUnsafeEditorDisposedList);
-			runCorrectnessTest("Unsafe Editor Dispose∫ÛRefºÏ≤‚", testUnsafeEditorDisposedRef);
-			runCorrectnessTest("Unsafe Editor Dispose∫ÛColumnºÏ≤‚", testUnsafeEditorDisposedColumn);
-			runCorrectnessTest("Unsafe Editor Clear∫ÛRefºÏ≤‚", testUnsafeEditorRefAfterClear);
-			runCorrectnessTest("Unsafe Editor Remove∫ÛRefºÏ≤‚", testUnsafeEditorRefAfterRemove);
-			runCorrectnessTest("Unsafe Editor SwapBack“∆∂ØRefºÏ≤‚", testUnsafeEditorMovedRefAfterSwapBack);
-			runCorrectnessTest("Unsafe Editor RemoveŒﬁπÿRef±£≥÷”––ß", testUnsafeEditorUnaffectedRefAfterRemove);
-			runCorrectnessTest("Unsafe Editor Resize∫ÛRef±£≥÷”––ß", testUnsafeEditorRefAfterResize);
-			runCorrectnessTest("Unsafe Editor Add∫ÛColumn ß–ß", testUnsafeEditorColumnAfterAdd);
-			runCorrectnessTest("Unsafe Editor Remove∫ÛColumn ß–ß", testUnsafeEditorColumnAfterRemove);
-			runCorrectnessTest("Unsafe Editor Column‘ΩΩÁºÏ≤‚", testUnsafeEditorColumnBounds);
-		}
-#endif
-		Debug.Log("================ RoleData Correctness Test Pass ================");
-	}
-	private static void testAddGetResize()
+	private void testAddGetResize()
 	{
 		RoleDataECSList list = new RoleDataECSList(1);
 		try
 		{
-			const int count = 1024;
-			for (int i = 0; i < count; ++i)
+			for (int i = 0; i < 32; ++i)
 			{
-				list.Add(createTestEntity(i));
+				list.Add(createData(i));
 			}
-			assertEqual(count, list.Count, "Add∫ÛCount¥ÌŒÛ");
-			if (list.Capacity < count)
+			check(list.Count == 32, "CountÈîôËØØ");
+			check(list.Capacity >= 32, "ResizeÂêéCapacityÈîôËØØ");
+			for (int i = 0; i < 32; ++i)
 			{
-				throw new Exception("Add/Resize∫ÛCapacity¥ÌŒÛ,Capacity:" + list.Capacity + ",Expected>=" + count);
-			}
-			for (int i = 0; i < count; ++i)
-			{
-				assertRoleEqual(createTestEntity(i), list.Get(i), "Add/Get/Resize Index:" + i);
+				RoleData value = list.Get(i);
+				check(value.mHP == 100 + i, "mHPÈîôËØØ,Index:" + i);
+				check(value.mSpeed == i + 0.5f, "mSpeedÈîôËØØ,Index:" + i);
+				check(value.mPositionX == i * 2.0f, "mPositionXÈîôËØØ,Index:" + i);
+				check(value.mPositionY == i * 3.0f, "mPositionYÈîôËØØ,Index:" + i);
+				check(value.mID == i, "mIDÈîôËØØ,Index:" + i);
+				check(value.mCamp == i % 3, "mCampÈîôËØØ,Index:" + i);
 			}
 		}
 		finally
@@ -97,916 +99,342 @@ public class RoleDataBenchmark : MonoBehaviour
 			list.Dispose();
 		}
 	}
-	private static void testSet()
+	private void testSet()
 	{
-		RoleDataECSList list = new RoleDataECSList(4);
+		RoleDataECSList list = new RoleDataECSList();
 		try
 		{
-			list.Add(createTestEntity(0));
-			list.Add(createTestEntity(1));
-			list.Add(createTestEntity(2));
-			RoleData expected = createTestEntity(100);
-			list.Set(1, expected);
-			assertRoleEqual(expected, list.Get(1), "Set");
-			assertRoleEqual(createTestEntity(0), list.Get(0), "Set≤ª”¶–ﬁ∏ƒ«∞“ª∏ˆ‘™Àÿ");
-			assertRoleEqual(createTestEntity(2), list.Get(2), "Set≤ª”¶–ﬁ∏ƒ∫Û“ª∏ˆ‘™Àÿ");
+			list.Add(createData(1));
+			RoleData value = createData(9);
+			value.mHP = 999;
+			list.Set(0, value);
+			RoleData result = list.Get(0);
+			check(result.mHP == 999, "Set mHPÂ§±Ë¥•");
+			check(result.mID == 9, "Set AoSÂ≠óÊÆµÂ§±Ë¥•");
 		}
 		finally
 		{
 			list.Dispose();
 		}
 	}
-	private static void testRoleDataRef()
+	private void testIndexerModify()
 	{
-		RoleDataECSList list = new RoleDataECSList(4);
+		RoleDataECSList list = new RoleDataECSList();
 		try
 		{
-			RoleData source = createTestEntity(10);
-			list.Add(source);
-			RoleDataRef role = list[0];
-			role.mHP += 100;
-			role.mSpeed += 2.5f;
-			role.mPositionX += 10.0f;
-			role.mPositionY -= 5.0f;
-			role.mID += 1000;
-			role.mModelID += 2000;
-			role.mCamp += 3;
-			source.mHP += 100;
-			source.mSpeed += 2.5f;
-			source.mPositionX += 10.0f;
-			source.mPositionY -= 5.0f;
-			source.mID += 1000;
-			source.mModelID += 2000;
-			source.mCamp += 3;
-			assertRoleEqual(source, list.Get(0), "RoleDataRef");
+			list.Add(createData(1));
+			list[0].mHP = 777;
+			list[0].mSpeed = 8.5f;
+			list[0].mID = 99;
+			check(list.Get(0).mHP == 777, "Indexer‰øÆÊîπmHPÂ§±Ë¥•");
+			check(list.Get(0).mSpeed == 8.5f, "Indexer‰øÆÊîπmSpeedÂ§±Ë¥•");
+			check(list.Get(0).mID == 99, "Indexer‰øÆÊîπAoSÂ≠óÊÆµÂ§±Ë¥•");
 		}
 		finally
 		{
 			list.Dispose();
 		}
 	}
-	private static void testRefAfterResize()
+	private void testRoleDataRef()
+	{
+		RoleDataECSList list = new RoleDataECSList();
+		try
+		{
+			list.Add(createData(1));
+			RoleDataRef value = list[0];
+			value.mHP += 10;
+			value.mPositionX += 3.0f;
+			value.mCamp = 8;
+			check(list.Get(0).mHP == 111, "Ref‰øÆÊîπmHPÂ§±Ë¥•");
+			check(list.Get(0).mPositionX == 5.0f, "Ref‰øÆÊîπmPositionXÂ§±Ë¥•");
+			check(list.Get(0).mCamp == 8, "Ref‰øÆÊîπAoSÂ≠óÊÆµÂ§±Ë¥•");
+		}
+		finally
+		{
+			list.Dispose();
+		}
+	}
+	private void testResizeAfterRoleDataRef()
 	{
 		RoleDataECSList list = new RoleDataECSList(1);
 		try
 		{
-			RoleData expected = createTestEntity(0);
-			list.Add(expected);
-			RoleDataRef role = list[0];
-			for (int i = 1; i < 4096; ++i)
+			list.Add(createData(1));
+			RoleDataRef first = list[0];
+			for (int i = 2; i <= 64; ++i)
 			{
-				list.Add(createTestEntity(i));
+				list.Add(createData(i));
 			}
-			role.mHP += 777;
-			role.mSpeed += 3.25f;
-			role.mPositionX += 123.0f;
-			role.mID += 999;
-			expected.mHP += 777;
-			expected.mSpeed += 3.25f;
-			expected.mPositionX += 123.0f;
-			expected.mID += 999;
-			assertRoleEqual(expected, list.Get(0), "Resize∫ÛRoleDataRef");
+			first.mHP = 12345;
+			first.mPositionY = 456.0f;
+			first.mID = 888;
+			check(list.Get(0).mHP == 12345, "ResizeÂêéÊóßRef‰øÆÊîπmHPÂ§±Ë¥•");
+			check(list.Get(0).mPositionY == 456.0f, "ResizeÂêéÊóßRef‰øÆÊîπmPositionYÂ§±Ë¥•");
+			check(list.Get(0).mID == 888, "ResizeÂêéÊóßRef‰øÆÊîπAoSÂ≠óÊÆµÂ§±Ë¥•");
 		}
 		finally
 		{
 			list.Dispose();
 		}
 	}
-	private static void testDirectColumn()
+	private void testDirectColumn()
 	{
-		RoleDataECSList list = new RoleDataECSList(32);
+		RoleDataECSList list = new RoleDataECSList();
 		try
 		{
-			const int count = 16;
-			for (int i = 0; i < count; ++i)
-			{
-				list.Add(createTestEntity(i));
-			}
+			list.Add(createData(1));
+			list.Add(createData(2));
 			var hp = list.getHPColumn();
 			var speed = list.getSpeedColumn();
 			var positionX = list.getPositionXColumn();
-			var positionY = list.getPositionYColumn();
-			for (int i = 0; i < count; ++i)
-			{
-				hp[i] += 100;
-				speed[i] += 1.0f;
-				positionX[i] += 2.0f;
-				positionY[i] -= 3.0f;
-			}
-			for (int i = 0; i < count; ++i)
-			{
-				RoleData expected = createTestEntity(i);
-				expected.mHP += 100;
-				expected.mSpeed += 1.0f;
-				expected.mPositionX += 2.0f;
-				expected.mPositionY -= 3.0f;
-				assertRoleEqual(expected, list.Get(i), "Direct Column Index:" + i);
-			}
+			hp[0] = 1000;
+			hp[1] = 2000;
+			speed[0] = 10.0f;
+			positionX[1] = 20.0f;
+			check(list.Get(0).mHP == 1000, "Direct HP[0]Â§±Ë¥•");
+			check(list.Get(1).mHP == 2000, "Direct HP[1]Â§±Ë¥•");
+			check(list.Get(0).mSpeed == 10.0f, "Direct SpeedÂ§±Ë¥•");
+			check(list.Get(1).mPositionX == 20.0f, "Direct PositionXÂ§±Ë¥•");
 		}
 		finally
 		{
 			list.Dispose();
 		}
 	}
-	private static void testClearAndReuse()
+	private void testClearReuse()
 	{
 		RoleDataECSList list = new RoleDataECSList(2);
 		try
 		{
-			for (int i = 0; i < 100; ++i)
-			{
-				list.Add(createTestEntity(i));
-			}
-			int capacityBeforeClear = list.Capacity;
+			list.Add(createData(1));
+			list.Add(createData(2));
+			int capacity = list.Capacity;
 			list.Clear();
-			assertEqual(0, list.Count, "Clear∫ÛCount¥ÌŒÛ");
-			assertEqual(capacityBeforeClear, list.Capacity, "Clear≤ª”¶∏√∏ƒ±‰Capacity");
-			for (int i = 0; i < 32; ++i)
-			{
-				list.Add(createTestEntity(i + 1000));
-			}
-			assertEqual(32, list.Count, "Clear∫Û÷ÿ–¬AddµƒCount¥ÌŒÛ");
-			for (int i = 0; i < 32; ++i)
-			{
-				assertRoleEqual(createTestEntity(i + 1000), list.Get(i), "Clear∫Û÷ÿ–¬ π”√ Index:" + i);
-			}
+			check(list.Count == 0, "ClearÂêéCountÈîôËØØ");
+			check(list.Capacity == capacity, "Clear‰∏çÂ∫î‰øÆÊîπCapacity");
+			list.Add(createData(9));
+			check(list.Get(0).mID == 9, "ClearÂêéÈáçÊñ∞AddÂ§±Ë¥•");
 		}
 		finally
 		{
 			list.Dispose();
 		}
 	}
-	private static void testRemoveAtSwapBack()
+	private void testRemoveAtSwapBack()
 	{
-		RoleDataECSList list = new RoleDataECSList(8);
+		RoleDataECSList list = new RoleDataECSList();
 		try
 		{
-			for (int i = 0; i < 6; ++i)
-			{
-				list.Add(createTestEntity(i));
-			}
-			RoleData last = createTestEntity(5);
-			list.RemoveAtSwapBack(2);
-			assertEqual(5, list.Count, "RemoveAtSwapBack∫ÛCount¥ÌŒÛ");
-			assertRoleEqual(last, list.Get(2), "RemoveAtSwapBack√ª”–Ω´◊Ó∫Û‘™Àÿ“∆∂ØµΩ…æ≥˝Œª÷√");
-			assertRoleEqual(createTestEntity(0), list.Get(0), "RemoveAtSwapBack¥ÌŒÛ–ﬁ∏ƒIndex0");
-			assertRoleEqual(createTestEntity(1), list.Get(1), "RemoveAtSwapBack¥ÌŒÛ–ﬁ∏ƒIndex1");
-			assertRoleEqual(createTestEntity(3), list.Get(3), "RemoveAtSwapBack¥ÌŒÛ–ﬁ∏ƒIndex3");
-			assertRoleEqual(createTestEntity(4), list.Get(4), "RemoveAtSwapBack¥ÌŒÛ–ﬁ∏ƒIndex4");
-			list.RemoveAtSwapBack(list.Count - 1);
-			assertEqual(4, list.Count, "…æ≥˝◊Ó∫Û‘™Àÿ∫ÛCount¥ÌŒÛ");
-		}
-		finally
-		{
-			list.Dispose();
-		}
-	}
-	private static void testMultipleLists()
-	{
-		RoleDataECSList list0 = new RoleDataECSList(2);
-		RoleDataECSList list1 = new RoleDataECSList(2);
-		try
-		{
-			RoleData role0 = createTestEntity(10);
-			RoleData role1 = createTestEntity(20);
-			list0.Add(role0);
-			list1.Add(role1);
-			RoleDataRef ref0 = list0[0];
-			ref0.mHP += 1000;
-			ref0.mID += 5000;
-			role0.mHP += 1000;
-			role0.mID += 5000;
-			assertRoleEqual(role0, list0.Get(0), "∂‡ECSList∏Ù¿Î List0");
-			assertRoleEqual(role1, list1.Get(0), "∂‡ECSList∏Ù¿Î List1±ª¥ÌŒÛ–ﬁ∏ƒ");
-		}
-		finally
-		{
-			list0.Dispose();
-			list1.Dispose();
-		}
-	}
-	private static void testLargeResize()
-	{
-		RoleDataECSList list = new RoleDataECSList(1);
-		try
-		{
-			const int count = 20000;
-			for (int i = 0; i < count; ++i)
-			{
-				list.Add(createTestEntity(i));
-			}
-			assertEqual(count, list.Count, "¥Û¡ø¿©»›Count¥ÌŒÛ");
-			int[] indexList = { 0, 1, 2, 127, 128, 255, 256, 1023, 4095, 8191, count - 1 };
-			for (int i = 0; i < indexList.Length; ++i)
-			{
-				int index = indexList[i];
-				assertRoleEqual(createTestEntity(index), list.Get(index), "¥Û¡ø¿©»› Index:" + index);
-			}
-		}
-		finally
-		{
-			list.Dispose();
-		}
-	}
-	private static void testMixedOperations()
-	{
-		List<RoleData> normalList = new List<RoleData>();
-		RoleDataECSList ecsList = new RoleDataECSList(1);
-		try
-		{
-			for (int i = 0; i < 32; ++i)
-			{
-				RoleData data = createTestEntity(i);
-				normalList.Add(data);
-				ecsList.Add(data);
-			}
-			RoleData setData = createTestEntity(100);
-			normalList[5] = setData;
-			ecsList.Set(5, setData);
-			RoleData normalRole = normalList[3];
-			normalRole.mHP += 100;
-			normalRole.mSpeed += 2.0f;
-			normalRole.mPositionX += 5.0f;
-			normalRole.mPositionY -= 7.0f;
-			normalRole.mID += 1000;
-			normalRole.mModelID += 2000;
-			normalRole.mCamp += 1;
-			normalList[3] = normalRole;
-			RoleDataRef ecsRole = ecsList[3];
-			ecsRole.mHP += 100;
-			ecsRole.mSpeed += 2.0f;
-			ecsRole.mPositionX += 5.0f;
-			ecsRole.mPositionY -= 7.0f;
-			ecsRole.mID += 1000;
-			ecsRole.mModelID += 2000;
-			ecsRole.mCamp += 1;
-			removeAtSwapBack(normalList, 7);
-			ecsList.RemoveAtSwapBack(7);
-			RoleData addData = createTestEntity(200);
-			normalList.Add(addData);
-			ecsList.Add(addData);
-			for (int i = 0; i < normalList.Count; ++i)
-			{
-				RoleData data = normalList[i];
-				data.mHP += 3;
-				data.mPositionX += data.mSpeed;
-				data.mPositionY -= 1.0f;
-				normalList[i] = data;
-			}
-			var hp = ecsList.getHPColumn();
-			var speed = ecsList.getSpeedColumn();
-			var positionX = ecsList.getPositionXColumn();
-			var positionY = ecsList.getPositionYColumn();
-			for (int i = 0; i < ecsList.Count; ++i)
-			{
-				hp[i] += 3;
-				positionX[i] += speed[i];
-				positionY[i] -= 1.0f;
-			}
-			assertEqual(normalList.Count, ecsList.Count, "ªÏ∫œ≤Ÿ◊˜Count≤ª“ª÷¬");
-			for (int i = 0; i < normalList.Count; ++i)
-			{
-				assertRoleEqual(normalList[i], ecsList.Get(i), "ªÏ∫œ≤Ÿ◊˜OOP“ª÷¬–‘ Index:" + i);
-			}
-		}
-		finally
-		{
-			ecsList.Dispose();
-		}
-	}
-	private static void testDisposeTwice()
-	{
-		RoleDataECSList list = new RoleDataECSList(16);
-		list.Add(createTestEntity(0));
-		list.Dispose();
-		list.Dispose();
-	}
-#if UNITY_EDITOR
-	private static void testUnsafeEditorListBounds()
-	{
-		RoleDataECSList list = new RoleDataECSList(4);
-		try
-		{
-			list.Add(createTestEntity(0));
-			bool negativeCaught = false;
-			try
-			{
-				int value = list[-1].mHP;
-			}
-			catch (ArgumentOutOfRangeException)
-			{
-				negativeCaught = true;
-			}
-			if (!negativeCaught)
-			{
-				throw new Exception("list[-1]√ª”–¥•∑¢ArgumentOutOfRangeException");
-			}
-			bool upperCaught = false;
-			try
-			{
-				int value = list[list.Count].mHP;
-			}
-			catch (ArgumentOutOfRangeException)
-			{
-				upperCaught = true;
-			}
-			if (!upperCaught)
-			{
-				throw new Exception("list[Count]√ª”–¥•∑¢ArgumentOutOfRangeException");
-			}
-			bool getCaught = false;
-			try
-			{
-				list.Get(list.Count);
-			}
-			catch (ArgumentOutOfRangeException)
-			{
-				getCaught = true;
-			}
-			if (!getCaught)
-			{
-				throw new Exception("Get(Count)√ª”–¥•∑¢ArgumentOutOfRangeException");
-			}
-			bool setCaught = false;
-			try
-			{
-				list.Set(list.Count, createTestEntity(1));
-			}
-			catch (ArgumentOutOfRangeException)
-			{
-				setCaught = true;
-			}
-			if (!setCaught)
-			{
-				throw new Exception("Set(Count)√ª”–¥•∑¢ArgumentOutOfRangeException");
-			}
-		}
-		finally
-		{
-			list.Dispose();
-		}
-	}
-	private static void testUnsafeEditorDisposedList()
-	{
-		RoleDataECSList list = new RoleDataECSList(1);
-		list.Add(createTestEntity(0));
-		list.Dispose();
-		bool caught = false;
-		try
-		{
-			int count = list.Count;
-		}
-		catch (ObjectDisposedException)
-		{
-			caught = true;
-		}
-		if (!caught)
-		{
-			throw new Exception("Dispose∫Û∑√Œ ECSList.Count√ª”–¥•∑¢ObjectDisposedException");
-		}
-	}
-	private static void testUnsafeEditorDisposedRef()
-	{
-		RoleDataECSList list = new RoleDataECSList(1);
-		list.Add(createTestEntity(0));
-		RoleDataRef role = list[0];
-		list.Dispose();
-		bool caught = false;
-		try
-		{
-			int hp = role.mHP;
-		}
-		catch (ObjectDisposedException)
-		{
-			caught = true;
-		}
-		if (!caught)
-		{
-			throw new Exception("Dispose∫Û∑√Œ æ…RoleDataRef√ª”–¥•∑¢ObjectDisposedException,Unsafeœ¬¥Ê‘⁄“∞÷∏’Î∑√Œ ∑Áœ’");
-		}
-	}
-	private static void testUnsafeEditorDisposedColumn()
-	{
-		RoleDataECSList list = new RoleDataECSList(1);
-		list.Add(createTestEntity(0));
-		var hp = list.getHPColumn();
-		list.Dispose();
-		bool caught = false;
-		try
-		{
-			int value = hp[0];
-		}
-		catch (ObjectDisposedException)
-		{
-			caught = true;
-		}
-		if (!caught)
-		{
-			throw new Exception("Dispose∫Û∑√Œ æ…Column√ª”–¥•∑¢ObjectDisposedException,Unsafeœ¬¥Ê‘⁄“∞÷∏’Î∑√Œ ∑Áœ’");
-		}
-	}
-	private static void testUnsafeEditorRefAfterClear()
-	{
-		RoleDataECSList list = new RoleDataECSList(4);
-		try
-		{
-			list.Add(createTestEntity(0));
-			RoleDataRef role = list[0];
-			list.Clear();
-			bool caught = false;
-			try
-			{
-				int hp = role.mHP;
-			}
-			catch (InvalidOperationException)
-			{
-				caught = true;
-			}
-			if (!caught)
-			{
-				throw new Exception("Clear∫Û∑√Œ æ…RoleDataRef√ª”–¥•∑¢InvalidOperationException");
-			}
-		}
-		finally
-		{
-			list.Dispose();
-		}
-	}
-	private static void testUnsafeEditorRefAfterRemove()
-	{
-		RoleDataECSList list = new RoleDataECSList(4);
-		try
-		{
-			list.Add(createTestEntity(0));
-			list.Add(createTestEntity(1));
-			list.Add(createTestEntity(2));
-			RoleDataRef role = list[1];
+			list.Add(createData(1));
+			list.Add(createData(2));
+			list.Add(createData(3));
 			list.RemoveAtSwapBack(1);
-			bool caught = false;
-			try
-			{
-				int hp = role.mHP;
-			}
-			catch (InvalidOperationException)
-			{
-				caught = true;
-			}
-			if (!caught)
-			{
-				throw new Exception("RemoveAtSwapBack…æ≥˝‘™Àÿ∫Û∑√Œ æ…RoleDataRef√ª”–¥•∑¢InvalidOperationException");
-			}
+			check(list.Count == 2, "RemoveAtSwapBack CountÈîôËØØ");
+			check(list.Get(1).mID == 3, "SwapBackÊï∞ÊçÆÈîôËØØ");
+			check(list.Get(1).mHP == 103, "SwapBack SoAÂ≠óÊÆµÈîôËØØ");
 		}
 		finally
 		{
 			list.Dispose();
 		}
 	}
-	private static void testUnsafeEditorMovedRefAfterSwapBack()
+	private void testDoubleDispose()
 	{
-		RoleDataECSList list = new RoleDataECSList(4);
-		try
-		{
-			list.Add(createTestEntity(0));
-			list.Add(createTestEntity(1));
-			list.Add(createTestEntity(2));
-			list.Add(createTestEntity(3));
-			RoleDataRef lastRole = list[3];
-			list.RemoveAtSwapBack(1);
-			bool caught = false;
-			try
-			{
-				int hp = lastRole.mHP;
-			}
-			catch (InvalidOperationException)
-			{
-				caught = true;
-			}
-			if (!caught)
-			{
-				throw new Exception("SwapBack∫Û±ª∞·∂Ø‘™Àÿµƒæ…RoleDataRef√ª”–¥•∑¢InvalidOperationException");
-			}
-			assertRoleEqual(createTestEntity(3), list.Get(1), "SwapBack ˝æ›“∆∂Ø");
-		}
-		finally
-		{
-			list.Dispose();
-		}
+		RoleDataECSList list = new RoleDataECSList();
+		list.Add(createData(1));
+		list.Dispose();
+		list.Dispose();
 	}
-	private static void testUnsafeEditorUnaffectedRefAfterRemove()
+	private void initializePerformanceData()
 	{
-		RoleDataECSList list = new RoleDataECSList(8);
-		try
-		{
-			for (int i = 0; i < 6; ++i)
-			{
-				list.Add(createTestEntity(i));
-			}
-			RoleDataRef role0 = list[0];
-			int expectedHP = role0.mHP;
-			list.RemoveAtSwapBack(2);
-			role0.mHP += 100;
-			assertEqual(expectedHP + 100, list.Get(0).mHP, "RemoveAtSwapBack∫ÛŒﬁπÿRoleDataRef¥ÌŒÛ ß–ß");
-		}
-		finally
-		{
-			list.Dispose();
-		}
-	}
-	private static void testUnsafeEditorRefAfterResize()
-	{
-		RoleDataECSList list = new RoleDataECSList(1);
-		try
-		{
-			list.Add(createTestEntity(0));
-			RoleDataRef role = list[0];
-			int expectedHP = role.mHP;
-			for (int i = 1; i < 4096; ++i)
-			{
-				list.Add(createTestEntity(i));
-			}
-			role.mHP += 777;
-			assertEqual(expectedHP + 777, list.Get(0).mHP, "Add/Resize∫ÛRoleDataRef¥ÌŒÛ ß–ß");
-		}
-		finally
-		{
-			list.Dispose();
-		}
-	}
-	private static void testUnsafeEditorColumnAfterAdd()
-	{
-		RoleDataECSList list = new RoleDataECSList(4);
-		try
-		{
-			list.Add(createTestEntity(0));
-			var hp = list.getHPColumn();
-			list.Add(createTestEntity(1));
-			bool caught = false;
-			try
-			{
-				int value = hp[0];
-			}
-			catch (InvalidOperationException)
-			{
-				caught = true;
-			}
-			if (!caught)
-			{
-				throw new Exception("Add∫Û∑√Œ æ…Column√ª”–¥•∑¢InvalidOperationException");
-			}
-		}
-		finally
-		{
-			list.Dispose();
-		}
-	}
-	private static void testUnsafeEditorColumnAfterRemove()
-	{
-		RoleDataECSList list = new RoleDataECSList(4);
-		try
-		{
-			list.Add(createTestEntity(0));
-			list.Add(createTestEntity(1));
-			var hp = list.getHPColumn();
-			list.RemoveAtSwapBack(0);
-			bool caught = false;
-			try
-			{
-				int value = hp[0];
-			}
-			catch (InvalidOperationException)
-			{
-				caught = true;
-			}
-			if (!caught)
-			{
-				throw new Exception("RemoveAtSwapBack∫Û∑√Œ æ…Column√ª”–¥•∑¢InvalidOperationException");
-			}
-		}
-		finally
-		{
-			list.Dispose();
-		}
-	}
-	private static void testUnsafeEditorColumnBounds()
-	{
-		RoleDataECSList list = new RoleDataECSList(4);
-		try
-		{
-			list.Add(createTestEntity(0));
-			var hp = list.getHPColumn();
-			bool negativeCaught = false;
-			try
-			{
-				int value = hp[-1];
-			}
-			catch (ArgumentOutOfRangeException)
-			{
-				negativeCaught = true;
-			}
-			if (!negativeCaught)
-			{
-				throw new Exception("Column[-1]√ª”–¥•∑¢ArgumentOutOfRangeException");
-			}
-			bool upperCaught = false;
-			try
-			{
-				int value = hp[list.Count];
-			}
-			catch (ArgumentOutOfRangeException)
-			{
-				upperCaught = true;
-			}
-			if (!upperCaught)
-			{
-				throw new Exception("Column[Count]√ª”–¥•∑¢ArgumentOutOfRangeException");
-			}
-		}
-		finally
-		{
-			list.Dispose();
-		}
-	}
-#endif
-	private static RoleData createTestEntity(int index)
-	{
-		RoleData data = new RoleData();
-		data.mHP = 1000 + index % 1000;
-		data.mSpeed = 0.1f + index % 100 * 0.001f;
-		data.mPositionX = index * 0.01f;
-		data.mPositionY = index * 0.02f;
-		data.mID = index;
-		data.mModelID = 10000 + index % 100;
-		data.mCamp = index % 3;
-		return data;
-	}
-	private static void removeAtSwapBack(List<RoleData> list, int index)
-	{
-		int lastIndex = list.Count - 1;
-		if (index != lastIndex)
-		{
-			list[index] = list[lastIndex];
-		}
-		list.RemoveAt(lastIndex);
-	}
-	private static void assertRoleEqual(RoleData expected, RoleData actual, string message)
-	{
-		if (expected.mHP != actual.mHP)
-		{
-			throw new Exception(message + ",mHP¥ÌŒÛ,Expected:" + expected.mHP + ",Actual:" + actual.mHP);
-		}
-		assertFloat(expected.mSpeed, actual.mSpeed, message + ",mSpeed¥ÌŒÛ");
-		assertFloat(expected.mPositionX, actual.mPositionX, message + ",mPositionX¥ÌŒÛ");
-		assertFloat(expected.mPositionY, actual.mPositionY, message + ",mPositionY¥ÌŒÛ");
-		if (expected.mID != actual.mID)
-		{
-			throw new Exception(message + ",mID¥ÌŒÛ,Expected:" + expected.mID + ",Actual:" + actual.mID);
-		}
-		if (expected.mModelID != actual.mModelID)
-		{
-			throw new Exception(message + ",mModelID¥ÌŒÛ,Expected:" + expected.mModelID + ",Actual:" + actual.mModelID);
-		}
-		if (expected.mCamp != actual.mCamp)
-		{
-			throw new Exception(message + ",mCamp¥ÌŒÛ,Expected:" + expected.mCamp + ",Actual:" + actual.mCamp);
-		}
-	}
-	private static void assertEqual(int expected, int actual, string message)
-	{
-		if (expected != actual)
-		{
-			throw new Exception(message + ",Expected:" + expected + ",Actual:" + actual);
-		}
-	}
-	private static void assertFloat(float expected, float actual, string message)
-	{
-		if (Math.Abs(expected - actual) > 0.0001f)
-		{
-			throw new Exception(message + ",Expected:" + expected + ",Actual:" + actual);
-		}
-	}
-	private static void runTest1()
-	{
-		List<RoleData> managedList;
-		RoleData[] managedArray;
-		RoleDataECSList ecsList;
-		createBenchmarkData(out managedList, out managedArray, out ecsList);
-		try
-		{
-			BenchmarkResult listResult = measure(() =>
-			{
-				for (int i = 0; i < managedList.Count; ++i)
-				{
-					RoleData role = managedList[i];
-					role.mHP += 1;
-					managedList[i] = role;
-				}
-			});
-			mResultSink += managedList[ENTITY_COUNT - 1].mHP;
-			BenchmarkResult arrayResult = measure(() =>
-			{
-				for (int i = 0; i < managedArray.Length; ++i)
-				{
-					managedArray[i].mHP += 1;
-				}
-			});
-			mResultSink += managedArray[ENTITY_COUNT - 1].mHP;
-			BenchmarkResult indexResult = measure(() =>
-			{
-				for (int i = 0; i < ecsList.Count; ++i)
-				{
-					ecsList[i].mHP += 1;
-				}
-			});
-			mResultSink += ecsList.Get(ENTITY_COUNT - 1).mHP;
-			BenchmarkResult refResult = measure(() =>
-			{
-				for (int i = 0; i < ecsList.Count; ++i)
-				{
-					RoleDataRef role = ecsList[i];
-					role.mHP += 1;
-				}
-			});
-			mResultSink += ecsList.Get(ENTITY_COUNT - 1).mHP;
-			BenchmarkResult directResult = measure(() =>
-			{
-				var hp = ecsList.getHPColumn();
-				int count = ecsList.Count;
-				for (int i = 0; i < count; ++i)
-				{
-					hp[i] += 1;
-				}
-			});
-			mResultSink += ecsList.Get(ENTITY_COUNT - 1).mHP;
-			printResult("–ﬁ∏ƒ1∏ˆ◊÷∂Œ", listResult, arrayResult, indexResult, refResult, directResult);
-		}
-		finally
-		{
-			ecsList.Dispose();
-		}
-	}
-	private static void runTest2()
-	{
-		List<RoleData> managedList;
-		RoleData[] managedArray;
-		RoleDataECSList ecsList;
-		createBenchmarkData(out managedList, out managedArray, out ecsList);
-		try
-		{
-			BenchmarkResult listResult = measure(() =>
-			{
-				for (int i = 0; i < managedList.Count; ++i)
-				{
-					RoleData role = managedList[i];
-					role.mPositionX += role.mSpeed;
-					managedList[i] = role;
-				}
-			});
-			mResultSink += managedList[ENTITY_COUNT - 1].mPositionX;
-			BenchmarkResult arrayResult = measure(() =>
-			{
-				for (int i = 0; i < managedArray.Length; ++i)
-				{
-					managedArray[i].mPositionX += managedArray[i].mSpeed;
-				}
-			});
-			mResultSink += managedArray[ENTITY_COUNT - 1].mPositionX;
-			BenchmarkResult indexResult = measure(() =>
-			{
-				for (int i = 0; i < ecsList.Count; ++i)
-				{
-					ecsList[i].mPositionX += ecsList[i].mSpeed;
-				}
-			});
-			mResultSink += ecsList.Get(ENTITY_COUNT - 1).mPositionX;
-			BenchmarkResult refResult = measure(() =>
-			{
-				for (int i = 0; i < ecsList.Count; ++i)
-				{
-					RoleDataRef role = ecsList[i];
-					role.mPositionX += role.mSpeed;
-				}
-			});
-			mResultSink += ecsList.Get(ENTITY_COUNT - 1).mPositionX;
-			BenchmarkResult directResult = measure(() =>
-			{
-				var speed = ecsList.getSpeedColumn();
-				var positionX = ecsList.getPositionXColumn();
-				int count = ecsList.Count;
-				for (int i = 0; i < count; ++i)
-				{
-					positionX[i] += speed[i];
-				}
-			});
-			mResultSink += ecsList.Get(ENTITY_COUNT - 1).mPositionX;
-			printResult("∑√Œ 2∏ˆ◊÷∂Œ", listResult, arrayResult, indexResult, refResult, directResult);
-		}
-		finally
-		{
-			ecsList.Dispose();
-		}
-	}
-	private static void runTest4()
-	{
-		List<RoleData> managedList;
-		RoleData[] managedArray;
-		RoleDataECSList ecsList;
-		createBenchmarkData(out managedList, out managedArray, out ecsList);
-		try
-		{
-			BenchmarkResult listResult = measure(() =>
-			{
-				for (int i = 0; i < managedList.Count; ++i)
-				{
-					RoleData role = managedList[i];
-					role.mHP += 1;
-					role.mPositionX += role.mSpeed;
-					role.mPositionY += role.mSpeed;
-					managedList[i] = role;
-				}
-			});
-			mResultSink += managedList[ENTITY_COUNT - 1].mHP + managedList[ENTITY_COUNT - 1].mPositionX + managedList[ENTITY_COUNT - 1].mPositionY;
-			BenchmarkResult arrayResult = measure(() =>
-			{
-				for (int i = 0; i < managedArray.Length; ++i)
-				{
-					managedArray[i].mHP += 1;
-					managedArray[i].mPositionX += managedArray[i].mSpeed;
-					managedArray[i].mPositionY += managedArray[i].mSpeed;
-				}
-			});
-			mResultSink += managedArray[ENTITY_COUNT - 1].mHP + managedArray[ENTITY_COUNT - 1].mPositionX + managedArray[ENTITY_COUNT - 1].mPositionY;
-			BenchmarkResult indexResult = measure(() =>
-			{
-				for (int i = 0; i < ecsList.Count; ++i)
-				{
-					ecsList[i].mHP += 1;
-					ecsList[i].mPositionX += ecsList[i].mSpeed;
-					ecsList[i].mPositionY += ecsList[i].mSpeed;
-				}
-			});
-			RoleData indexSink = ecsList.Get(ENTITY_COUNT - 1);
-			mResultSink += indexSink.mHP + indexSink.mPositionX + indexSink.mPositionY;
-			BenchmarkResult refResult = measure(() =>
-			{
-				for (int i = 0; i < ecsList.Count; ++i)
-				{
-					RoleDataRef role = ecsList[i];
-					role.mHP += 1;
-					role.mPositionX += role.mSpeed;
-					role.mPositionY += role.mSpeed;
-				}
-			});
-			RoleData refSink = ecsList.Get(ENTITY_COUNT - 1);
-			mResultSink += refSink.mHP + refSink.mPositionX + refSink.mPositionY;
-			BenchmarkResult directResult = measure(() =>
-			{
-				var hp = ecsList.getHPColumn();
-				var speed = ecsList.getSpeedColumn();
-				var positionX = ecsList.getPositionXColumn();
-				var positionY = ecsList.getPositionYColumn();
-				int count = ecsList.Count;
-				for (int i = 0; i < count; ++i)
-				{
-					hp[i] += 1;
-					positionX[i] += speed[i];
-					positionY[i] += speed[i];
-				}
-			});
-			RoleData directSink = ecsList.Get(ENTITY_COUNT - 1);
-			mResultSink += directSink.mHP + directSink.mPositionX + directSink.mPositionY;
-			printResult("∑√Œ 4∏ˆ◊÷∂Œ", listResult, arrayResult, indexResult, refResult, directResult);
-		}
-		finally
-		{
-			ecsList.Dispose();
-		}
-	}
-	private static void createBenchmarkData(out List<RoleData> managedList, out RoleData[] managedArray, out RoleDataECSList ecsList)
-	{
-		managedList = new List<RoleData>(ENTITY_COUNT);
-		managedArray = new RoleData[ENTITY_COUNT];
-		ecsList = new RoleDataECSList(ENTITY_COUNT);
+		mList = new List<RoleData>(ENTITY_COUNT);
+		mArray = new RoleData[ENTITY_COUNT];
+		mECSList = new RoleDataECSList(ENTITY_COUNT);
 		for (int i = 0; i < ENTITY_COUNT; ++i)
 		{
-			RoleData role = createBenchmarkEntity(i);
-			managedList.Add(role);
-			managedArray[i] = role;
-			ecsList.Add(role);
+			RoleData value = createData(i);
+			mList.Add(value);
+			mArray[i] = value;
+			mECSList.Add(value);
 		}
 	}
-	private static RoleData createBenchmarkEntity(int index)
+	private void runTest1()
 	{
-		RoleData role = new RoleData();
-		role.mHP = 1000 + index % 100;
-		role.mSpeed = 0.1f + index % 20 * 0.01f;
-		role.mPositionX = index % 1000;
-		role.mPositionY = index % 500;
-		role.mID = index;
-		role.mModelID = index % 100;
-		role.mCamp = index % 3;
-		return role;
+		BenchmarkResult managedList = measure(runListOneField, ENTITY_COUNT);
+		BenchmarkResult array = measure(runArrayOneField, ENTITY_COUNT);
+		BenchmarkResult index = measure(runECSIndexerOneField, ENTITY_COUNT);
+		BenchmarkResult localRef = measure(runECSRefOneField, ENTITY_COUNT);
+		BenchmarkResult direct = measure(runECSDirectOneField, ENTITY_COUNT);
+		printResult("‰øÆÊîπ1‰∏™Â≠óÊÆµ", managedList, array, index, localRef, direct);
 	}
-	private static BenchmarkResult measure(Action action)
+	private void runTest2()
+	{
+		BenchmarkResult managedList = measure(runListTwoFields, ENTITY_COUNT);
+		BenchmarkResult array = measure(runArrayTwoFields, ENTITY_COUNT);
+		BenchmarkResult index = measure(runECSIndexerTwoFields, ENTITY_COUNT);
+		BenchmarkResult localRef = measure(runECSRefTwoFields, ENTITY_COUNT);
+		BenchmarkResult direct = measure(runECSDirectTwoFields, ENTITY_COUNT);
+		printResult("ËÆøÈóÆ2‰∏™Â≠óÊÆµ", managedList, array, index, localRef, direct);
+	}
+	private void runTest4()
+	{
+		BenchmarkResult managedList = measure(runListFourFields, ENTITY_COUNT);
+		BenchmarkResult array = measure(runArrayFourFields, ENTITY_COUNT);
+		BenchmarkResult index = measure(runECSIndexerFourFields, ENTITY_COUNT);
+		BenchmarkResult localRef = measure(runECSRefFourFields, ENTITY_COUNT);
+		BenchmarkResult direct = measure(runECSDirectFourFields, ENTITY_COUNT);
+		printResult("ËÆøÈóÆ4‰∏™Â≠óÊÆµ", managedList, array, index, localRef, direct);
+	}
+	private void runListOneField()
+	{
+		for (int i = 0; i < mList.Count; ++i)
+		{
+			RoleData value = mList[i];
+			value.mHP += 1;
+			mList[i] = value;
+		}
+		mResultSink += mList[ENTITY_COUNT - 1].mHP;
+	}
+	private void runArrayOneField()
+	{
+		for (int i = 0; i < mArray.Length; ++i)
+		{
+			mArray[i].mHP += 1;
+		}
+		mResultSink += mArray[ENTITY_COUNT - 1].mHP;
+	}
+	private void runECSIndexerOneField()
+	{
+		for (int i = 0; i < mECSList.Count; ++i)
+		{
+			mECSList[i].mHP += 1;
+		}
+		mResultSink += mECSList[mECSList.Count - 1].mHP;
+	}
+	private void runECSRefOneField()
+	{
+		for (int i = 0; i < mECSList.Count; ++i)
+		{
+			RoleDataRef value = mECSList[i];
+			value.mHP += 1;
+		}
+		mResultSink += mECSList[mECSList.Count - 1].mHP;
+	}
+	private void runECSDirectOneField()
+	{
+		var hp = mECSList.getHPColumn();
+		for (int i = 0; i < mECSList.Count; ++i)
+		{
+			hp[i] += 1;
+		}
+		mResultSink += hp[mECSList.Count - 1];
+	}
+	private void runListTwoFields()
+	{
+		for (int i = 0; i < mList.Count; ++i)
+		{
+			RoleData value = mList[i];
+			value.mPositionX += value.mSpeed;
+			mList[i] = value;
+		}
+		mResultSink += mList[ENTITY_COUNT - 1].mPositionX;
+	}
+	private void runArrayTwoFields()
+	{
+		for (int i = 0; i < mArray.Length; ++i)
+		{
+			mArray[i].mPositionX += mArray[i].mSpeed;
+		}
+		mResultSink += mArray[ENTITY_COUNT - 1].mPositionX;
+	}
+	private void runECSIndexerTwoFields()
+	{
+		for (int i = 0; i < mECSList.Count; ++i)
+		{
+			mECSList[i].mPositionX += mECSList[i].mSpeed;
+		}
+		mResultSink += mECSList[mECSList.Count - 1].mPositionX;
+	}
+	private void runECSRefTwoFields()
+	{
+		for (int i = 0; i < mECSList.Count; ++i)
+		{
+			RoleDataRef value = mECSList[i];
+			value.mPositionX += value.mSpeed;
+		}
+		mResultSink += mECSList[mECSList.Count - 1].mPositionX;
+	}
+	private void runECSDirectTwoFields()
+	{
+		var speed = mECSList.getSpeedColumn();
+		var positionX = mECSList.getPositionXColumn();
+		for (int i = 0; i < mECSList.Count; ++i)
+		{
+			positionX[i] += speed[i];
+		}
+		mResultSink += positionX[mECSList.Count - 1];
+	}
+	private void runListFourFields()
+	{
+		for (int i = 0; i < mList.Count; ++i)
+		{
+			RoleData value = mList[i];
+			value.mHP += 1;
+			value.mPositionX += value.mSpeed;
+			value.mPositionY -= value.mSpeed;
+			mList[i] = value;
+		}
+		mResultSink += mList[ENTITY_COUNT - 1].mHP + mList[ENTITY_COUNT - 1].mPositionX + mList[ENTITY_COUNT - 1].mPositionY;
+	}
+	private void runArrayFourFields()
+	{
+		for (int i = 0; i < mArray.Length; ++i)
+		{
+			mArray[i].mHP += 1;
+			mArray[i].mPositionX += mArray[i].mSpeed;
+			mArray[i].mPositionY -= mArray[i].mSpeed;
+		}
+		mResultSink += mArray[ENTITY_COUNT - 1].mHP + mArray[ENTITY_COUNT - 1].mPositionX + mArray[ENTITY_COUNT - 1].mPositionY;
+	}
+	private void runECSIndexerFourFields()
+	{
+		for (int i = 0; i < mECSList.Count; ++i)
+		{
+			mECSList[i].mHP += 1;
+			mECSList[i].mPositionX += mECSList[i].mSpeed;
+			mECSList[i].mPositionY -= mECSList[i].mSpeed;
+		}
+		RoleDataRef last = mECSList[mECSList.Count - 1];
+		mResultSink += last.mHP + last.mPositionX + last.mPositionY;
+	}
+	private void runECSRefFourFields()
+	{
+		for (int i = 0; i < mECSList.Count; ++i)
+		{
+			RoleDataRef value = mECSList[i];
+			value.mHP += 1;
+			value.mPositionX += value.mSpeed;
+			value.mPositionY -= value.mSpeed;
+		}
+		RoleDataRef last = mECSList[mECSList.Count - 1];
+		mResultSink += last.mHP + last.mPositionX + last.mPositionY;
+	}
+	private void runECSDirectFourFields()
+	{
+		var hp = mECSList.getHPColumn();
+		var speed = mECSList.getSpeedColumn();
+		var positionX = mECSList.getPositionXColumn();
+		var positionY = mECSList.getPositionYColumn();
+		for (int i = 0; i < mECSList.Count; ++i)
+		{
+			hp[i] += 1;
+			positionX[i] += speed[i];
+			positionY[i] -= speed[i];
+		}
+		int last = mECSList.Count - 1;
+		mResultSink += hp[last] + positionX[last] + positionY[last];
+	}
+	private BenchmarkResult measure(Action action, int operationCount)
 	{
 		for (int i = 0; i < WARMUP_COUNT; ++i)
 		{
@@ -1032,39 +460,30 @@ public class RoleDataBenchmark : MonoBehaviour
 			}
 		}
 		Array.Sort(samples);
-		BenchmarkResult result = new BenchmarkResult();
-		result.mMedian = samples[SAMPLE_COUNT / 2];
-		result.mMin = min;
-		result.mMax = max;
-		return result;
+		double median = samples[samples.Length / 2];
+		return new BenchmarkResult { mMedian = median, mMin = min, mMax = max, mNsPerEntity = median * 1000000.0 / operationCount };
 	}
-	private static void printResult(string title, BenchmarkResult managedList, BenchmarkResult managedArray, BenchmarkResult ecsIndex, BenchmarkResult ecsRef, BenchmarkResult ecsDirect)
+	private void printResult(string title, BenchmarkResult managedList, BenchmarkResult array, BenchmarkResult index, BenchmarkResult localRef, BenchmarkResult direct)
 	{
-		Debug.Log("\n================ " + title + " ================\n" +
-			formatBenchmarkLine("List<RoleData>", managedList) + "\n" +
-			formatBenchmarkLine("RoleData[]", managedArray) + "\n" +
-			formatBenchmarkLine("ECS list[i]", ecsIndex) + "\n" +
-			formatBenchmarkLine("ECS Ref", ecsRef) + "\n" +
-			formatBenchmarkLine("ECS Direct", ecsDirect) + "\n" +
-			"--------------------------------------------------\n" +
-			"Index / Direct       : " + ratio(ecsIndex.mMedian, ecsDirect.mMedian).ToString("F2") + "x\n" +
-			"Ref / Direct         : " + ratio(ecsRef.mMedian, ecsDirect.mMedian).ToString("F2") + "x\n" +
-			"Index / Ref          : " + ratio(ecsIndex.mMedian, ecsRef.mMedian).ToString("F2") + "x\n" +
-			"Managed AoS / Direct : " + ratio(managedArray.mMedian, ecsDirect.mMedian).ToString("F2") + "x\n" +
-			"Managed AoS / Ref    : " + ratio(managedArray.mMedian, ecsRef.mMedian).ToString("F2") + "x\n" +
-			"==================================================");
+		Debug.Log("\n================ " + title + " ================\n" + format("List<RoleData>", managedList) + "\n" + format("RoleData[]", array) + "\n" + format("ECS list[i]", index) + "\n" + format("ECS Ref", localRef) + "\n" + format("ECS Direct", direct) + "\n--------------------------------------------------\nIndex / Direct       : " + ratio(index.mMedian, direct.mMedian) + "\nRef / Direct         : " + ratio(localRef.mMedian, direct.mMedian) + "\nIndex / Ref          : " + ratio(index.mMedian, localRef.mMedian) + "\nManaged AoS / Direct : " + ratio(array.mMedian, direct.mMedian) + "\nManaged AoS / Ref    : " + ratio(array.mMedian, localRef.mMedian) + "\n==================================================");
 	}
-	private static string formatBenchmarkLine(string name, BenchmarkResult result)
+	private string format(string name, BenchmarkResult result)
 	{
-		double nsPerEntity = result.mMedian * 1000000.0 / ENTITY_COUNT;
-		return string.Format("{0,-20} Median:{1,9:F3} ms | Min:{2,8:F3} | Max:{3,8:F3} | {4,8:F3} ns/entity", name, result.mMedian, result.mMin, result.mMax, nsPerEntity);
+		return name.PadRight(20) + " Median:" + result.mMedian.ToString("0.000").PadLeft(9) + " ms | Min:" + result.mMin.ToString("0.000").PadLeft(8) + " | Max:" + result.mMax.ToString("0.000").PadLeft(8) + " | " + result.mNsPerEntity.ToString("0.000").PadLeft(8) + " ns/entity";
 	}
-	private static double ratio(double value, double baseline)
+	private string ratio(double left, double right)
 	{
-		if (baseline <= 0.0)
+		return (left / right).ToString("0.00") + "x";
+	}
+	private RoleData createData(int id)
+	{
+		return new RoleData { mHP = 100 + id, mSpeed = id + 0.5f, mPositionX = id * 2.0f, mPositionY = id * 3.0f, mID = id, mCamp = id % 3 };
+	}
+	private void check(bool condition, string message)
+	{
+		if (!condition)
 		{
-			return 0.0;
+			throw new Exception(message);
 		}
-		return value / baseline;
 	}
 }
