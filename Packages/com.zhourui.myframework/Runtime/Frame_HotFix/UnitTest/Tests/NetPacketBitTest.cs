@@ -35,6 +35,7 @@ public static class NetPacketBitTest
 		testBitBoolAlternating();
 		testBitIntLargeMagnitude();
 		testBitPacketMixedManyRoundtrip();
+		testBitBytesRoundtrip();
 	}
 
 	// ─── BIT_INT ──────────────────────────────────────────────────────────
@@ -569,13 +570,32 @@ public static class NetPacketBitTest
 			assertEqual(iv > 0, readPkt.mBoolField.mValue, "混合包 bool " + iv + " 往返");
 		}
 	}
+
+	// BIT_BYTES 字节列表往返
+	private static void testBitBytesRoundtrip()
+	{
+		var w = new SerializerBitWrite();
+		var bytes = new BIT_BYTES();
+		bytes.add(0x12);
+		bytes.add(0x34);
+		bytes.add(0xAB);
+		bytes.write(w, false);
+		var r = new SerializerBitRead();
+		r.init(w.getBuffer(), w.getByteCount());
+		var outBytes = new BIT_BYTES();
+		bool ok = outBytes.read(r, false);
+		assertTrue(ok, "BIT_BYTES read 成功");
+		assertEqual(3, outBytes.Count, "字节数 3");
+		assertEqual((byte)0x12, outBytes[0], "字节 0");
+		assertEqual((byte)0x34, outBytes[1], "字节 1");
+		assertEqual((byte)0xAB, outBytes[2], "字节 2");
+	}
 }
 
 // ─── 测试专用具体 NetPacketBit 子类 ─────────────────────────────────────────
 
 public class TestBitPacket : NetPacketBit
-{
-	public BIT_INT   mIntField   = new();
+{	public BIT_INT   mIntField   = new();
 	public BIT_BOOL  mBoolField  = new();
 	public BIT_FLOAT mFloatField = new();
 

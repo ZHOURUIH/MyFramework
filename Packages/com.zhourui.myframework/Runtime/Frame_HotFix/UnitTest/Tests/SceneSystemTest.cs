@@ -38,6 +38,9 @@ public static class SceneSystemTest
 		testShowSceneActivatesTarget();
 		testShowSceneHideOtherShowsOnlyTarget();
 		testShowSceneHideOtherOnShowOrder();
+		testSetMainSceneUnregisteredSafe();
+		testHideSceneUnregisteredSafe();
+		testUnloadOtherSceneEmptyListSafe();
 		testShowSceneNotHideOtherKeepsOthersActive();
 		testShowSceneUnknownNameNoOp();
 		testShowSceneSameSceneSelfOnly();
@@ -376,7 +379,36 @@ public static class SceneSystemTest
 				}
 			}
 		}
-		FI_MSCENE_LIST.SetValue(sys, new Dictionary<string, SceneInstance>());
+				FI_MSCENE_LIST.SetValue(sys, new Dictionary<string, SceneInstance>());
+		sys.destroy();
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 未注册名守卫(return 分支, 不依赖真实场景)
+	// ═════════════════════════════════════════════════════════════════
+
+	// setMainScene 未注册名不崩
+	private static void testSetMainSceneUnregisteredSafe()
+	{
+		SceneSystem sys = new();
+		sys.setMainScene("NotRegisteredScene");
+		sys.destroy();
+	}
+
+	// hideScene 未注册名不崩
+	private static void testHideSceneUnregisteredSafe()
+	{
+		SceneSystem sys = new();
+		sys.hideScene("NotRegisteredScene");
+		sys.destroy();
+	}
+
+	// 注: unloadScene 未注册名会 NRE(mSceneRegisteList.get(name) 未守卫)——框架不守卫该分支, 合法不测
+	// unloadOtherScene 空列表不崩(遍历空, 不调 unloadScene)
+	private static void testUnloadOtherSceneEmptyListSafe()
+	{
+		SceneSystem sys = new();
+		sys.unloadOtherScene("Keep");
 		sys.destroy();
 	}
 }

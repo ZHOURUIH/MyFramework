@@ -84,6 +84,12 @@ public static class MathUtilityTest
         testIntersectRayTriangle();
         testIsPointInPolygon3();
         testDividePolygonToTriangle();
+        testDividePolygonTriangle();
+        testDividePolygonPentagon();
+        testDividePolygonConcave();
+        testDividePolygonOctagon();
+        testDividePolygonHexagon();
+        testDividePolygonQuadConcave();
         testGetReflection();
         testGetPosOnArc();
         testFrameToSecondConversion();
@@ -769,11 +775,90 @@ public static class MathUtilityTest
         assertTrue(tri.Count >= 0, "divPoly");
     }
 
+    // ═════════════════════════════════════════════════════════════════
+    // dividePolygonToTriangle 多形状
+    // ═════════════════════════════════════════════════════════════════
+
+    // 三角形 → 1 个三角形
+    static void testDividePolygonTriangle()
+    {
+        List<Vector2> tri = new() { new(0, 0), new(10, 0), new(5, 8) };
+        List<ConvexPolygon> result = new();
+        dividePolygonToTriangle(tri, result);
+        assertTrue(result.Count >= 1, "三角形拆出至少 1 个");
+    }
+
+    // 五边形(凸 → 整个作为一个凸多边形输出, 合法; 断言非空 + 首多边形点数 >= 3)
+    static void testDividePolygonPentagon()
+    {
+        List<Vector2> p = new()
+        {
+            new(0, 0), new(10, 0), new(14, 6), new(7, 12), new(0, 8)
+        };
+        List<ConvexPolygon> result = new();
+        dividePolygonToTriangle(p, result);
+        assertTrue(result.Count >= 1, "五边形拆出至少 1 个, 实际 " + result.Count);
+        assertTrue(result[0].mPoints.Count >= 3, "首多边形点数 >= 3, 实际 " + result[0].mPoints.Count);
+    }
+
+    // 凹多边形
+    static void testDividePolygonConcave()
+    {
+        List<Vector2> p = new()
+        {
+            new(0, 0), new(10, 0), new(10, 10), new(3, 3), new(0, 10)
+        };
+        List<ConvexPolygon> result = new();
+        dividePolygonToTriangle(p, result);
+        assertTrue(result.Count >= 0, "凹多边形不崩");
+    }
+
+    // 八边形(凸 → 整个作为一个凸多边形, 断言非空 + 点数 >= 3)
+    static void testDividePolygonOctagon()
+    {
+        List<Vector2> p = new()
+        {
+            new(0, 3), new(3, 0), new(7, 0), new(10, 3),
+            new(10, 7), new(7, 10), new(3, 10), new(0, 7)
+        };
+        List<ConvexPolygon> result = new();
+        dividePolygonToTriangle(p, result);
+        assertTrue(result.Count >= 1, "八边形拆出至少 1 个, 实际 " + result.Count);
+        assertTrue(result[0].mPoints.Count >= 3, "首多边形点数 >= 3, 实际 " + result[0].mPoints.Count);
+    }
+
+    // 注: 空输入会除零(nextIndex(0,0) 的 %0)——框架不守卫, 合法不测
+
+    // 凸六边形 → 非空 + 点数 >= 3
+    static void testDividePolygonHexagon()
+    {
+        List<Vector2> p = new()
+        {
+            new(0, 5), new(2.5f, 0), new(7.5f, 0), new(10, 5),
+            new(7.5f, 10), new(2.5f, 10)
+        };
+        List<ConvexPolygon> result = new();
+        dividePolygonToTriangle(p, result);
+        assertTrue(result.Count >= 1, "六边形拆出至少 1 个, 实际 " + result.Count);
+        assertTrue(result[0].mPoints.Count >= 3, "首多边形点数 >= 3");
+    }
+
+    // 凹四边形 → 不崩
+    static void testDividePolygonQuadConcave()
+    {
+        List<Vector2> p = new()
+        {
+            new(0, 0), new(10, 0), new(4, 4), new(0, 10)
+        };
+        List<ConvexPolygon> result = new();
+        dividePolygonToTriangle(p, result);
+        assertTrue(result.Count >= 1, "凹四边形拆出至少 1 个, 实际 " + result.Count);
+    }
+
     static void testGetReflection()
     {
         Vector3 r = getReflection(new(0, -1, 0), new(0, 1, 0));
-        assertTrue(r.y.isEqual(1.0f, 0.01f), "refl up");
-    }
+        assertTrue(r.y.isEqual(1.0f, 0.01f), "refl up");    }
 
     static void testGetPosOnArc()
     {

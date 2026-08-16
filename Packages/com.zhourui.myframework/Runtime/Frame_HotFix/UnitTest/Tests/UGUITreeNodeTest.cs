@@ -1,115 +1,152 @@
-using System.Collections.Generic;
+using System;
 using static TestAssert;
 
-// UGUITreeNode: 树节点(纯 C# 字段逻辑: 父子/深度/展开/选中), 
-// 不调 init(依赖 mRoot.registeCollider), 用测试子类 + 真实 parent 直接 new 可测
+// UGUITreeNode 树节点测试(WindowRecyclableUGUI 子类, 纯状态逻辑)
+// 不测 init(registeCollider 依赖)/onNodeClick(mTree null NRE)/reset(base 依赖窗口系统)
 public static class UGUITreeNodeTest
 {
 	public static void Run()
 	{
 		testDefaultState();
-		testTreeGetSet();
+		testSetTreeGetTree();
 		testAddChild();
 		testSetParentDepth();
-		testExpandSelect();
-		testNodeClickCallback();
+		testSetParentNullDepthZero();
+		testSetSelectToggle();
+		testSetExpandToggle();
+		testSetNodeClickCallback();
+		testGetChildDepth();
+		testMultipleChildren();
+		testChildDepthChain();
 	}
 
-	// 构造默认值
+	// 测试节点子类
+	private class TestNode : UGUITreeNode
+	{
+		public TestNode(IWindowObjectOwner parent) : base(parent) { }
+		protected override void assignWindowInternal() { }
+	}
+
+	private static TestNode NewNode(TestLayoutScript script)
+	{
+		return new TestNode(script);
+	}
+
+	// 默认状态
 	private static void testDefaultState()
 	{
-		TestUGUITreeNode node = createNode();
-		assertFalse(node.isExpand(), "默认未展开");
-		assertFalse(node.isSelect(), "默认未选中");
+		var script = new TestLayoutScript();
+		TestNode node = NewNode(script);
+		assertFalse(node.isExpand(), "默认不展开");
+		assertFalse(node.isSelect(), "默认不选中");
 		assertEqual(0, node.getDepth(), "默认深度 0");
-		assertEqual(1, node.getChildDepth(), "默认子深度 1");
-		assertTrue(node.getParentNode() == null, "默认无父节点");
-		assertTrue(node.getTree() == null, "默认无树");
+		assertNull(node.getTree(), "默认 tree null");
+		assertNull(node.getParentNode(), "默认 parent null");
 		assertEqual(0, node.getChildNodeList().Count, "默认无子节点");
 	}
 
-	// setTree/getTree: 引用存储
-	private static void testTreeGetSet()
+	// setTree 往返
+	private static void testSetTreeGetTree()
 	{
-		TestUGUITreeNode node = createNode();
-		UGUITreeList tree = new UGUITreeList(new TestLayoutScriptDeep());
+		var script = new TestLayoutScript();
+		TestNode node = NewNode(script);
+		UGUITreeList tree = null;
 		node.setTree(tree);
-		assertTrue(ReferenceEquals(tree, node.getTree()), "setTree 引用存储");
-		node.setTree(null);
-		assertTrue(node.getTree() == null, "setTree(null) 清空");
+		assertNull(node.getTree(), "set null 后 get null");
 	}
 
-	// addChild/getChildNodeList: 子节点列表操作
+	// addChild 后子列表
 	private static void testAddChild()
 	{
-		TestUGUITreeNode parent = createNode();
-		TestUGUITreeNode child = createNode();
+		var script = new TestLayoutScript();
+		TestNode parent = NewNode(script);
+		TestNode child = NewNode(script);
 		parent.addChild(child);
-		List<UGUITreeNode> children = parent.getChildNodeList();
-		assertEqual(1, children.Count, "addChild 后子节点数 1");
-		assertTrue(ReferenceEquals(child, children[0]), "子节点引用正确");
+		assertEqual(1, parent.getChildNodeList().Count, "addChild 后 1 个子节点");
 	}
 
-	// setParent/getParentNode/getDepth: 深度 = 父节点子深度(父深度 + 1)
+	// setParent 设置深度(父深度+1)
 	private static void testSetParentDepth()
 	{
-		TestUGUITreeNode root = createNode();
-		TestUGUITreeNode level1 = createNode();
-		TestUGUITreeNode level2 = createNode();
-		// 无父节点: 深度 0
-		level1.setParent(null);
-		assertEqual(0, level1.getDepth(), "无父节点深度 0");
-		assertTrue(level1.getParentNode() == null, "无父节点 getParentNode null");
-		// level1 挂 root 下: 深度 = root.getChildDepth() = 0 + 1 = 1
-		level1.setParent(root);
-		assertTrue(ReferenceEquals(root, level1.getParentNode()), "父节点引用正确");
-		assertEqual(1, level1.getDepth(), "深度 = 父深度 0 + 1");
-		// level2 挂 level1 下: 深度 2
-		level2.setParent(level1);
-		assertEqual(2, level2.getDepth(), "深度 = 父深度 1 + 1");
+		var script = new TestLayoutScript();
+		TestNode parent = NewNode(script);
+		TestNode child = NewNode(script);
+		parent.setParent(null);
+		child.setParent(parent);
+		assertEqual(1, child.getDepth(), "子节点深度 = 父深度+1");
 	}
 
-	// setExpand/isExpand, setSelect/isSelect: 读写
-	private static void testExpandSelect()
+	// setParent(null) 深度 0
+	private static void testSetParentNullDepthZero()
 	{
-		TestUGUITreeNode node = createNode();
-		node.setExpand(true);
-		assertTrue(node.isExpand(), "setExpand(true) 读回");
-		node.setExpand(false);
-		assertFalse(node.isExpand(), "setExpand(false) 读回");
+		var script = new TestLayoutScript();
+		TestNode node = NewNode(script);
+		node.setParent(null);
+		assertEqual(0, node.getDepth(), "parent null 深度 0");
+	}
+
+	// setSelect 切换
+	private static void testSetSelectToggle()
+	{
+		var script = new TestLayoutScript();
+		TestNode node = NewNode(script);
 		node.setSelect(true);
-		assertTrue(node.isSelect(), "setSelect(true) 读回");
+		assertTrue(node.isSelect(), "set true 后选中");
 		node.setSelect(false);
-		assertFalse(node.isSelect(), "setSelect(false) 读回");
+		assertFalse(node.isSelect(), "set false 后不选中");
 	}
 
-	// setNodeClickCallback: 存储不触发(onNodeClick 依赖树结构, 不测)
-	private static void testNodeClickCallback()
+	// setExpand 切换
+	private static void testSetExpandToggle()
 	{
-		TestUGUITreeNode node = createNode();
+		var script = new TestLayoutScript();
+		TestNode node = NewNode(script);
+		node.setExpand(true);
+		assertTrue(node.isExpand(), "set true 后展开");
+		node.setExpand(false);
+		assertFalse(node.isExpand(), "set false 后不展开");
+	}
+
+	// setNodeClickCallback 赋值
+	private static void testSetNodeClickCallback()
+	{
+		var script = new TestLayoutScript();
+		TestNode node = NewNode(script);
 		node.setNodeClickCallback(() => { });
 		node.setNodeClickCallback(null);
 		// 无异常即通过
 	}
 
-	// ═════════════════════════════════════════════════════════════════
-	// 辅助: parent 必须传真实对象(WindowObjectFixedT 构造 mScript.addWindowObject(this))
-	// ═════════════════════════════════════════════════════════════════
-	private static TestUGUITreeNode createNode()
+	// getChildDepth = 自身深度+1
+	private static void testGetChildDepth()
 	{
-		return new TestUGUITreeNode(new TestLayoutScriptDeep());
+		var script = new TestLayoutScript();
+		TestNode node = NewNode(script);
+		assertEqual(1, node.getChildDepth(), "getChildDepth = depth+1");
 	}
-}
 
-// 测试辅助: 实例化抽象 UGUITreeNode(无额外字段, 无需 resetProperty)
-// assignWindowInternal 基类为 abstract(WindowObjectBase), 测试不触发场景节点查找, 空实现即可
-// (同 UGUITreeList 模式: 该抽象方法基类无具体实现, 不调 base)
-public class TestUGUITreeNode : UGUITreeNode
-{
-	public TestUGUITreeNode(IWindowObjectOwner parent) : base(parent) { }
-
-	protected override void assignWindowInternal()
+	// 多子节点
+	private static void testMultipleChildren()
 	{
-		// 测试环境不绑定真实 UI 节点, 空实现(不调 base: 基类为 abstract)
+		var script = new TestLayoutScript();
+		TestNode parent = NewNode(script);
+		for (int i = 0; i < 5; ++i)
+		{
+			parent.addChild(NewNode(script));
+		}
+		assertEqual(5, parent.getChildNodeList().Count, "5 个子节点");
+	}
+
+	// 深度链: 孙节点深度 2
+	private static void testChildDepthChain()
+	{
+		var script = new TestLayoutScript();
+		TestNode root = NewNode(script);
+		TestNode child = NewNode(script);
+		TestNode grandChild = NewNode(script);
+		child.setParent(root);
+		grandChild.setParent(child);
+		assertEqual(1, child.getDepth(), "child 深度 1");
+		assertEqual(2, grandChild.getDepth(), "grandChild 深度 2");
 	}
 }

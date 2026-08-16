@@ -10,6 +10,12 @@ public static class DistanceSortHelperTest
 		testConstructor();
 		testEquals();
 		testCompareAscend();
+		testEqualsSelf();
+		testCompareAscendEqualDistance();
+		testCompareAscendNegativeDistance();
+		testCompareAscendManyElements();
+		testCompareAscendSameObjectDifferentDistance();
+		testCompareAscendZeroDistance();
 	}
 
 	static void testConstructor()
@@ -49,6 +55,96 @@ public static class DistanceSortHelperTest
 		assertEqual(5.0f, list[0].mDistance, "Smallest distance should be first");
 		assertEqual(15.0f, list[2].mDistance, "Largest distance should be last");
 	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 深度组合
+	// ═════════════════════════════════════════════════════════════════
+
+	// 自身相等
+	static void testEqualsSelf()
+	{
+		var obj = new MockMouseEventCollect();
+		var a = new DistanceSortHelper(3.0f, obj);
+		assertTrue(a.Equals(a), "对象与自身相等");
+	}
+
+	// 同距离排序(比较器返回 0, 顺序稳定)
+	static void testCompareAscendEqualDistance()
+	{
+		var obj = new MockMouseEventCollect();
+		var list = new List<DistanceSortHelper>
+		{
+			new DistanceSortHelper(7.0f, obj),
+			new DistanceSortHelper(7.0f, obj),
+			new DistanceSortHelper(7.0f, obj)
+		};
+		list.Sort(DistanceSortHelper.mCompareAscend);
+		assertEqual(7.0f, list[0].mDistance, "同距离排序后距离不变");
+		assertEqual(3, list.Count, "同距离 3 个元素");
+	}
+
+	// 负距离排序
+	static void testCompareAscendNegativeDistance()
+	{
+		var obj = new MockMouseEventCollect();
+		var list = new List<DistanceSortHelper>
+		{
+			new DistanceSortHelper(-3.0f, obj),
+			new DistanceSortHelper(-10.0f, obj),
+			new DistanceSortHelper(0.0f, obj)
+		};
+		list.Sort(DistanceSortHelper.mCompareAscend);
+		assertEqual(-10.0f, list[0].mDistance, "最小负距离在前");
+		assertEqual(0.0f, list[2].mDistance, "0 在最后");
+	}
+
+	// 多元素随机排序 → 升序
+	static void testCompareAscendManyElements()
+	{
+		var obj = new MockMouseEventCollect();
+		var list = new List<DistanceSortHelper>();
+		for (int i = 10; i >= 1; --i)
+		{
+			list.Add(new DistanceSortHelper(i, obj));
+		}
+		list.Sort(DistanceSortHelper.mCompareAscend);
+		for (int i = 1; i < list.Count; ++i)
+		{
+			assertTrue(list[i - 1].mDistance <= list[i].mDistance, "升序, index " + i);
+		}
+		assertEqual(1.0f, list[0].mDistance, "最小 1 在前");
+		assertEqual(10.0f, list[9].mDistance, "最大 10 在后");
+	}
+
+	// 同对象不同距离排序
+	static void testCompareAscendSameObjectDifferentDistance()
+	{
+		var obj = new MockMouseEventCollect();
+		var list = new List<DistanceSortHelper>
+		{
+			new DistanceSortHelper(9.0f, obj),
+			new DistanceSortHelper(2.0f, obj),
+			new DistanceSortHelper(5.0f, obj)
+		};
+		list.Sort(DistanceSortHelper.mCompareAscend);
+		assertEqual(2.0f, list[0].mDistance, "2 在前");
+		assertEqual(9.0f, list[2].mDistance, "9 在后");
+	}
+
+	// 零距离排序
+	static void testCompareAscendZeroDistance()
+	{
+		var obj = new MockMouseEventCollect();
+		var list = new List<DistanceSortHelper>
+		{
+			new DistanceSortHelper(0.0f, obj),
+			new DistanceSortHelper(1.0f, obj)
+		};
+		list.Sort(DistanceSortHelper.mCompareAscend);
+		assertEqual(0.0f, list[0].mDistance, "0 在前");
+	}
+
+	// 注: 框架无无参构造(只有 (float, IMouseEventCollect)), 不测默认构造
 
 	// 最小的 IMouseEventCollect 模拟实现
 	class MockMouseEventCollect : IMouseEventCollect

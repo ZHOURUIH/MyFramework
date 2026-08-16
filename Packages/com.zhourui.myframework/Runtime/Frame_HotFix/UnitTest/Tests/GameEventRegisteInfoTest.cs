@@ -6,6 +6,9 @@ public static class GameEventRegisteInfoTest
         testFields();
         testResetProperty();
         testCallbacks();
+        testCallNullCallbackSafe();
+        testResetThenCallNoFire();
+        testCallTwice();
     }
     static void testFields()
     {
@@ -42,6 +45,41 @@ public static class GameEventRegisteInfoTest
         infoT.call(evt);
         assertEqual(42, val, "generic callback should pass value");
     }
+
+    // ═════════════════════════════════════════════════════════════════
+    // 深度组合
+    // ═════════════════════════════════════════════════════════════════
+
+    // mBaseCallback null 时 call 安全
+    static void testCallNullCallbackSafe()
+    {
+        GameEventRegisteInfo info = new();
+        info.call(new GameEvent());
+        // 无异常即通过
+    }
+
+    // resetProperty 后 call 不触发
+    static void testResetThenCallNoFire()
+    {
+        bool called = false;
+        GameEventRegisteInfo info = new();
+        info.mBaseCallback = () => { called = true; };
+        info.resetProperty();
+        info.call(new GameEvent());
+        assertFalse(called, "reset 后 call 不触发");
+    }
+
+    // call 多次都触发
+    static void testCallTwice()
+    {
+        int count = 0;
+        GameEventRegisteInfo info = new();
+        info.mBaseCallback = () => { ++count; };
+        info.call(new GameEvent());
+        info.call(new GameEvent());
+        assertEqual(2, count, "call 两次触发两次");
+    }
+
     class TestGameEvent : GameEvent
     {
         public int mValue;

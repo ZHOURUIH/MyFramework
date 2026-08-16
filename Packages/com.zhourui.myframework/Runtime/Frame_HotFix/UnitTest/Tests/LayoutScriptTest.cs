@@ -95,7 +95,93 @@ public static class LayoutScriptTest
 		testNewObjectByName();
 		testLifecycleCallbacks();
 		testOnGameStateBaseLogic();
+
+		// === addWindowObject / hasObject / postInit ===
+		testAddWindowObjectRoot();
+		testAddWindowObjectMultiple();
+		testHasObjectWithParentMissing();
+		testHasObjectWithParentFound();
+		testPostInitAfterSetLayout();
+		testPostInitTwice();
 	}
+	// ================================================================
+	//  addWindowObject / hasObject / postInit(深度)
+	// ================================================================
+
+	// addWindowObject: 构造即注册(WindowObjectFixedT 构造内部 mScript.addWindowObject(this))
+	// 不再显式调 addWindowObject——同实例二次注册会 logError"不能重复注册UI对象"
+	private static void testAddWindowObjectRoot()
+	{
+		var script = new TestLayoutScript();
+		TestWindowObjectUGUI win = new TestWindowObjectUGUI(script);
+		// 构造已注册, 无异常即通过
+	}
+
+	// 多个窗口对象各自构造注册
+	private static void testAddWindowObjectMultiple()
+	{
+		var script = new TestLayoutScript();
+		TestWindowObjectUGUI a = new TestWindowObjectUGUI(script);
+		TestWindowObjectUGUI b = new TestWindowObjectUGUI(script);
+		// 两实例各自注册, 无异常即通过
+	}
+
+	// hasObject(parent, 不存在的名字) → false(裸 GO 无子物体)
+	private static void testHasObjectWithParentMissing()
+	{
+		var script = new TestLayoutScript();
+		var go = new GameObject("LS_Parent");
+		try
+		{
+			myUGUIObject parent = new myUGUIObject();
+			parent.setObject(go);
+			assertFalse(script.hasObject(parent, "NoSuchObject"), "不存在返回 false");
+		}
+		finally
+		{
+			UnityEngine.Object.DestroyImmediate(go);
+		}
+	}
+
+	// hasObject(parent, 存在的子物体名) → true
+	private static void testHasObjectWithParentFound()
+	{
+		var script = new TestLayoutScript();
+		var go = new GameObject("LS_Parent2");
+		try
+		{
+			var child = new GameObject("LS_Child");
+			child.transform.SetParent(go.transform);
+			myUGUIObject parent = new myUGUIObject();
+			parent.setObject(go);
+			assertTrue(script.hasObject(parent, "LS_Child"), "子物体存在返回 true");
+		}
+		finally
+		{
+			UnityEngine.Object.DestroyImmediate(go);
+		}
+	}
+
+	// postInit: setLayout 后调用不炸(构造已注册窗口对象)
+	private static void testPostInitAfterSetLayout()
+	{
+		var script = new TestLayoutScript();
+		script.setLayout(new GameLayout());
+		TestWindowObjectUGUI win = new TestWindowObjectUGUI(script);
+		script.postInit();
+		// 无异常即通过
+	}
+
+	// postInit 多次调用
+	private static void testPostInitTwice()
+	{
+		var script = new TestLayoutScript();
+		script.setLayout(new GameLayout());
+		script.postInit();
+		script.postInit();
+		// 无异常即通过
+	}
+
 	// ================================================================
 	//  默认值
 	// ================================================================

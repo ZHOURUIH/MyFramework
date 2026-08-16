@@ -16,6 +16,11 @@ public static class CurveInfoTest
 		testNegativeID();
 		testNameWithSpecialChars();
 		testSharedCurveReference();
+		testNameNull();
+		testSameIDDifferentName();
+		testLongName();
+		testSameNameDifferentID();
+		testDifferentCurvesIndependent();
 	}
 
 	// 构造字段读回
@@ -103,5 +108,55 @@ public static class CurveInfoTest
 		CurveInfo b = new CurveInfo(2, "b", shared);
 		assertTrue(ReferenceEquals(a.mCurve, shared), "a 与 shared 同引用");
 		assertTrue(ReferenceEquals(b.mCurve, shared), "b 与 shared 同引用");
+	}
+
+	// 名字为 null 读回(纯数据不校验)
+	private static void testNameNull()
+	{
+		CurveInfo info = new CurveInfo(9, null, new AnimationCurve());
+		assertTrue(info.mName == null, "null 名字读回 null");
+	}
+
+	// 同 ID 不同名字互不影响
+	private static void testSameIDDifferentName()
+	{
+		CurveInfo a = new CurveInfo(5, "first", new AnimationCurve());
+		CurveInfo b = new CurveInfo(5, "second", new AnimationCurve());
+		assertEqual(5, a.mID, "a ID 5");
+		assertEqual(5, b.mID, "b ID 5");
+		assertEqual("first", a.mName, "a 名字 first");
+		assertEqual("second", b.mName, "b 名字 second");
+		assertFalse(ReferenceEquals(a, b), "两实例不同");
+	}
+
+	// 长名字读回
+	private static void testLongName()
+	{
+		string longName = "CurveWithAVeryLongName_That_Is_Designed_To_Test_Buffer_Boundaries_0123456789_ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+		CurveInfo info = new CurveInfo(11, longName, new AnimationCurve());
+		assertEqual(longName, info.mName, "长名字读回");
+	}
+
+	// 同名字不同 ID 互不影响
+	private static void testSameNameDifferentID()
+	{
+		CurveInfo a = new CurveInfo(1, "shared", new AnimationCurve());
+		CurveInfo b = new CurveInfo(2, "shared", new AnimationCurve());
+		assertEqual(1, a.mID, "a ID 1");
+		assertEqual(2, b.mID, "b ID 2");
+		assertEqual("shared", a.mName, "a 名字");
+		assertEqual("shared", b.mName, "b 名字");
+	}
+
+	// 不同 curve 实例引用隔离
+	private static void testDifferentCurvesIndependent()
+	{
+		AnimationCurve ca = new AnimationCurve();
+		AnimationCurve cb = new AnimationCurve();
+		CurveInfo a = new CurveInfo(3, "ca", ca);
+		CurveInfo b = new CurveInfo(4, "cb", cb);
+		assertTrue(ReferenceEquals(ca, a.mCurve), "a 持有 ca");
+		assertTrue(ReferenceEquals(cb, b.mCurve), "b 持有 cb");
+		assertFalse(ReferenceEquals(a.mCurve, b.mCurve), "两实例曲线不同");
 	}
 }

@@ -22,8 +22,20 @@ public static class NetPacketHttpTest
 		testGetUrlEmpty();
 		testExecuteSealedNoop();
 		testResetPropertyKeepsUrl();
+		testTimeoutOverrideIndependent();
 		testMultiInstanceWriteIndependent();
 		testReadAfterReset();
+		testWriteDoesNotAffectUrl();
+		testReadDoesNotAffectUrl();
+		testExecuteDoesNotAffectUrl();
+		testReadNullSafe();
+		testWriteTwice();
+		testReadDifferentParams();
+		testExecuteAfterWriteRead();
+		testResetPropertyThenExecute();
+		testMultiInstanceReadIndependent();
+		testExecuteAfterWrite();
+		testReadAfterExecute();
 	}
 
 	// 默认请求方式 POST
@@ -107,6 +119,15 @@ public static class NetPacketHttpTest
 		assertEqual(9999, packet.timeout(), "子类 override timeout 生效");
 	}
 
+	// 两实例 timeout 独立
+	private static void testTimeoutOverrideIndependent()
+	{
+		TestHttpPacket a = new TestHttpPacket("http://a.com/api");
+		TestHttpPacket b = new TestHttpPacket("http://b.com/api");
+		assertEqual(9999, a.timeout(), "a timeout");
+		assertEqual(9999, b.timeout(), "b timeout");
+	}
+
 	// 多实例 URL 独立
 	private static void testMultiInstanceUrlIndependent()
 	{
@@ -175,6 +196,112 @@ public static class NetPacketHttpTest
 		packet.read("b");
 		assertEqual(1, packet.mReadCount, "resetProperty 清计数(mReadCount=0) 后 read 重新计数");
 	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// write/read/execute 不影响 URL
+	// ═════════════════════════════════════════════════════════════════
+
+	// write 后 URL 保留
+	private static void testWriteDoesNotAffectUrl()
+	{
+		TestHttpPacket packet = new TestHttpPacket("http://write.com/api");
+		packet.write();
+		assertEqual("http://write.com/api", packet.getUrl(), "write 后 URL 保留");
+	}
+
+	// read 后 URL 保留
+	private static void testReadDoesNotAffectUrl()
+	{
+		TestHttpPacket packet = new TestHttpPacket("http://read.com/api");
+		packet.read("msg");
+		assertEqual("http://read.com/api", packet.getUrl(), "read 后 URL 保留");
+	}
+
+	// execute 后 URL 保留
+	private static void testExecuteDoesNotAffectUrl()
+	{
+		TestHttpPacket packet = new TestHttpPacket("http://exec.com/api");
+		packet.execute();
+		assertEqual("http://exec.com/api", packet.getUrl(), "execute 后 URL 保留");
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// read/write/execute 组合
+	// ═════════════════════════════════════════════════════════════════
+
+	// read(null) 空安全
+	private static void testReadNullSafe()
+	{
+		TestHttpPacket packet = new TestHttpPacket("http://null.com/api");
+		packet.read(null);
+		assertEqual(1, packet.mReadCount, "read(null) 计数 1");
+	}
+
+	// write 多次调用
+	private static void testWriteTwice()
+	{
+		TestHttpPacket packet = new TestHttpPacket("http://twice.com/api");
+		assertEqual("hello", packet.write(), "第一次 write");
+		assertEqual("hello", packet.write(), "第二次 write 相同");
+	}
+
+	// read 不同参数计数
+	private static void testReadDifferentParams()
+	{
+		TestHttpPacket packet = new TestHttpPacket("http://params.com/api");
+		packet.read("a");
+		packet.read("b");
+		packet.read("");
+		assertEqual(3, packet.mReadCount, "3 次 read 计数 3");
+	}
+
+	// write→read→execute 顺序
+	private static void testExecuteAfterWriteRead()
+	{
+		TestHttpPacket packet = new TestHttpPacket("http://seq.com/api");
+		packet.write();
+		packet.read("msg");
+		packet.execute();
+		assertEqual(1, packet.mReadCount, "顺序执行后 read 计数 1");
+	}
+
+	// resetProperty 后 execute
+	private static void testResetPropertyThenExecute()
+	{
+		TestHttpPacket packet = new TestHttpPacket("http://reset.com/api");
+		packet.read("before");
+		packet.resetProperty();
+		packet.execute();
+		assertEqual(0, packet.mReadCount, "resetProperty 清计数后 execute 无 read");
+	}
+
+	// 两实例 read 计数独立
+	private static void testMultiInstanceReadIndependent()
+	{
+		TestHttpPacket a = new TestHttpPacket("http://a2.com/api");
+		TestHttpPacket b = new TestHttpPacket("http://b2.com/api");
+		a.read("x");
+		assertEqual(1, a.mReadCount, "a 计数 1");
+		assertEqual(0, b.mReadCount, "b 计数 0");
+	}
+
+	// write 后 execute
+	private static void testExecuteAfterWrite()
+	{
+		TestHttpPacket packet = new TestHttpPacket("http://w.com/api");
+		packet.write();
+		packet.execute();
+		assertEqual("hello", packet.write(), "execute 后 write 仍返回 hello");
+	}
+
+	// execute 后 read
+	private static void testReadAfterExecute()
+	{
+		TestHttpPacket packet = new TestHttpPacket("http://r.com/api");
+		packet.execute();
+		packet.read("after");
+		assertEqual(1, packet.mReadCount, "execute 后 read 计数 1");
+	}
 }
 
 // 测试辅助: 暴露 protected 字段 + 模拟子类协议
@@ -209,3 +336,4 @@ public class TestHttpPacket : NetPacketHttp
 		mReadCount = 0;
 	}
 }
+

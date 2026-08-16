@@ -257,6 +257,8 @@ public static class SceneProcedureTest
 		// ─── prepareExit 状态 + 清理 ───
 		testPrepareExitSetsState();
 		testExitAfterPrepareStopsTimer();
+		testOnNextProcedurePreparedSafe();
+		testWillDestroySafe();
 	}
 
 	// ================================================================
@@ -1716,5 +1718,28 @@ public static class SceneProcedureTest
 		a.prepareExit(b, 1.0f);
 		a.exit(b, b);
 		assertFalse(a.isPreparingExit(), "exit 后不再准备退出");
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 空虚方法调用安全
+	// ═════════════════════════════════════════════════════════════════
+
+	// onNextProcedurePrepared 空调用安全
+	private static void testOnNextProcedurePreparedSafe()
+	{
+		TestSceneProcedure a = new TestSceneProcedure();
+		TestSceneProcedure b = new TestSceneProcedure();
+		a.onNextProcedurePrepared(b);
+		a.onNextProcedurePrepared(null);
+		// 无异常即通过
+	}
+
+	// willDestroy 空调用安全
+	private static void testWillDestroySafe()
+	{
+		TestSceneProcedure a = new TestSceneProcedure();
+		a.willDestroy();
+		a.willDestroy();
+		// 无异常即通过
 	}
 }

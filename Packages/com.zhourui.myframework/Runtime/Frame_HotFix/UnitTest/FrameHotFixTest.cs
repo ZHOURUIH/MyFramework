@@ -44,6 +44,8 @@ public class FrameHotFixTest
         Register("FrameBaseUtilityTest", FrameBaseUtilityTest.Run);
         Register("FrameSystemTest", FrameSystemTest.Run);
         Register("FrameUtilityTest", FrameUtilityTest.Run);
+        Register("FrameCallbackTest", FrameCallbackTest.Run);
+        Register("GameFrameworkHotFixTest", GameFrameworkHotFixTest.Run);
         Register("GameObjectPoolTest", GameObjectPoolTest.Run);
         Register("GamePluginManagerTest", GamePluginManagerTest.Run);
         Register("GameEventRegisteInfoTest", GameEventRegisteInfoTest.Run);
@@ -53,6 +55,8 @@ public class FrameHotFixTest
         Register("GameKeyframeTest", GameKeyframeTest.Run);
         Register("ListExtensionTest", ListExtensionTest.Run);
         Register("ListScope2Test", ListScope2Test.Run);
+        Register("ListScope2TTest", ListScope2TTest.Run);
+        Register("ListScopeTest", ListScopeTest.Run);
         Register("MathUtilityTest", MathUtilityTest.Run);
 
         Register("MostSafeFloatTest", MostSafeFloatTest.Run);
@@ -145,6 +149,8 @@ public class FrameHotFixTest
         Register("GameLayoutUpdateTest", GameLayoutUpdateTest.Run);
         Register("LayoutInfoTest", LayoutInfoTest.Run);
         Register("LayoutScriptTest", LayoutScriptTest.Run);
+        Register("LayoutLoadInfoTest", LayoutLoadInfoTest.Run);
+        Register("LayoutRegisteInfoTest", LayoutRegisteInfoTest.Run);
 
         Register("SceneProcedureTest", SceneProcedureTest.Run);
         Register("GameSceneTest", GameSceneTest.Run);

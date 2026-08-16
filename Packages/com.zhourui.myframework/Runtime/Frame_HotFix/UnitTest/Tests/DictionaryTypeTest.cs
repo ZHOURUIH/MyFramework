@@ -7,6 +7,10 @@ public class DictionaryTypeTest
 		testConstructor();
 		testEquals();
 		testGetHashCode();
+		testEqualsSelf();
+		testToString();
+		testHashCodeDifferentCombination();
+		testKeyValueSwapNotEqual();
 	}
 
 	// 测试构造函数
@@ -37,5 +41,39 @@ public class DictionaryTypeTest
 
 		// 相同的类型组合应该产生相同的哈希码
 		assertEqual(dt1.GetHashCode(), dt2.GetHashCode());
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 深度组合
+	// ═════════════════════════════════════════════════════════════════
+
+	// 自身相等
+	private static void testEqualsSelf()
+	{
+		DictionaryType dt = new DictionaryType(typeof(int), typeof(string));
+		assertTrue(dt.Equals(dt), "与自身相等");
+	}
+
+	// ToString 格式
+	private static void testToString()
+	{
+		DictionaryType dt = new DictionaryType(typeof(int), typeof(string));
+		assertEqual("System.Int32,System.String", dt.ToString(), "ToString 格式");
+	}
+
+	// 不同组合哈希码大概率不同(int+float vs int+string)
+	private static void testHashCodeDifferentCombination()
+	{
+		DictionaryType a = new DictionaryType(typeof(int), typeof(string));
+		DictionaryType b = new DictionaryType(typeof(int), typeof(float));
+		assertFalse(a.GetHashCode() == b.GetHashCode(), "不同值类型哈希码不同");
+	}
+
+	// 键值类型对换 → 不相等
+	private static void testKeyValueSwapNotEqual()
+	{
+		DictionaryType a = new DictionaryType(typeof(int), typeof(string));
+		DictionaryType b = new DictionaryType(typeof(string), typeof(int));
+		assertFalse(a.Equals(b), "键值对换不相等");
 	}
 }

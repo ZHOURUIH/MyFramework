@@ -47,6 +47,11 @@ public static class CharacterTest
 		testIdentity_IsMyself_FalseForNormalCharacter();
 		// ─── 空安全守卫(组件引用访问不因未挂载而抛错) ───
 		testNullSafety_GetStateMachineChain_NoThrow();
+		testNotifyModelLoadedSafe();
+		testNotifyModelLoadedTwice();
+		testSetCharacterTypeRoundTrip();
+		testSetCharacterTypeNull();
+		testComponentsBuilt();
 	}
 
 	// ═════════════════════════════════════════════════════════════════
@@ -194,6 +199,91 @@ public static class CharacterTest
 			assertFalse(sm.hasState(typeof(object)), "状态机空态 hasState false");
 			// getStateMachine 重复调用返回同一实例(惰性创建后缓存)
 			assertTrue(ReferenceEquals(c.getStateMachine(), sm), "重复 getStateMachine 返回同一实例");
+		}
+		finally
+		{
+			sys.destroy();
+		}
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 深度组合
+	// ═════════════════════════════════════════════════════════════════
+
+	// notifyModelLoaded 空虚方法调用安全
+	private static void testNotifyModelLoadedSafe()
+	{
+		CharacterManager sys = new();
+		try
+		{
+			Character c = sys.createCharacter<Character>("notify1", 200);
+			c.notifyModelLoaded();
+			// 无异常即通过
+		}
+		finally
+		{
+			sys.destroy();
+		}
+	}
+
+	// notifyModelLoaded 多次调用安全
+	private static void testNotifyModelLoadedTwice()
+	{
+		CharacterManager sys = new();
+		try
+		{
+			Character c = sys.createCharacter<Character>("notify2", 201);
+			c.notifyModelLoaded();
+			c.notifyModelLoaded();
+			// 无异常即通过
+		}
+		finally
+		{
+			sys.destroy();
+		}
+	}
+
+	// setCharacterType → getType 往返
+	private static void testSetCharacterTypeRoundTrip()
+	{
+		CharacterManager sys = new();
+		try
+		{
+			Character c = sys.createCharacter<Character>("type1", 202);
+			c.setCharacterType(typeof(string));
+			assertEqual(typeof(string), c.getType(), "setCharacterType 读回");
+		}
+		finally
+		{
+			sys.destroy();
+		}
+	}
+
+	// setCharacterType(null) 读回 null
+	private static void testSetCharacterTypeNull()
+	{
+		CharacterManager sys = new();
+		try
+		{
+			Character c = sys.createCharacter<Character>("type2", 203);
+			c.setCharacterType(null);
+			assertNull(c.getType(), "set null 读回 null");
+		}
+		finally
+		{
+			sys.destroy();
+		}
+	}
+
+	// 组件已建: getAvatar/getCOMAnimation 非 null
+	private static void testComponentsBuilt()
+	{
+		CharacterManager sys = new();
+		try
+		{
+			Character c = sys.createCharacter<Character>("comp1", 204);
+			assertNotNull(c.getAvatar(), "getAvatar 组件已建");
+			assertNotNull(c.getCOMAnimation(), "getCOMAnimation 组件已建");
 		}
 		finally
 		{

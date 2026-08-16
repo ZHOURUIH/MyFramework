@@ -22,6 +22,8 @@ public static class AtlasManagerTest
 		testDestroySafe();
 		testAtlasLoadParamDefault();
 		testAtlasLoadParamResetProperty();
+		testUnloadSpriteNull();
+		testUnloadAtlasAfterUnload();
 	}
 
 	// ─── new + destroy 空安全 ────────────────────────────────────────
@@ -147,6 +149,39 @@ public static class AtlasManagerTest
 		AtlasManager mgr = new AtlasManager();
 		// mObject=null(mCreateObject=true 但未 init) → destroyUnityObject(null) 提前返回; 订阅反注册安全
 		mgr.destroy();
+	}
+
+	// ─── unloadSprite ────────────────────────────────────────────────
+
+	// unloadSprite(null 引用) 空安全
+	private static void testUnloadSpriteNull()
+	{
+		AtlasManager mgr = new AtlasManager();
+		SpriteRef ptr = null;
+		mgr.unloadSprite(ref ptr);
+		// 无异常即通过
+	}
+
+	// 注: unloadSprite 有效引用不可测——SpriteRef 必须 CLASS() 从池创建(裸 new 不在池 inuse 列表
+	//     → removeInuse logError)且 destroy 需要真 Sprite(未 setSprite → "sprite is null" logError)——合法跳过
+
+	// unloadAtlas(ref) 重载版: 卸载后外部引用置 null
+	private static void testUnloadAtlasAfterUnload()
+	{
+		AtlasManager mgr = new AtlasManager();
+		try
+		{
+			MockAtlas atlas = new();
+			atlas.setFilePath("test/atlas2.ab");
+			mgr.getAtlasList().add("test/atlas2.ab", atlas);
+			FrameUtility.CLASS(out AtlasRef at).setAtlas(atlas);
+			mgr.unloadAtlas(ref at);
+			assertNull(at, "unloadAtlas(ref) 后外部引用置 null");
+		}
+		finally
+		{
+			mgr.destroy();
+		}
 	}
 
 	// ─── AtlasLoadParam 默认字段 ─────────────────────────────────────

@@ -20,7 +20,7 @@ PluginImporter:
         AndroidSharedLibraryType: Executable
         CPU: ARMv7
     Any:
-      enabled: 1
+      enabled: 0
       settings:
         Exclude Android: 1
         Exclude Editor: 1
@@ -29,6 +29,7 @@ PluginImporter:
         Exclude WebGL: 1
         Exclude Win: 1
         Exclude Win64: 1
+        Exclude iOS: 1
     Editor:
       enabled: 0
       settings:
@@ -58,6 +59,14 @@ PluginImporter:
       enabled: 0
       settings:
         CPU: AnyCPU
+    iOS:
+      enabled: 0
+      settings:
+        AddToEmbeddedBinaries: false
+        CPU: AnyCPU
+        CompileFlags: 
+        FrameworkDependencies: 
+        XcodeProjectType: All
   userData: 
   assetBundleName: 
   assetBundleVariant: 

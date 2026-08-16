@@ -1,6 +1,7 @@
 using static TestAssert;
 
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 using UObject = UnityEngine.Object;
 // GameLayout 布局实例单元测试
@@ -25,6 +26,14 @@ public static class GameLayoutTest
 		testDefaultRoot();
 		testDefaultUIObjectList();
 		testDefaultVisible();
+		testOnDrawGizmosSafe();
+		testGetAllColliderEmpty();
+		testGetAllColliderAppendMode();
+		testGetAllColliderClearMode();
+		testSetLayerWithRoot();
+		testSetLayerDifferentLayers();
+		testRefreshUIDepthNoIgnore();
+		testRefreshUIDepthWithChildTree();
 
 		// === getter/setter 配对 ===
 		testSetName();
@@ -528,5 +537,145 @@ public static class GameLayoutTest
 		// mScript=null → 跳过 mScript.destroy/mLayoutManager.notifyLayoutChanged
 		// mRoot=null → destroyWindow(null, true) 空安全(MyUGUIObjectTest 已验证)
 		layout.destroy();
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 深度组合
+	// ═════════════════════════════════════════════════════════════════
+
+	// onDrawGizmos mScript=null 空安全(isVisible && mScript!=null 才执行)
+	private static void testOnDrawGizmosSafe()
+	{
+		GameLayout layout = new GameLayout();
+		layout.onDrawGizmos();
+		layout.onDrawGizmos();
+		// 无异常即通过
+	}
+
+	// getAllCollider 空 layout → colliders 空
+	private static void testGetAllColliderEmpty()
+	{
+		GameLayout layout = new GameLayout();
+		List<Collider> colliders = new List<Collider>();
+		layout.getAllCollider(colliders);
+		assertEqual(0, colliders.Count, "空 layout 无 collider");
+	}
+
+	// getAllCollider append=true 保留原列表
+	private static void testGetAllColliderAppendMode()
+	{
+		GameLayout layout = new GameLayout();
+		List<Collider> colliders = new List<Collider>();
+		colliders.Add(new BoxCollider());
+		layout.getAllCollider(colliders, true);
+		assertEqual(1, colliders.Count, "append 模式保留原项");
+	}
+
+	// getAllCollider append=false 清空原列表
+	private static void testGetAllColliderClearMode()
+	{
+		GameLayout layout = new GameLayout();
+		List<Collider> colliders = new List<Collider>();
+		colliders.Add(new BoxCollider());
+		layout.getAllCollider(colliders, false);
+		assertEqual(0, colliders.Count, "非 append 模式清空原项");
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// setLayer / refreshUIDepth(反射注入 mRoot)
+	// ═════════════════════════════════════════════════════════════════
+
+	// 反射注入 mRoot(myUGUICanvas) 后 setLayer 生效
+	private static void testSetLayerWithRoot()
+	{
+		var go = new GameObject("GL_Layer");
+		go.AddComponent<RectTransform>();
+		try
+		{
+			myUGUICanvas root = new myUGUICanvas();
+			root.setObject(go);
+			GameLayout layout = new GameLayout();
+			injectRoot(layout, root);
+			layout.setLayer(5);
+			assertEqual(5, go.layer, "setLayer 后 GameObject.layer 生效");
+		}
+		finally
+		{
+			UObject.DestroyImmediate(go);
+		}
+	}
+
+	// setLayer 多次切换
+	private static void testSetLayerDifferentLayers()
+	{
+		var go = new GameObject("GL_Layer2");
+		go.AddComponent<RectTransform>();
+		try
+		{
+			myUGUICanvas root = new myUGUICanvas();
+			root.setObject(go);
+			GameLayout layout = new GameLayout();
+			injectRoot(layout, root);
+			layout.setLayer(0);
+			assertEqual(0, go.layer, "layer 0");
+			layout.setLayer(10);
+			assertEqual(10, go.layer, "layer 10");
+			layout.setLayer(3);
+			assertEqual(3, go.layer, "layer 3");
+		}
+		finally
+		{
+			UObject.DestroyImmediate(go);
+		}
+	}
+
+	// refreshUIDepth(ignoreInactive=false) 注入 mRoot 后不炸
+	private static void testRefreshUIDepthNoIgnore()
+	{
+		var go = new GameObject("GL_Depth");
+		go.AddComponent<RectTransform>();
+		try
+		{
+			myUGUICanvas root = new myUGUICanvas();
+			root.setObject(go);
+			GameLayout layout = new GameLayout();
+			injectRoot(layout, root);
+			layout.refreshUIDepth(root, false);
+			// 无异常即通过
+		}
+		finally
+		{
+			UObject.DestroyImmediate(go);
+		}
+	}
+
+	// refreshUIDepth 带子物体树不炸
+	private static void testRefreshUIDepthWithChildTree()
+	{
+		var go = new GameObject("GL_Depth2");
+		go.AddComponent<RectTransform>();
+		try
+		{
+			var childGo = new GameObject("GL_Child");
+			childGo.AddComponent<RectTransform>();
+			childGo.transform.SetParent(go.transform);
+			myUGUICanvas root = new myUGUICanvas();
+			root.setObject(go);
+			GameLayout layout = new GameLayout();
+			injectRoot(layout, root);
+			layout.refreshUIDepth(root, false);
+			// 无异常即通过
+		}
+		finally
+		{
+			UObject.DestroyImmediate(go);
+		}
+	}
+
+	// 反射注入 mRoot 字段
+	static void injectRoot(GameLayout layout, myUGUICanvas root)
+	{
+		FieldInfo field = typeof(GameLayout).GetField("mRoot", BindingFlags.NonPublic | BindingFlags.Instance);
+		field.SetValue(layout, root);
 	}
 }

@@ -54,8 +54,256 @@ public static class MovableObjectTest
 		testPassRayToggle();
 		testHandleInputToggle();
 		testDragableStateTransition();
+		// ─── 交互回调 setter 注册(懒加载组件) ───
+		testSetOnTouchDown();
+		testSetOnTouchUp();
+		testSetOnTouchEnterLeave();
+		testSetOnScreenTouchUp();
+		testSetClickSound();
+		testSetClickDetailCallback();
+		testSetDoubleClickCallback();
+		testSetPreClickCallback();
+		testSetHoverDetailCallback();
+		testSetPressDetailCallback();
+		// ─── 事件转发(onXxx → getCOMInteractive) ───
+		testOnTouchStay();
+		testOnScreenTouchDownUp();
+		testOnMultiTouchStartMoveEnd();
+		testOnReceiveDrag();
+		testOnDragHovered();
 		// ─── resetProperty 深度 ───
 		testResetClearsMoveInfoComponent();
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 交互回调 setter(getCOMInteractive 懒加载组件)
+	// ═════════════════════════════════════════════════════════════════
+
+	private static void testSetOnTouchDown()
+	{
+		MovableObject mob = NewMob(out GameObject go);
+		try
+		{
+			mob.setOnTouchDown((pos, id) => { });
+			mob.setOnTouchDown(null);
+		}
+		finally
+		{
+			mob.destroy();
+			Object.DestroyImmediate(go);
+		}
+	}
+
+	private static void testSetOnTouchUp()
+	{
+		MovableObject mob = NewMob(out GameObject go);
+		try
+		{
+			mob.setOnTouchUp((pos, id) => { });
+			mob.setOnTouchUp(null);
+		}
+		finally
+		{
+			mob.destroy();
+			Object.DestroyImmediate(go);
+		}
+	}
+
+	private static void testSetOnTouchEnterLeave()
+	{
+		MovableObject mob = NewMob(out GameObject go);
+		try
+		{
+			mob.setOnTouchEnter((pos, id) => { });
+			mob.setOnTouchLeave((pos, id) => { });
+		}
+		finally
+		{
+			mob.destroy();
+			Object.DestroyImmediate(go);
+		}
+	}
+
+	private static void testSetOnScreenTouchUp()
+	{
+		MovableObject mob = NewMob(out GameObject go);
+		try
+		{
+			mob.setOnScreenTouchUp((pos, id) => { });
+		}
+		finally
+		{
+			mob.destroy();
+			Object.DestroyImmediate(go);
+		}
+	}
+
+	private static void testSetClickSound()
+	{
+		MovableObject mob = NewMob(out GameObject go);
+		try
+		{
+			mob.setClickSound(123);
+			mob.setClickSound(0);
+		}
+		finally
+		{
+			mob.destroy();
+			Object.DestroyImmediate(go);
+		}
+	}
+
+	private static void testSetClickDetailCallback()
+	{
+		MovableObject mob = NewMob(out GameObject go);
+		try
+		{
+			mob.setClickDetailCallback((pos) => { });
+		}
+		finally
+		{
+			mob.destroy();
+			Object.DestroyImmediate(go);
+		}
+	}
+
+	private static void testSetDoubleClickCallback()
+	{
+		MovableObject mob = NewMob(out GameObject go);
+		try
+		{
+			mob.setDoubleClickCallback(() => { });
+			mob.setDoubleClickDetailCallback((pos) => { });
+		}
+		finally
+		{
+			mob.destroy();
+			Object.DestroyImmediate(go);
+		}
+	}
+
+	private static void testSetPreClickCallback()
+	{
+		MovableObject mob = NewMob(out GameObject go);
+		try
+		{
+			mob.setPreClickCallback(() => { });
+			mob.setPreClickDetailCallback((pos) => { });
+		}
+		finally
+		{
+			mob.destroy();
+			Object.DestroyImmediate(go);
+		}
+	}
+
+	private static void testSetHoverDetailCallback()
+	{
+		MovableObject mob = NewMob(out GameObject go);
+		try
+		{
+			mob.setHoverDetailCallback((pos, hovered) => { });
+		}
+		finally
+		{
+			mob.destroy();
+			Object.DestroyImmediate(go);
+		}
+	}
+
+	private static void testSetPressDetailCallback()
+	{
+		MovableObject mob = NewMob(out GameObject go);
+		try
+		{
+			mob.setPressDetailCallback((pos, pressed) => { });
+		}
+		finally
+		{
+			mob.destroy();
+			Object.DestroyImmediate(go);
+		}
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 事件转发(onXxx → getCOMInteractive 懒加载组件)
+	// ═════════════════════════════════════════════════════════════════
+
+	private static void testOnTouchStay()
+	{
+		MovableObject mob = NewMob(out GameObject go);
+		try
+		{
+			mob.onTouchStay(Vector3.zero, 1);
+			mob.onTouchStay(new Vector3(1f, 2f, 3f), 0);
+		}
+		finally
+		{
+			mob.destroy();
+			Object.DestroyImmediate(go);
+		}
+	}
+
+	private static void testOnScreenTouchDownUp()
+	{
+		MovableObject mob = NewMob(out GameObject go);
+		try
+		{
+			mob.onScreenTouchDown(Vector3.zero, 1);
+			mob.onScreenTouchUp(Vector3.zero, 1);
+		}
+		finally
+		{
+			mob.destroy();
+			Object.DestroyImmediate(go);
+		}
+	}
+
+	private static void testOnMultiTouchStartMoveEnd()
+	{
+		MovableObject mob = NewMob(out GameObject go);
+		try
+		{
+			mob.onMultiTouchStart(Vector3.zero, new Vector3(1f, 1f, 0f));
+			mob.onMultiTouchMove(Vector3.zero, Vector3.one, Vector3.one, Vector3.zero);
+			mob.onMultiTouchEnd();
+		}
+		finally
+		{
+			mob.destroy();
+			Object.DestroyImmediate(go);
+		}
+	}
+
+	private static void testOnReceiveDrag()
+	{
+		MovableObject mob = NewMob(out GameObject go);
+		try
+		{
+			bool continueEvent = true;
+			mob.onReceiveDrag(null, Vector3.zero, ref continueEvent);
+			assertTrue(continueEvent, "无回调时 continueEvent 不变");
+		}
+		finally
+		{
+			mob.destroy();
+			Object.DestroyImmediate(go);
+		}
+	}
+
+	private static void testOnDragHovered()
+	{
+		MovableObject mob = NewMob(out GameObject go);
+		try
+		{
+			mob.onDragHovered(null, Vector3.zero, true);
+			mob.onDragHovered(null, Vector3.zero, false);
+		}
+		finally
+		{
+			mob.destroy();
+			Object.DestroyImmediate(go);
+		}
 	}
 
 	// ═════════════════════════════════════════════════════════════════

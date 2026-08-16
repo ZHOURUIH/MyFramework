@@ -52,6 +52,8 @@ public static class NetPacketHttpTTest
 		testResetPropertyKeepsSendBodyInstance();
 		testUnicodeBodyRoundtrip();
 		testResetAfterRead();
+		testWriteJsonContainsMultipleFields();
+		testReadTwiceOverwrites();
 	}
 
 	// ═════════════════════════════════════════════════════════════════
@@ -261,5 +263,31 @@ public static class NetPacketHttpTTest
 		packet.resetProperty();
 		assertTrue(packet.mBody == null, "reset 后 mBody null");
 		assertEqual(0, packet.mSendBody.id, "reset 后 sendBody id 0");
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// write 多字段 JSON + read 覆盖
+	// ═════════════════════════════════════════════════════════════════
+
+	// write JSON 同时含 id 与 name
+	private static void testWriteJsonContainsMultipleFields()
+	{
+		TestHttpT send = new TestHttpT();
+		send.mSendBody.id = 88;
+		send.mSendBody.name = "multi_field_name";
+		string json = send.write();
+		assertTrue(json.Contains("\"id\":88") || json.Contains("88"), "write JSON 含 id");
+		assertTrue(json.Contains("multi_field_name"), "write JSON 含 name");
+	}
+
+	// 两次 read 覆盖 mBody
+	private static void testReadTwiceOverwrites()
+	{
+		TestHttpT packet = new TestHttpT();
+		packet.read("{\"code\":1,\"message\":\"first\"}");
+		assertEqual("first", packet.mBody.message, "第一次 read 内容");
+		packet.read("{\"code\":2,\"message\":\"second\"}");
+		assertEqual("second", packet.mBody.message, "第二次 read 覆盖");
+		assertEqual(2, packet.mBody.code, "第二次 code 覆盖");
 	}
 }
