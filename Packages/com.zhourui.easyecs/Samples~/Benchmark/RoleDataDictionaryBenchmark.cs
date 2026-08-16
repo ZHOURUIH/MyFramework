@@ -363,7 +363,95 @@ public class RoleDataDictionaryBenchmark : MonoBehaviour
 		print("随机修改 ECS Inline Indexer", measure(runRandomWriteECSInlineIndexer, RANDOM_WRITE_COUNT));
 		print("随机修改 ECS Local Ref", measure(runRandomWriteECSLocalRef, RANDOM_WRITE_COUNT));
 		print("随机修改 ECS TryGetValue", measure(runRandomWriteECSTryGet, RANDOM_WRITE_COUNT));
+		runTryGetValueWriteBreakdown();
 		Debug.Log("================ 随机Key修改详细测试结束 ================");
+	}
+	private void runTryGetValueWriteBreakdown()
+	{
+		BenchmarkResult tryOnly = measure(runRandomTryGetOnly, RANDOM_WRITE_COUNT);
+		BenchmarkResult tryRead = measure(runRandomTryGetRead, RANDOM_WRITE_COUNT);
+		BenchmarkResult tryWrite = measure(runRandomWriteECSTryGet, RANDOM_WRITE_COUNT);
+		BenchmarkResult indexOnly = measure(runRandomTryGetIndexOnly, RANDOM_WRITE_COUNT);
+		BenchmarkResult indexRefWrite = measure(runRandomTryGetIndexRefWrite, RANDOM_WRITE_COUNT);
+		BenchmarkResult indexDirectWrite = measure(runRandomTryGetIndexDirectWrite, RANDOM_WRITE_COUNT);
+		BenchmarkResult indexerWrite = measure(runRandomWriteECSInlineIndexer, RANDOM_WRITE_COUNT);
+		BenchmarkResult localRefWrite = measure(runRandomWriteECSLocalRef, RANDOM_WRITE_COUNT);
+		Debug.Log(
+			"\n================ SafeSpan TryGetValue写入路径拆解 ================\n" +
+			format("TryGetValue only", tryOnly) + "\n" +
+			format("TryGetValue + read", tryRead) + "\n" +
+			format("TryGetValue + write", tryWrite) + "\n" +
+			format("TryGetIndex only", indexOnly) + "\n" +
+			format("TryGetIndex + Ref write", indexRefWrite) + "\n" +
+			format("TryGetIndex + Direct write", indexDirectWrite) + "\n" +
+			format("Indexer write", indexerWrite) + "\n" +
+			format("Local Ref write", localRefWrite) +
+			"\n--------------------------------------------------\n" +
+			"TryWrite / TryRead          : " + ratio(tryWrite.mMedian, tryRead.mMedian) + "\n" +
+			"TryWrite / IndexRefWrite    : " + ratio(tryWrite.mMedian, indexRefWrite.mMedian) + "\n" +
+			"IndexRefWrite / Indexer     : " + ratio(indexRefWrite.mMedian, indexerWrite.mMedian) + "\n" +
+			"IndexDirectWrite / Indexer  : " + ratio(indexDirectWrite.mMedian, indexerWrite.mMedian) + "\n" +
+			"TryOnly / IndexOnly         : " + ratio(tryOnly.mMedian, indexOnly.mMedian) + "\n" +
+			"==================================================");
+	}
+	private void runRandomTryGetOnly()
+	{
+		int found = 0;
+		for (int i = 0; i < RANDOM_WRITE_COUNT; ++i)
+		{
+			if (mECS.TryGetValue(mRandomKeys[i], out RoleDataRef value))
+			{
+				++found;
+			}
+		}
+		mResultSink += found;
+	}
+	private void runRandomTryGetRead()
+	{
+		long sum = 0;
+		for (int i = 0; i < RANDOM_WRITE_COUNT; ++i)
+		{
+			if (mECS.TryGetValue(mRandomKeys[i], out RoleDataRef value))
+			{
+				sum += value.mHP;
+			}
+		}
+		mResultSink += sum;
+	}
+	private void runRandomTryGetIndexOnly()
+	{
+		long sum = 0;
+		for (int i = 0; i < RANDOM_WRITE_COUNT; ++i)
+		{
+			if (mECS.TryGetIndex(mRandomKeys[i], out int index))
+			{
+				sum += index;
+			}
+		}
+		mResultSink += sum;
+	}
+	private void runRandomTryGetIndexRefWrite()
+	{
+		for (int i = 0; i < RANDOM_WRITE_COUNT; ++i)
+		{
+			if (mECS.TryGetIndex(mRandomKeys[i], out int index))
+			{
+				mECS.getValueAt(index).mHP += 1;
+			}
+		}
+		mResultSink += mECS.getValueAt(mECS.Count - 1).mHP;
+	}
+	private void runRandomTryGetIndexDirectWrite()
+	{
+		var hp = mECS.getHPColumn();
+		for (int i = 0; i < RANDOM_WRITE_COUNT; ++i)
+		{
+			if (mECS.TryGetIndex(mRandomKeys[i], out int index))
+			{
+				hp[index] += 1;
+			}
+		}
+		mResultSink += hp[mECS.Count - 1];
 	}
 	private void runDenseOneFieldBenchmark()
 	{

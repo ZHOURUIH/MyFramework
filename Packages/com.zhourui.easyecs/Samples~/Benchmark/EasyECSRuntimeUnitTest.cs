@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using EasyECS;
 using UnityEngine;
 
@@ -23,6 +24,14 @@ public struct EasyECSManagedRuntimeTestData
 	[NotECS] public string mModelPath;
 }
 
+[ECS]
+public struct EasyECSAllManagedRuntimeTestData
+{
+	public string mName;
+	public object mPayload;
+	[NotECS] public string mPath;
+}
+
 public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 {
 	private int mPassCount;
@@ -39,6 +48,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 		Debug.Log("================ EasyECS Runtime Unit Test Start ================");
 		Debug.Log("Backend:" + EasyECSRuntimeTestDataECSList.BackendName + ",Reason:" + EasyECSRuntimeTestDataECSList.BackendReason);
 		Debug.Log("Managed Backend:" + EasyECSManagedRuntimeTestDataECSList.BackendName + ",Reason:" + EasyECSManagedRuntimeTestDataECSList.BackendReason);
+		Debug.Log("AllManaged Backend:" + EasyECSAllManagedRuntimeTestDataECSList.BackendName + ",Reason:" + EasyECSAllManagedRuntimeTestDataECSList.BackendReason);
 		runTest("Backend选择检查", testBackendSelection);
 		runTest("List构造/Count/Capacity", testListConstructor);
 		runTest("List Add/Get/Resize/全部字段", testListAddGetResize);
@@ -50,6 +60,12 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 		runTest("List Set不使Column失效", testListSetKeepsColumnValid);
 		runTest("List RemoveAtSwapBack", testListRemoveAtSwapBack);
 		runTest("List RemoveAtSwapBack删除最后元素", testListRemoveLast);
+		runTest("List Insert保持顺序", testListInsertOrder);
+		runTest("List Insert触发Resize", testListInsertResize);
+		runTest("List RemoveAt保持顺序", testListRemoveAtOrder);
+		runTest("List Insert/RemoveAt与System.List一致", testListInsertRemoveAtCompatibility);
+		runTest("List 大块Insert/RemoveAt移动", testListLargeStructuralMove);
+		runTest("List Insert/RemoveAt边界检查", testListInsertRemoveAtBounds);
 		runTest("List Clear后重新使用", testListClearReuse);
 		runTest("List 空Clear", testListEmptyClear);
 		runTest("List 重复Dispose", testListDoubleDispose);
@@ -58,6 +74,9 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 		runTest("Managed List Resize后Ref保持有效", testManagedListRefAfterResize);
 		runTest("Managed List Direct Column", testManagedListDirectColumn);
 		runTest("Managed List RemoveAtSwapBack", testManagedListRemoveAtSwapBack);
+		runTest("Managed List Insert/RemoveAt", testManagedListInsertRemoveAt);
+		runTest("Managed List 大块Insert/RemoveAt移动", testManagedListLargeStructuralMove);
+		runTest("AllManaged List Insert/RemoveAt", testAllManagedListInsertRemoveAt);
 		runTest("Managed List null字段", testManagedListNullFields);
 		runTest("Dictionary构造/Count/Capacity/Comparer", testDictionaryConstructor);
 		runTest("Dictionary Add/Indexer/Resize", testDictionaryAddIndexerResize);
@@ -96,9 +115,17 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 		runTest("Editor List Remove后Ref失效", testEditorListRemovedRef);
 		runTest("Editor List SwapBack移动Ref失效", testEditorListMovedLastRef);
 		runTest("Editor List Remove无关Ref保持有效", testEditorListUnrelatedRef);
+		runTest("Editor List Insert影响区间Ref失效", testEditorListInsertAffectedRefs);
+		runTest("Editor List Insert前方Ref保持有效", testEditorListInsertEarlierRef);
+		runTest("Editor List Insert末尾旧Ref保持有效", testEditorListInsertAtEndRefs);
+		runTest("Editor List RemoveAt影响区间Ref失效", testEditorListRemoveAtAffectedRefs);
+		runTest("Editor List RemoveAt前方Ref保持有效", testEditorListRemoveAtEarlierRef);
+		runTest("Editor List RemoveAt旧Ref不会复活", testEditorListRemoveAtRefDoesNotRevive);
 		runTest("Editor List Resize后Ref保持有效", testEditorListRefAfterResize);
 		runTest("Editor List Add后Column失效", testEditorListColumnAfterAdd);
+		runTest("Editor List Insert后Column失效", testEditorListColumnAfterInsert);
 		runTest("Editor List Remove后Column失效", testEditorListColumnAfterRemove);
+		runTest("Editor List RemoveAt后Column失效", testEditorListColumnAfterOrderedRemove);
 		runTest("Editor List Clear后Column失效", testEditorListColumnAfterClear);
 		runTest("Editor List Dispose后Column失效", testEditorListColumnAfterDispose);
 		runTest("Editor List Column越界", testEditorListColumnOutOfRange);
@@ -183,22 +210,34 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	{
 		string backend = EasyECSRuntimeTestDataECSList.BackendName;
 		string managedBackend = EasyECSManagedRuntimeTestDataECSList.BackendName;
+		string allManagedBackend = EasyECSAllManagedRuntimeTestDataECSList.BackendName;
 #if ECS_FORCE_SAFE_REGISTRY
 		assertEqual("SafeRegistry", backend, "ECS_FORCE_SAFE_REGISTRY下普通数据后端错误");
 		assertEqual("SafeRegistry", managedBackend, "ECS_FORCE_SAFE_REGISTRY下Managed数据后端错误");
 		assertFalse(EasyECSRuntimeTestDataECSList.IsUnsafeBackend, "ECS_FORCE_SAFE_REGISTRY下普通数据不应生成Unsafe后端");
 		assertFalse(EasyECSManagedRuntimeTestDataECSList.IsUnsafeBackend, "ECS_FORCE_SAFE_REGISTRY下Managed数据不应生成Unsafe后端");
+		assertEqual("SafeRegistry", allManagedBackend, "ECS_FORCE_SAFE_REGISTRY下AllManaged数据后端错误");
+		assertFalse(EasyECSAllManagedRuntimeTestDataECSList.IsUnsafeBackend, "AllManaged数据不应生成Unsafe后端");
 #else
 		assertTrue(backend == "Unsafe" || backend == "SafeSpan" || backend == "SafeRegistry", "普通数据生成了未知Backend:" + backend);
-		assertTrue(managedBackend == "SafeSpan" || managedBackend == "SafeRegistry", "Managed数据生成了不允许的Backend:" + managedBackend);
-		assertFalse(EasyECSManagedRuntimeTestDataECSList.IsUnsafeBackend, "包含Managed字段的数据不允许生成Unsafe后端");
-		if (backend == "SafeSpan")
+		assertTrue(managedBackend == "Unsafe" || managedBackend == "SafeSpan" || managedBackend == "SafeRegistry", "Managed数据生成了未知Backend:" + managedBackend);
+		assertTrue(allManagedBackend == "SafeSpan" || allManagedBackend == "SafeRegistry", "AllManaged数据只能使用SafeSpan或SafeRegistry,Actual:" + allManagedBackend);
+		assertFalse(EasyECSAllManagedRuntimeTestDataECSList.IsUnsafeBackend, "AllManaged数据没有Native候选,不应使用Unsafe");
+		if (backend == "Unsafe")
+		{
+			assertEqual("Unsafe", managedBackend, "Allow Unsafe开启时包含Native字段的Managed结构体应使用Hybrid Unsafe");
+			assertTrue(EasyECSManagedRuntimeTestDataECSList.IsUnsafeBackend, "Hybrid Managed结构体应标记为Unsafe Backend");
+			assertEqual("AllowUnsafe=true,HybridStorage=true", EasyECSManagedRuntimeTestDataECSList.BackendReason, "Hybrid Unsafe后端原因错误");
+		}
+		else if (backend == "SafeSpan")
 		{
 			assertEqual("SafeSpan", managedBackend, "普通数据为SafeSpan时Managed数据也应为SafeSpan");
+			assertFalse(EasyECSManagedRuntimeTestDataECSList.IsUnsafeBackend, "SafeSpan下Managed结构体不应标记Unsafe");
 		}
 		else if (backend == "SafeRegistry")
 		{
 			assertEqual("SafeRegistry", managedBackend, "普通数据为SafeRegistry时Managed数据也应为SafeRegistry");
+			assertFalse(EasyECSManagedRuntimeTestDataECSList.IsUnsafeBackend, "SafeRegistry下Managed结构体不应标记Unsafe");
 		}
 #endif
 	}
@@ -425,6 +464,227 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 			list.Dispose();
 		}
 	}
+	private static void testListInsertOrder()
+	{
+		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		try
+		{
+			list.Add(createData(1, 101, 2.0f, 1 % 3));
+			list.Add(createData(2, 102, 2.0f, 2 % 3));
+			list.Add(createData(3, 103, 2.0f, 3 % 3));
+			list.Insert(0, createData(10, 110, 2.0f, 10 % 3));
+			list.Insert(2, createData(20, 120, 2.0f, 20 % 3));
+			list.Insert(list.Count, createData(30, 130, 2.0f, 30 % 3));
+			int[] expectedIDs = { 10, 1, 20, 2, 3, 30 };
+			int[] expectedHP = { 110, 101, 120, 102, 103, 130 };
+			assertEqual(expectedIDs.Length, list.Count, "Insert后Count错误");
+			for (int i = 0; i < expectedIDs.Length; ++i)
+			{
+				EasyECSRuntimeTestData value = list.Get(i);
+				assertEqual(expectedIDs[i], value.mID, "Insert顺序错误,Index:" + i);
+				assertEqual(expectedHP[i], value.mHP, "Insert SoA字段错误,Index:" + i);
+				assertEqual(expectedIDs[i] % 3, value.mCamp, "Insert AoS字段错误,Index:" + i);
+			}
+		}
+		finally
+		{
+			list.Dispose();
+		}
+	}
+	private static void testListInsertResize()
+	{
+		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList(1);
+		try
+		{
+			list.Add(createData(1, 101));
+			int oldCapacity = list.Capacity;
+			list.Insert(0, createData(2, 202));
+			assertEqual(2, list.Count, "Insert Resize后Count错误");
+			assertTrue(list.Capacity > oldCapacity, "Insert满容量时没有Resize");
+			assertEqual(2, list.Get(0).mID, "Insert Resize新元素位置错误");
+			assertEqual(1, list.Get(1).mID, "Insert Resize旧元素移动错误");
+			list.Insert(list.Count, createData(3, 303));
+			assertEqual(3, list.Get(2).mID, "Insert Count应等价于尾部插入");
+		}
+		finally
+		{
+			list.Dispose();
+		}
+	}
+	private static void testListRemoveAtOrder()
+	{
+		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		try
+		{
+			for (int i = 1; i <= 5; ++i)
+			{
+				list.Add(createData(i, 100 + i));
+			}
+			list.RemoveAt(0);
+			assertListIDs(list, new[] { 2, 3, 4, 5 }, "RemoveAt首元素");
+			list.RemoveAt(1);
+			assertListIDs(list, new[] { 2, 4, 5 }, "RemoveAt中间元素");
+			list.RemoveAt(list.Count - 1);
+			assertListIDs(list, new[] { 2, 4 }, "RemoveAt最后元素");
+			assertEqual(104, list.Get(1).mHP, "RemoveAt后SoA字段错误");
+			assertEqual(4 % 3, list.Get(1).mCamp, "RemoveAt后AoS字段错误");
+		}
+		finally
+		{
+			list.Dispose();
+		}
+	}
+	private static void testListInsertRemoveAtCompatibility()
+	{
+		List<EasyECSRuntimeTestData> standard = new List<EasyECSRuntimeTestData>();
+		EasyECSRuntimeTestDataECSList ecs = new EasyECSRuntimeTestDataECSList(1);
+		try
+		{
+			for (int i = 0; i < 64; ++i)
+			{
+				EasyECSRuntimeTestData value = createData(i, 1000 + i, 1.0f + i, i % 3);
+				standard.Add(value);
+				ecs.Add(value);
+			}
+			System.Random random = new System.Random(20260816);
+			int nextID = 10000;
+			for (int operation = 0; operation < 1000; ++operation)
+			{
+				bool doInsert = standard.Count == 0 || (operation % 3 != 0);
+				if (doInsert)
+				{
+					int index = random.Next(standard.Count + 1);
+					EasyECSRuntimeTestData value = createData(nextID, 2000 + operation, operation * 0.25f, operation % 5);
+					++nextID;
+					standard.Insert(index, value);
+					ecs.Insert(index, value);
+				}
+				else
+				{
+					int index = random.Next(standard.Count);
+					standard.RemoveAt(index);
+					ecs.RemoveAt(index);
+				}
+				if ((operation & 31) == 0)
+				{
+					assertListEquals(standard, ecs, "随机Insert/RemoveAt中间检查,Operation:" + operation);
+				}
+			}
+			assertListEquals(standard, ecs, "随机Insert/RemoveAt最终检查");
+		}
+		finally
+		{
+			ecs.Dispose();
+		}
+	}
+	private static void testListLargeStructuralMove()
+	{
+		const int count = 20000;
+		List<EasyECSRuntimeTestData> standard = new List<EasyECSRuntimeTestData>(count + 4);
+		EasyECSRuntimeTestDataECSList ecs = new EasyECSRuntimeTestDataECSList(count + 4);
+		try
+		{
+			for (int i = 0; i < count; ++i)
+			{
+				EasyECSRuntimeTestData value = createData(i, 100000 + i, i * 0.125f, i % 7);
+				standard.Add(value);
+				ecs.Add(value);
+			}
+			EasyECSRuntimeTestData head = createData(30001, 300001, 3.25f, 5);
+			EasyECSRuntimeTestData middle = createData(30002, 300002, 6.5f, 6);
+			standard.Insert(0, head);
+			ecs.Insert(0, head);
+			int middleIndex = standard.Count >> 1;
+			standard.Insert(middleIndex, middle);
+			ecs.Insert(middleIndex, middle);
+			assertListEquals(standard, ecs, "大块Insert后完整检查");
+			standard.RemoveAt(0);
+			ecs.RemoveAt(0);
+			middleIndex = standard.Count >> 1;
+			standard.RemoveAt(middleIndex);
+			ecs.RemoveAt(middleIndex);
+			assertListEquals(standard, ecs, "大块RemoveAt后完整检查");
+		}
+		finally
+		{
+			ecs.Dispose();
+		}
+	}
+	private static void testListInsertRemoveAtBounds()
+	{
+		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		try
+		{
+			list.Add(createData(1));
+			assertThrowsArgumentOutOfRange(() => list.Insert(-1, createData(2)), "Insert负索引应抛ArgumentOutOfRangeException");
+			assertThrowsArgumentOutOfRange(() => list.Insert(list.Count + 1, createData(2)), "Insert大于Count应抛ArgumentOutOfRangeException");
+			assertThrowsArgumentOutOfRange(() => list.RemoveAt(-1), "RemoveAt负索引应抛ArgumentOutOfRangeException");
+			assertThrowsArgumentOutOfRange(() => list.RemoveAt(list.Count), "RemoveAt等于Count应抛ArgumentOutOfRangeException");
+			assertEqual(1, list.Count, "边界异常后Count不应变化");
+		}
+		finally
+		{
+			list.Dispose();
+		}
+		EasyECSRuntimeTestDataECSList disposed = new EasyECSRuntimeTestDataECSList();
+		disposed.Dispose();
+		bool insertDisposedCaught = false;
+		try
+		{
+			disposed.Insert(0, createData(1));
+		}
+		catch (ObjectDisposedException)
+		{
+			insertDisposedCaught = true;
+		}
+		assertTrue(insertDisposedCaught, "Dispose后Insert应抛ObjectDisposedException");
+		bool removeDisposedCaught = false;
+		try
+		{
+			disposed.RemoveAt(0);
+		}
+		catch (ObjectDisposedException)
+		{
+			removeDisposedCaught = true;
+		}
+		assertTrue(removeDisposedCaught, "Dispose后RemoveAt应抛ObjectDisposedException");
+	}
+	private static void assertListIDs(EasyECSRuntimeTestDataECSList list, int[] expectedIDs, string message)
+	{
+		assertEqual(expectedIDs.Length, list.Count, message + ":Count错误");
+		for (int i = 0; i < expectedIDs.Length; ++i)
+		{
+			assertEqual(expectedIDs[i], list.Get(i).mID, message + ":Index:" + i);
+		}
+	}
+	private static void assertListEquals(List<EasyECSRuntimeTestData> standard, EasyECSRuntimeTestDataECSList ecs, string message)
+	{
+		assertEqual(standard.Count, ecs.Count, message + ":Count错误");
+		for (int i = 0; i < standard.Count; ++i)
+		{
+			EasyECSRuntimeTestData expected = standard[i];
+			EasyECSRuntimeTestData actual = ecs.Get(i);
+			assertEqual(expected.mID, actual.mID, message + ":mID错误,Index:" + i);
+			assertEqual(expected.mHP, actual.mHP, message + ":mHP错误,Index:" + i);
+			assertEqual(expected.mSpeed, actual.mSpeed, message + ":mSpeed错误,Index:" + i);
+			assertEqual(expected.mPositionX, actual.mPositionX, message + ":mPositionX错误,Index:" + i);
+			assertEqual(expected.mPositionY, actual.mPositionY, message + ":mPositionY错误,Index:" + i);
+			assertEqual(expected.mCamp, actual.mCamp, message + ":mCamp错误,Index:" + i);
+		}
+	}
+	private static void assertThrowsArgumentOutOfRange(Action action, string message)
+	{
+		bool caught = false;
+		try
+		{
+			action();
+		}
+		catch (ArgumentOutOfRangeException)
+		{
+			caught = true;
+		}
+		assertTrue(caught, message);
+	}
 	private static void testListClearReuse()
 	{
 		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
@@ -606,6 +866,113 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 			assertEqual("C", moved.mName, "Managed SwapBack mName错误");
 			assertSame(payload3, moved.mPayload, "Managed SwapBack mPayload错误");
 			assertEqual("CPath", moved.mModelPath, "Managed SwapBack mModelPath错误");
+		}
+		finally
+		{
+			list.Dispose();
+		}
+	}
+	private static void testManagedListInsertRemoveAt()
+	{
+		EasyECSManagedRuntimeTestDataECSList list = new EasyECSManagedRuntimeTestDataECSList(1);
+		try
+		{
+			object payloadA = new object();
+			object payloadB = new object();
+			object payloadC = new object();
+			object payloadX = new object();
+			list.Add(createManagedData(1, 11, "A", payloadA, "Path/A"));
+			list.Add(createManagedData(2, 22, "B", payloadB, "Path/B"));
+			list.Add(createManagedData(3, 33, "C", payloadC, "Path/C"));
+			list.Insert(1, createManagedData(9, 99, "X", payloadX, "Path/X"));
+			assertEqual(4, list.Count, "Managed Insert后Count错误");
+			assertEqual(1, list.Get(0).mID, "Managed Insert前方元素变化");
+			assertEqual(9, list.Get(1).mID, "Managed Insert新元素位置错误");
+			assertEqual("X", list.Get(1).mName, "Managed Insert mName错误");
+			assertSame(payloadX, list.Get(1).mPayload, "Managed Insert mPayload错误");
+			assertEqual("Path/X", list.Get(1).mModelPath, "Managed Insert Managed AoS错误");
+			assertEqual(2, list.Get(2).mID, "Managed Insert旧元素移动错误");
+			assertSame(payloadB, list.Get(2).mPayload, "Managed Insert移动后Payload错误");
+			list.RemoveAt(1);
+			assertEqual(3, list.Count, "Managed RemoveAt后Count错误");
+			assertEqual(2, list.Get(1).mID, "Managed RemoveAt顺序错误");
+			assertEqual("B", list.Get(1).mName, "Managed RemoveAt mName错误");
+			assertSame(payloadB, list.Get(1).mPayload, "Managed RemoveAt mPayload错误");
+			assertEqual("Path/B", list.Get(1).mModelPath, "Managed RemoveAt AoS错误");
+			list.Insert(0, new EasyECSManagedRuntimeTestData { mHP = 7, mName = null, mPayload = null, mID = 7, mModelPath = null });
+			assertTrue(list.Get(0).mName == null, "Managed Insert null mName错误");
+			assertTrue(list.Get(0).mPayload == null, "Managed Insert null mPayload错误");
+			assertTrue(list.Get(0).mModelPath == null, "Managed Insert null mModelPath错误");
+			list.RemoveAt(0);
+			assertEqual(1, list.Get(0).mID, "Managed RemoveAt null元素后顺序错误");
+		}
+		finally
+		{
+			list.Dispose();
+		}
+	}
+	private static void testManagedListLargeStructuralMove()
+	{
+		const int count = 5000;
+		EasyECSManagedRuntimeTestDataECSList list = new EasyECSManagedRuntimeTestDataECSList(count + 4);
+		object[] payloads = new object[count];
+		try
+		{
+			for (int i = 0; i < count; ++i)
+			{
+				payloads[i] = new object();
+				list.Add(createManagedData(i, 10000 + i, "Name" + i, payloads[i], "Path/" + i));
+			}
+			object insertedPayload = new object();
+			list.Insert(0, createManagedData(99999, 88888, "Inserted", insertedPayload, "Inserted/Path"));
+			assertEqual(99999, list.Get(0).mID, "Managed大块Insert头部mID错误");
+			assertSame(insertedPayload, list.Get(0).mPayload, "Managed大块Insert头部Payload错误");
+			for (int i = 0; i < count; ++i)
+			{
+				EasyECSManagedRuntimeTestData value = list.Get(i + 1);
+				assertEqual(i, value.mID, "Managed大块Insert顺序错误,Index:" + i);
+				assertEqual("Name" + i, value.mName, "Managed大块Insert Name错误,Index:" + i);
+				assertSame(payloads[i], value.mPayload, "Managed大块Insert Payload错误,Index:" + i);
+				assertEqual("Path/" + i, value.mModelPath, "Managed大块Insert Path错误,Index:" + i);
+			}
+			list.RemoveAt(0);
+			assertEqual(count, list.Count, "Managed大块RemoveAt Count错误");
+			for (int i = 0; i < count; ++i)
+			{
+				EasyECSManagedRuntimeTestData value = list.Get(i);
+				assertEqual(i, value.mID, "Managed大块RemoveAt顺序错误,Index:" + i);
+				assertSame(payloads[i], value.mPayload, "Managed大块RemoveAt Payload错误,Index:" + i);
+			}
+		}
+		finally
+		{
+			list.Dispose();
+		}
+	}
+	private static void testAllManagedListInsertRemoveAt()
+	{
+		EasyECSAllManagedRuntimeTestDataECSList list = new EasyECSAllManagedRuntimeTestDataECSList(1);
+		try
+		{
+			object payloadA = new object();
+			object payloadB = new object();
+			list.Add(new EasyECSAllManagedRuntimeTestData { mName = "A", mPayload = payloadA, mPath = "Path/A" });
+			list.Insert(0, new EasyECSAllManagedRuntimeTestData { mName = "B", mPayload = payloadB, mPath = "Path/B" });
+			assertEqual(2, list.Count, "AllManaged Insert后Count错误");
+			assertEqual("B", list.Get(0).mName, "AllManaged Insert mName错误");
+			assertSame(payloadB, list.Get(0).mPayload, "AllManaged Insert mPayload错误");
+			assertEqual("Path/B", list.Get(0).mPath, "AllManaged Insert AoS字段错误");
+			assertEqual("A", list.Get(1).mName, "AllManaged Insert旧元素移动错误");
+			assertSame(payloadA, list.Get(1).mPayload, "AllManaged Insert旧Payload移动错误");
+			list.RemoveAt(0);
+			assertEqual(1, list.Count, "AllManaged RemoveAt后Count错误");
+			assertEqual("A", list.Get(0).mName, "AllManaged RemoveAt顺序错误");
+			assertSame(payloadA, list.Get(0).mPayload, "AllManaged RemoveAt Payload错误");
+			assertEqual("Path/A", list.Get(0).mPath, "AllManaged RemoveAt AoS错误");
+			list.Insert(1, new EasyECSAllManagedRuntimeTestData { mName = null, mPayload = null, mPath = null });
+			assertTrue(list.Get(1).mName == null, "AllManaged Insert null mName错误");
+			assertTrue(list.Get(1).mPayload == null, "AllManaged Insert null mPayload错误");
+			assertTrue(list.Get(1).mPath == null, "AllManaged Insert null mPath错误");
 		}
 		finally
 		{
@@ -1431,6 +1798,134 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 			list.Dispose();
 		}
 	}
+	private static void testEditorListInsertAffectedRefs()
+	{
+		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		try
+		{
+			list.Add(createData(1));
+			list.Add(createData(2));
+			list.Add(createData(3));
+			EasyECSRuntimeTestDataRef affected1 = list[1];
+			EasyECSRuntimeTestDataRef affected2 = list[2];
+			list.Insert(1, createData(9));
+			assertInvalidRef(affected1, "Insert位置旧Ref应失效");
+			assertInvalidRef(affected2, "Insert后方旧Ref应失效");
+		}
+		finally
+		{
+			list.Dispose();
+		}
+	}
+	private static void testEditorListInsertEarlierRef()
+	{
+		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		try
+		{
+			list.Add(createData(1, 101));
+			list.Add(createData(2, 102));
+			list.Add(createData(3, 103));
+			EasyECSRuntimeTestDataRef first = list[0];
+			list.Insert(1, createData(9));
+			assertEqual(101, first.mHP, "Insert前方Ref不应失效");
+			first.mHP = 999;
+			assertEqual(999, list.Get(0).mHP, "Insert前方Ref修改失败");
+		}
+		finally
+		{
+			list.Dispose();
+		}
+	}
+	private static void testEditorListInsertAtEndRefs()
+	{
+		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		try
+		{
+			list.Add(createData(1, 101));
+			list.Add(createData(2, 102));
+			EasyECSRuntimeTestDataRef first = list[0];
+			EasyECSRuntimeTestDataRef second = list[1];
+			list.Insert(list.Count, createData(3, 103));
+			assertEqual(101, first.mHP, "尾部Insert不应使已有Ref失效");
+			assertEqual(102, second.mHP, "尾部Insert不应使最后已有Ref失效");
+		}
+		finally
+		{
+			list.Dispose();
+		}
+	}
+	private static void testEditorListRemoveAtAffectedRefs()
+	{
+		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		try
+		{
+			for (int i = 1; i <= 4; ++i)
+			{
+				list.Add(createData(i));
+			}
+			EasyECSRuntimeTestDataRef removed = list[1];
+			EasyECSRuntimeTestDataRef moved2 = list[2];
+			EasyECSRuntimeTestDataRef moved3 = list[3];
+			list.RemoveAt(1);
+			assertInvalidRef(removed, "RemoveAt删除位置旧Ref应失效");
+			assertInvalidRef(moved2, "RemoveAt后续移动Ref应失效");
+			assertInvalidRef(moved3, "RemoveAt旧最后Ref应失效");
+		}
+		finally
+		{
+			list.Dispose();
+		}
+	}
+	private static void testEditorListRemoveAtEarlierRef()
+	{
+		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		try
+		{
+			list.Add(createData(1, 101));
+			list.Add(createData(2, 102));
+			list.Add(createData(3, 103));
+			EasyECSRuntimeTestDataRef first = list[0];
+			list.RemoveAt(1);
+			assertEqual(101, first.mHP, "RemoveAt前方Ref不应失效");
+			first.mHP = 888;
+			assertEqual(888, list.Get(0).mHP, "RemoveAt前方Ref修改失败");
+		}
+		finally
+		{
+			list.Dispose();
+		}
+	}
+	private static void testEditorListRemoveAtRefDoesNotRevive()
+	{
+		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		try
+		{
+			list.Add(createData(1));
+			list.Add(createData(2));
+			list.Add(createData(3));
+			EasyECSRuntimeTestDataRef oldLast = list[2];
+			list.RemoveAt(1);
+			list.Insert(list.Count, createData(4));
+			assertInvalidRef(oldLast, "RemoveAt后旧Ref在后续Insert恢复Count时不应复活");
+		}
+		finally
+		{
+			list.Dispose();
+		}
+	}
+	private static void assertInvalidRef(EasyECSRuntimeTestDataRef value, string message)
+	{
+		bool caught = false;
+		try
+		{
+			int hp = value.mHP;
+		}
+		catch (InvalidOperationException)
+		{
+			caught = true;
+		}
+		assertTrue(caught, message);
+	}
 	private static void testEditorListRefAfterResize()
 	{
 		testListRefAfterResize();
@@ -1459,6 +1954,31 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 			list.Dispose();
 		}
 	}
+	private static void testEditorListColumnAfterInsert()
+	{
+		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		try
+		{
+			list.Add(createData(1));
+			list.Add(createData(2));
+			var hp = list.getHPColumn();
+			list.Insert(1, createData(3));
+			bool caught = false;
+			try
+			{
+				int value = hp[0];
+			}
+			catch (InvalidOperationException)
+			{
+				caught = true;
+			}
+			assertTrue(caught, "Insert后旧Column应失效");
+		}
+		finally
+		{
+			list.Dispose();
+		}
+	}
 	private static void testEditorListColumnAfterRemove()
 	{
 		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
@@ -1478,6 +1998,31 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 				caught = true;
 			}
 			assertTrue(caught, "Remove后旧Column应失效");
+		}
+		finally
+		{
+			list.Dispose();
+		}
+	}
+	private static void testEditorListColumnAfterOrderedRemove()
+	{
+		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		try
+		{
+			list.Add(createData(1));
+			list.Add(createData(2));
+			var hp = list.getHPColumn();
+			list.RemoveAt(0);
+			bool caught = false;
+			try
+			{
+				int value = hp[0];
+			}
+			catch (InvalidOperationException)
+			{
+				caught = true;
+			}
+			assertTrue(caught, "RemoveAt后旧Column应失效");
 		}
 		finally
 		{

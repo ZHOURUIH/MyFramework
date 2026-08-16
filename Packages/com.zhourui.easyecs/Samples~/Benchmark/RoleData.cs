@@ -1,3 +1,4 @@
+using EasyECS;
 
 [ECS]
 public struct RoleData

@@ -1,14 +1,61 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Unity.Profiling;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
 public class RoleDataDictionaryEnumeratorBenchmark : MonoBehaviour
 {
+	private readonly struct GenericArrayEnumerable<T>
+	{
+		private readonly T[] mArray;
+		public GenericArrayEnumerable(T[] array)
+		{
+			mArray = array;
+		}
+		public GenericArrayEnumerator<T> GetEnumerator()
+		{
+			return new GenericArrayEnumerator<T>(mArray);
+		}
+	}
+	private struct GenericArrayEnumerator<T>
+	{
+		private readonly T[] mArray;
+		private readonly int mCount;
+		private int mIndex;
+		public GenericArrayEnumerator(T[] array)
+		{
+			mArray = array;
+			mCount = array.Length;
+			mIndex = -1;
+		}
+		public T Current
+		{
+			get
+			{
+				return mArray[mIndex];
+			}
+		}
+		public bool MoveNext()
+		{
+			int nextIndex = mIndex + 1;
+			if ((uint)nextIndex < (uint)mCount)
+			{
+				mIndex = nextIndex;
+				return true;
+			}
+			mIndex = mCount;
+			return false;
+		}
+	}
 	private const int ENTITY_COUNT = 500000;
 	private const int SAMPLE_COUNT = 15;
 	private const int WARMUP_COUNT = 3;
+	private const int GC_REPEAT_COUNT = 16;
+	private const int GC_WARMUP_COUNT = 2;
+	private const int GC_RECORDER_CAPACITY = 32768;
+	private const int GC_SELF_CHECK_COUNT = 64;
 	private static double mResultSink;
 	private int[] mKeys;
 	private RoleData[] mValues;
@@ -20,6 +67,14 @@ public class RoleDataDictionaryEnumeratorBenchmark : MonoBehaviour
 		public double mMin;
 		public double mMax;
 		public double mNsPerOp;
+	}
+	private struct GCAllocResult
+	{
+		public bool mValid;
+		public bool mWrappedAround;
+		public long mAllocEvents;
+		public double mEventsPerRun;
+		public double mEventsPerOp;
 	}
 	private void Awake()
 	{
@@ -44,6 +99,7 @@ public class RoleDataDictionaryEnumeratorBenchmark : MonoBehaviour
 			runValueReadBenchmark();
 			runValueWriteBenchmark();
 			runKeyValueBenchmark();
+			runGCAllocMarkerBenchmark();
 			Debug.Log("ResultSink:" + mResultSink);
 			Debug.Log("================ ECSDictionary Enumerator Benchmark End ================");
 		}
@@ -71,16 +127,48 @@ public class RoleDataDictionaryEnumeratorBenchmark : MonoBehaviour
 	}
 	private void runKeyBenchmark()
 	{
+		Debug.Log("ECS KeyEnumerationStrategy:" + RoleDataECSDictionary<int>.KeyEnumerationStrategy);
 		BenchmarkResult arrayFor = measure(runKeyArrayFor, ENTITY_COUNT);
 		BenchmarkResult arrayForeach = measure(runKeyArrayForeach, ENTITY_COUNT);
+		BenchmarkResult readOnlySpanForeach = measure(runKeyReadOnlySpanForeach, ENTITY_COUNT);
+		BenchmarkResult readOnlySpanManual = measure(runKeyReadOnlySpanManual, ENTITY_COUNT);
+		BenchmarkResult genericForeach = measure(runKeyGenericArrayForeach, ENTITY_COUNT);
+		BenchmarkResult genericManual = measure(runKeyGenericArrayManual, ENTITY_COUNT);
+		BenchmarkResult genericMoveNextOnly = measure(runKeyGenericArrayMoveNextOnly, ENTITY_COUNT);
 		BenchmarkResult ecsFor = measure(runKeyECSFor, ENTITY_COUNT);
 		BenchmarkResult ecsForeach = measure(runKeyECSForeach, ENTITY_COUNT);
 		BenchmarkResult ecsKeys = measure(runKeyECSKeysForeach, ENTITY_COUNT);
 		BenchmarkResult ecsKeysManual = measure(runKeyECSKeysManual, ENTITY_COUNT);
+		BenchmarkResult ecsKeysMoveNextOnly = measure(runKeyECSKeysMoveNextOnly, ENTITY_COUNT);
 		BenchmarkResult dictionaryForeach = measure(runKeyDictionaryForeach, ENTITY_COUNT);
 		BenchmarkResult dictionaryKeys = measure(runKeyDictionaryKeysForeach, ENTITY_COUNT);
 		BenchmarkResult dictionaryKeysManual = measure(runKeyDictionaryKeysManual, ENTITY_COUNT);
-		Debug.Log("\n================ Enumerator:仅读取Key ================\n" + format("int[] for", arrayFor) + "\n" + format("int[] foreach", arrayForeach) + "\n" + format("ECS for + getKeyAt", ecsFor) + "\n" + format("ECS foreach dict + item.Key", ecsForeach) + "\n" + format("ECS foreach dict.Keys", ecsKeys) + "\n" + format("ECS Keys手动Enumerator", ecsKeysManual) + "\n" + format("Dictionary foreach", dictionaryForeach) + "\n" + format("Dictionary foreach Keys", dictionaryKeys) + "\n" + format("Dictionary Keys手动Enumerator", dictionaryKeysManual) + "\n--------------------------------------------------\nECS foreach / ECS Keys          : " + ratio(ecsForeach.mMedian, ecsKeys.mMedian) + "\nECS Keys / ECS for              : " + ratio(ecsKeys.mMedian, ecsFor.mMedian) + "\nDictionary foreach / ECS foreach: " + ratio(dictionaryForeach.mMedian, ecsForeach.mMedian) + "\nECS Keys foreach/manual         : " + ratio(ecsKeys.mMedian, ecsKeysManual.mMedian) + "\n==================================================");
+		Debug.Log(
+			"\n================ Enumerator:仅读取Key ================\n" +
+			format("int[] for", arrayFor) + "\n" +
+			format("int[] foreach", arrayForeach) + "\n" +
+			format("ReadOnlySpan<int> foreach", readOnlySpanForeach) + "\n" +
+			format("ReadOnlySpan<int> manual", readOnlySpanManual) + "\n" +
+			format("GenericArray<T> foreach", genericForeach) + "\n" +
+			format("GenericArray<T> manual", genericManual) + "\n" +
+			format("GenericArray<T> MoveNextOnly", genericMoveNextOnly) + "\n" +
+			format("ECS for + getKeyAt", ecsFor) + "\n" +
+			format("ECS foreach dict + item.Key", ecsForeach) + "\n" +
+			format("ECS foreach dict.Keys", ecsKeys) + "\n" +
+			format("ECS Keys手动Enumerator", ecsKeysManual) + "\n" +
+			format("ECS Keys MoveNextOnly", ecsKeysMoveNextOnly) + "\n" +
+			format("Dictionary foreach", dictionaryForeach) + "\n" +
+			format("Dictionary foreach Keys", dictionaryKeys) + "\n" +
+			format("Dictionary Keys手动Enumerator", dictionaryKeysManual) +
+			"\n--------------------------------------------------\n" +
+			"ECS Keys / ECS for              : " + ratio(ecsKeys.mMedian, ecsFor.mMedian) + "\n" +
+			"ECS Keys / ReadOnlySpan         : " + ratio(ecsKeys.mMedian, readOnlySpanForeach.mMedian) + "\n" +
+			"Generic Current / MoveNextOnly  : " + ratio(genericManual.mMedian, genericMoveNextOnly.mMedian) + "\n" +
+			"ECS Keys Current / MoveNextOnly : " + ratio(ecsKeysManual.mMedian, ecsKeysMoveNextOnly.mMedian) + "\n" +
+			"ECS foreach / ECS Keys          : " + ratio(ecsForeach.mMedian, ecsKeys.mMedian) + "\n" +
+			"Dictionary foreach / ECS foreach: " + ratio(dictionaryForeach.mMedian, ecsForeach.mMedian) + "\n" +
+			"ECS Keys foreach/manual         : " + ratio(ecsKeys.mMedian, ecsKeysManual.mMedian) + "\n" +
+			"==================================================");
 	}
 	private void runValueReadBenchmark()
 	{
@@ -113,6 +201,99 @@ public class RoleDataDictionaryEnumeratorBenchmark : MonoBehaviour
 		BenchmarkResult dictionaryManual = measure(runKeyValueDictionaryManual, ENTITY_COUNT);
 		Debug.Log("\n================ Enumerator:同时读取Key+Value ================\n" + format("ECS for getKeyAt+getValueAt", ecsFor) + "\n" + format("ECS foreach dict", ecsForeach) + "\n" + format("ECS 手动Enumerator", ecsManual) + "\n" + format("Dictionary foreach", dictionaryForeach) + "\n" + format("Dictionary 手动Enumerator", dictionaryManual) + "\n--------------------------------------------------\nECS foreach / ECS for     : " + ratio(ecsForeach.mMedian, ecsFor.mMedian) + "\nDictionary / ECS foreach  : " + ratio(dictionaryForeach.mMedian, ecsForeach.mMedian) + "\nECS foreach/manual         : " + ratio(ecsForeach.mMedian, ecsManual.mMedian) + "\nDictionary foreach/manual  : " + ratio(dictionaryForeach.mMedian, dictionaryManual.mMedian) + "\n==================================================");
 	}
+	private void runGCAllocMarkerBenchmark()
+	{
+		Debug.Log("\n================ Enumerator Profiler GC.Alloc Regression ================");
+		Debug.Log("Metric:ProfilerRecorder(ProfilerCategory.Internal,\"GC.Alloc\")");
+		Debug.Log("RepeatCount:" + GC_REPEAT_COUNT + ",CurrentThreadOnly:true,RecorderCapacity:" + GC_RECORDER_CAPACITY);
+		object[] selfCheckObjects = new object[GC_SELF_CHECK_COUNT];
+		GCAllocResult selfCheck = measureGCAlloc(() =>
+		{
+			for (int i = 0; i < GC_SELF_CHECK_COUNT; ++i)
+			{
+				selfCheckObjects[i] = new byte[128 + (i & 7)];
+			}
+		}, GC_SELF_CHECK_COUNT, 1);
+		printGCAlloc("ProfilerRecorder SelfCheck", selfCheck, false);
+		if (!selfCheck.mValid || selfCheck.mAllocEvents == 0 || selfCheck.mWrappedAround)
+		{
+			Debug.LogError("GC.Alloc ProfilerRecorder自检失败,后续0事件结果不可作为无GC结论。");
+		}
+		mResultSink += ((byte[])selfCheckObjects[GC_SELF_CHECK_COUNT - 1]).Length;
+		printGCAlloc("int[] foreach", measureGCAlloc(runKeyArrayForeach, ENTITY_COUNT, GC_REPEAT_COUNT), true);
+		printGCAlloc("ReadOnlySpan<int> foreach", measureGCAlloc(runKeyReadOnlySpanForeach, ENTITY_COUNT, GC_REPEAT_COUNT), true);
+		printGCAlloc("GenericArray<T> foreach", measureGCAlloc(runKeyGenericArrayForeach, ENTITY_COUNT, GC_REPEAT_COUNT), true);
+		printGCAlloc("ECS foreach dict + item.Key", measureGCAlloc(runKeyECSForeach, ENTITY_COUNT, GC_REPEAT_COUNT), true);
+		printGCAlloc("ECS foreach dict.Keys", measureGCAlloc(runKeyECSKeysForeach, ENTITY_COUNT, GC_REPEAT_COUNT), true);
+		printGCAlloc("Dictionary foreach Keys", measureGCAlloc(runKeyDictionaryKeysForeach, ENTITY_COUNT, GC_REPEAT_COUNT), true);
+		printGCAlloc("RoleData[] foreach", measureGCAlloc(runValueArrayForeach, ENTITY_COUNT, GC_REPEAT_COUNT), true);
+		printGCAlloc("ECS foreach dict + Value", measureGCAlloc(runValueECSForeachRead, ENTITY_COUNT, GC_REPEAT_COUNT), true);
+		printGCAlloc("ECS foreach dict.Values", measureGCAlloc(runValueECSValuesRead, ENTITY_COUNT, GC_REPEAT_COUNT), true);
+		printGCAlloc("ECS Values手动Enumerator", measureGCAlloc(runValueECSValuesManualRead, ENTITY_COUNT, GC_REPEAT_COUNT), true);
+		printGCAlloc("Dictionary foreach Values", measureGCAlloc(runValueDictionaryValuesForeach, ENTITY_COUNT, GC_REPEAT_COUNT), true);
+		printGCAlloc("ECS foreach dict Key+Value", measureGCAlloc(runKeyValueECSForeach, ENTITY_COUNT, GC_REPEAT_COUNT), true);
+		printGCAlloc("Dictionary foreach Key+Value", measureGCAlloc(runKeyValueDictionaryForeach, ENTITY_COUNT, GC_REPEAT_COUNT), true);
+		Debug.Log("================ Enumerator Profiler GC.Alloc Regression End ================");
+	}
+	private GCAllocResult measureGCAlloc(Action action, int operationCount, int repeatCount)
+	{
+		for (int i = 0; i < GC_WARMUP_COUNT; ++i)
+		{
+			action();
+		}
+		GC.Collect();
+		GC.WaitForPendingFinalizers();
+		GC.Collect();
+		using (ProfilerRecorder recorder = ProfilerRecorder.StartNew(
+			ProfilerCategory.Internal,
+			"GC.Alloc",
+			GC_RECORDER_CAPACITY,
+			ProfilerRecorderOptions.CollectOnlyOnCurrentThread))
+		{
+			bool valid = recorder.Valid;
+			for (int i = 0; i < repeatCount; ++i)
+			{
+				action();
+			}
+			recorder.Stop();
+			long events = recorder.Count;
+			long totalOperations = (long)operationCount * repeatCount;
+			return new GCAllocResult
+			{
+				mValid = valid,
+				mWrappedAround = recorder.WrappedAround,
+				mAllocEvents = events,
+				mEventsPerRun = repeatCount > 0 ? (double)events / repeatCount : 0.0,
+				mEventsPerOp = totalOperations > 0 ? (double)events / totalOperations : 0.0,
+			};
+		}
+	}
+	private void printGCAlloc(string name, GCAllocResult result, bool expectedZero)
+	{
+		string gate;
+		if (!result.mValid)
+		{
+			gate = "INVALID";
+		}
+		else if (result.mWrappedAround)
+		{
+			gate = "OVERFLOW";
+		}
+		else if (expectedZero)
+		{
+			gate = result.mAllocEvents == 0 ? "PASS" : "FAIL";
+		}
+		else
+		{
+			gate = result.mAllocEvents > 0 ? "PASS" : "FAIL";
+		}
+		Debug.Log(
+			name.PadRight(38) +
+			" AllocEvents:" + result.mAllocEvents.ToString().PadLeft(7) +
+			" | " + result.mEventsPerRun.ToString("0.000").PadLeft(9) + " event/run" +
+			" | " + result.mEventsPerOp.ToString("0.000000").PadLeft(10) + " event/op" +
+			" | Gate:" + gate);
+	}
 	private void runKeyArrayFor()
 	{
 		long sum = 0;
@@ -130,6 +311,55 @@ public class RoleDataDictionaryEnumeratorBenchmark : MonoBehaviour
 			sum += key;
 		}
 		mResultSink += sum;
+	}
+	private void runKeyReadOnlySpanForeach()
+	{
+		long sum = 0;
+		global::System.ReadOnlySpan<int> span = new global::System.ReadOnlySpan<int>(mKeys);
+		foreach (int key in span)
+		{
+			sum += key;
+		}
+		mResultSink += sum;
+	}
+	private void runKeyReadOnlySpanManual()
+	{
+		long sum = 0;
+		var enumerator = new global::System.ReadOnlySpan<int>(mKeys).GetEnumerator();
+		while (enumerator.MoveNext())
+		{
+			sum += enumerator.Current;
+		}
+		mResultSink += sum;
+	}
+	private void runKeyGenericArrayForeach()
+	{
+		long sum = 0;
+		foreach (int key in new GenericArrayEnumerable<int>(mKeys))
+		{
+			sum += key;
+		}
+		mResultSink += sum;
+	}
+	private void runKeyGenericArrayManual()
+	{
+		long sum = 0;
+		var enumerator = new GenericArrayEnumerator<int>(mKeys);
+		while (enumerator.MoveNext())
+		{
+			sum += enumerator.Current;
+		}
+		mResultSink += sum;
+	}
+	private void runKeyGenericArrayMoveNextOnly()
+	{
+		int count = 0;
+		var enumerator = new GenericArrayEnumerator<int>(mKeys);
+		while (enumerator.MoveNext())
+		{
+			++count;
+		}
+		mResultSink += count;
 	}
 	private void runKeyECSFor()
 	{
@@ -167,6 +397,16 @@ public class RoleDataDictionaryEnumeratorBenchmark : MonoBehaviour
 			sum += enumerator.Current;
 		}
 		mResultSink += sum;
+	}
+	private void runKeyECSKeysMoveNextOnly()
+	{
+		int count = 0;
+		var enumerator = mECS.Keys.GetEnumerator();
+		while (enumerator.MoveNext())
+		{
+			++count;
+		}
+		mResultSink += count;
 	}
 	private void runKeyDictionaryForeach()
 	{

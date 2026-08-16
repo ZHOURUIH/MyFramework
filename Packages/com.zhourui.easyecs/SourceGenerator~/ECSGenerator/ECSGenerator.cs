@@ -34,7 +34,7 @@ namespace ECSSourceGenerator
 			}
 			CSharpCompilationOptions compilationOptions = context.Compilation.Options as CSharpCompilationOptions;
 			bool allowUnsafe = compilationOptions != null && compilationOptions.AllowUnsafe;
-			bool hasSpan = context.Compilation.GetTypeByMetadataName("System.Span`1") != null;
+			bool hasSpan = context.Compilation.GetTypeByMetadataName("System.Span`1") != null && context.Compilation.GetTypeByMetadataName("System.ReadOnlySpan`1") != null;
 			bool forceSafeRegistry = hasPreprocessorSymbol(context.Compilation, "ECS_FORCE_SAFE_REGISTRY");
 			bool needLeakTracker = false;
 			HashSet<string> generatedTypeSet = new HashSet<string>();
@@ -75,6 +75,12 @@ namespace ECSSourceGenerator
 				{
 					continue;
 				}
+				bool hasNativeECS = ecsFields.Any(field => field.Type.IsUnmanagedType);
+				bool hasManagedECS = ecsFields.Any(field => !field.Type.IsUnmanagedType);
+				bool hasManagedAoS = aosFields.Any(field => !field.Type.IsUnmanagedType);
+				bool hasNativeAoS = aosFields.Count > 0 && !hasManagedAoS;
+				bool hasNativeStorage = hasNativeECS || hasNativeAoS;
+				bool hasManagedStorage = hasManagedECS || hasManagedAoS;
 				Backend backend;
 				string backendReason;
 				if (forceSafeRegistry)
@@ -83,16 +89,16 @@ namespace ECSSourceGenerator
 					backendReason = "ECS_FORCE_SAFE_REGISTRY";
 					needLeakTracker = true;
 				}
-				else if (allowUnsafe && structSymbol.IsUnmanagedType)
+				else if (allowUnsafe && hasNativeStorage)
 				{
 					backend = Backend.Unsafe;
-					backendReason = "AllowUnsafe=true,Unmanaged=true";
+					backendReason = hasManagedStorage ? "AllowUnsafe=true,HybridStorage=true" : "AllowUnsafe=true,Unmanaged=true";
 					needLeakTracker = true;
 				}
 				else if (hasSpan)
 				{
 					backend = Backend.SafeSpan;
-					backendReason = allowUnsafe ? "ContainsManagedField,Span=true" : "AllowUnsafe=false,Span=true";
+					backendReason = allowUnsafe ? "NoNativeStorage,Span=true" : "AllowUnsafe=false,Span=true";
 				}
 				else
 				{
@@ -100,7 +106,7 @@ namespace ECSSourceGenerator
 					backendReason = "SpanUnavailable";
 					needLeakTracker = true;
 				}
-				string source = generateCode(structSymbol, ecsFields, aosFields, backend, backendReason);
+				string source = generateCode(structSymbol, ecsFields, aosFields, backend, backendReason, hasSpan);
 				context.AddSource(getHintName(structSymbol) + ".ECS.g.cs", SourceText.From(source, Encoding.UTF8));
 			}
 			if (needLeakTracker)
@@ -191,7 +197,7 @@ namespace ECSSourceGenerator
 			}
 			return true;
 		}
-		private static string generateCode(INamedTypeSymbol structSymbol, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields, Backend backend, string backendReason)
+		private static string generateCode(INamedTypeSymbol structSymbol, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields, Backend backend, string backendReason, bool hasSpan)
 		{
 			string typeName = structSymbol.Name;
 			string fullTypeName = getTypeName(structSymbol);
@@ -212,6 +218,7 @@ namespace ECSSourceGenerator
 			{
 				case Backend.Unsafe:
 					generateUnsafeStorage(builder, typeName, ecsFields, aosFields);
+					generateUnsafeManagedStorage(builder, typeName, ecsFields, aosFields);
 					generateUnsafeRef(builder, accessibility, typeName, ecsFields, aosFields);
 					generateUnsafeList(builder, accessibility, typeName, fullTypeName, ecsFields, aosFields, backendReason);
 					break;
@@ -227,14 +234,14 @@ namespace ECSSourceGenerator
 					generateSafeRegistryList(builder, accessibility, typeName, fullTypeName, ecsFields, aosFields, backendReason);
 					break;
 			}
-			generateDictionary(builder, accessibility, typeName, fullTypeName, ecsFields, backend);
+			generateDictionary(builder, accessibility, typeName, fullTypeName, ecsFields, aosFields, backend, hasSpan);
 			if (!string.IsNullOrEmpty(namespaceName))
 			{
 				builder.AppendLine("}");
 			}
 			return builder.ToString();
 		}
-		private static void generateDictionary(StringBuilder builder, string accessibility, string typeName, string fullTypeName, List<IFieldSymbol> ecsFields, Backend backend)
+		private static void generateDictionary(StringBuilder builder, string accessibility, string typeName, string fullTypeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields, Backend backend, bool hasSpan)
 		{
 			builder.AppendLine(accessibility + " sealed class " + typeName + "ECSDictionary<TKey> : global::System.IDisposable");
 			builder.AppendLine("{");
@@ -242,13 +249,18 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\tprivate readonly " + typeName + "ECSList mValues;");
 			builder.AppendLine("\tprivate TKey[] mKeys;");
 			builder.AppendLine("\tprivate bool mDisposed;");
+			builder.AppendLine("\tpublic const string KeyEnumerationStrategy = \"" + (hasSpan ? "ReadOnlySpan<TKey>.Enumerator" : "CustomKeyEnumerator") + "\";");
 			builder.AppendLine("#if UNITY_EDITOR");
 			builder.AppendLine("\tprivate int mVersion;");
 			builder.AppendLine("#endif");
-			generateDictionaryEntry(builder, typeName, backend);
-			generateDictionaryEnumerator(builder, typeName, backend);
-			generateDictionaryKeyEnumerable(builder, typeName);
-			generateDictionaryValueEnumerable(builder, typeName);
+			generateDictionaryEntry(builder, typeName, backend, backend == Backend.Unsafe && (ecsFields.Any(field => !field.Type.IsUnmanagedType) || aosFields.Any(field => !field.Type.IsUnmanagedType)));
+			generateDictionaryEnumerator(builder, typeName, backend, backend == Backend.Unsafe && (ecsFields.Any(field => !field.Type.IsUnmanagedType) || aosFields.Any(field => !field.Type.IsUnmanagedType)));
+			generateDictionaryKeyEnumerable(builder, typeName, hasSpan);
+			generateDictionaryValueEnumerable(
+				builder,
+				typeName,
+				backend,
+				backend == Backend.Unsafe && (ecsFields.Any(field => !field.Type.IsUnmanagedType) || aosFields.Any(field => !field.Type.IsUnmanagedType)));
 			builder.AppendLine("\tpublic int Count");
 			builder.AppendLine("\t{");
 			appendAggressiveInlining(builder, 2);
@@ -556,14 +568,14 @@ namespace ECSSourceGenerator
 			builder.AppendLine("#endif");
 			builder.AppendLine("}");
 		}
-		private static void generateDictionaryEntry(StringBuilder builder, string typeName, Backend backend)
+		private static void generateDictionaryEntry(StringBuilder builder, string typeName, Backend backend, bool unsafeHasManagedStorage)
 		{
 			builder.AppendLine("#if UNITY_EDITOR");
 			generateDictionaryEntryEditor(builder, typeName);
 			builder.AppendLine("#else");
 			if (backend == Backend.Unsafe)
 			{
-				generateUnsafeDictionaryEntryPlayer(builder, typeName);
+				generateUnsafeDictionaryEntryPlayer(builder, typeName, unsafeHasManagedStorage);
 			}
 			else if (backend == Backend.SafeSpan)
 			{
@@ -611,18 +623,18 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t\t}");
 			builder.AppendLine("\t}");
 		}
-		private static void generateUnsafeDictionaryEntryPlayer(StringBuilder builder, string typeName)
+		private static void generateUnsafeDictionaryEntryPlayer(StringBuilder builder, string typeName, bool hasManagedStorage)
 		{
 			builder.AppendLine("\tpublic unsafe ref struct Entry");
 			builder.AppendLine("\t{");
-			builder.AppendLine("\t\tprivate readonly TKey mKey;");
-			builder.AppendLine("\t\tprivate readonly " + typeName + "Storage* mStorage;");
+			builder.AppendLine("\t\tprivate readonly TKey[] mKeys;");
+			builder.AppendLine("\t\tprivate readonly " + typeName + "Ref mValue;");
 			builder.AppendLine("\t\tprivate readonly int mIndex;");
 			appendAggressiveInlining(builder, 2);
-			builder.AppendLine("\t\tinternal Entry(TKey key, " + typeName + "Storage* storage, int index)");
+			builder.AppendLine("\t\tpublic Entry(TKey[] keys, " + typeName + "Ref value, int index)");
 			builder.AppendLine("\t\t{");
-			builder.AppendLine("\t\t\tmKey = key;");
-			builder.AppendLine("\t\t\tmStorage = storage;");
+			builder.AppendLine("\t\t\tmKeys = keys;");
+			builder.AppendLine("\t\t\tmValue = value;");
 			builder.AppendLine("\t\t\tmIndex = index;");
 			builder.AppendLine("\t\t}");
 			builder.AppendLine("\t\tpublic TKey Key");
@@ -630,7 +642,7 @@ namespace ECSSourceGenerator
 			appendAggressiveInlining(builder, 3);
 			builder.AppendLine("\t\t\tget");
 			builder.AppendLine("\t\t\t{");
-			builder.AppendLine("\t\t\t\treturn mKey;");
+			builder.AppendLine("\t\t\t\treturn mKeys[mIndex];");
 			builder.AppendLine("\t\t\t}");
 			builder.AppendLine("\t\t}");
 			builder.AppendLine("\t\tpublic " + typeName + "Ref Value");
@@ -638,7 +650,7 @@ namespace ECSSourceGenerator
 			appendAggressiveInlining(builder, 3);
 			builder.AppendLine("\t\t\tget");
 			builder.AppendLine("\t\t\t{");
-			builder.AppendLine("\t\t\t\treturn new " + typeName + "Ref(mStorage, mIndex);");
+			builder.AppendLine("\t\t\t\treturn mValue;");
 			builder.AppendLine("\t\t\t}");
 			builder.AppendLine("\t\t}");
 			builder.AppendLine("\t}");
@@ -647,14 +659,14 @@ namespace ECSSourceGenerator
 		{
 			builder.AppendLine("\tpublic ref struct Entry");
 			builder.AppendLine("\t{");
-			builder.AppendLine("\t\tprivate readonly TKey mKey;");
-			builder.AppendLine("\t\tprivate readonly " + typeName + "Storage[] mStorage;");
+			builder.AppendLine("\t\tprivate readonly TKey[] mKeys;");
+			builder.AppendLine("\t\tprivate readonly " + typeName + "Ref mValue;");
 			builder.AppendLine("\t\tprivate readonly int mIndex;");
 			appendAggressiveInlining(builder, 2);
-			builder.AppendLine("\t\tinternal Entry(TKey key, " + typeName + "Storage[] storage, int index)");
+			builder.AppendLine("\t\tpublic Entry(TKey[] keys, " + typeName + "Ref value, int index)");
 			builder.AppendLine("\t\t{");
-			builder.AppendLine("\t\t\tmKey = key;");
-			builder.AppendLine("\t\t\tmStorage = storage;");
+			builder.AppendLine("\t\t\tmKeys = keys;");
+			builder.AppendLine("\t\t\tmValue = value;");
 			builder.AppendLine("\t\t\tmIndex = index;");
 			builder.AppendLine("\t\t}");
 			builder.AppendLine("\t\tpublic TKey Key");
@@ -662,7 +674,7 @@ namespace ECSSourceGenerator
 			appendAggressiveInlining(builder, 3);
 			builder.AppendLine("\t\t\tget");
 			builder.AppendLine("\t\t\t{");
-			builder.AppendLine("\t\t\t\treturn mKey;");
+			builder.AppendLine("\t\t\t\treturn mKeys[mIndex];");
 			builder.AppendLine("\t\t\t}");
 			builder.AppendLine("\t\t}");
 			builder.AppendLine("\t\tpublic " + typeName + "Ref Value");
@@ -670,7 +682,7 @@ namespace ECSSourceGenerator
 			appendAggressiveInlining(builder, 3);
 			builder.AppendLine("\t\t\tget");
 			builder.AppendLine("\t\t\t{");
-			builder.AppendLine("\t\t\t\treturn new " + typeName + "Ref(mStorage, mIndex);");
+			builder.AppendLine("\t\t\t\treturn mValue;");
 			builder.AppendLine("\t\t\t}");
 			builder.AppendLine("\t\t}");
 			builder.AppendLine("\t}");
@@ -679,14 +691,14 @@ namespace ECSSourceGenerator
 		{
 			builder.AppendLine("\tpublic readonly struct Entry");
 			builder.AppendLine("\t{");
-			builder.AppendLine("\t\tprivate readonly TKey mKey;");
-			builder.AppendLine("\t\tprivate readonly int mStorageID;");
+			builder.AppendLine("\t\tprivate readonly TKey[] mKeys;");
+			builder.AppendLine("\t\tprivate readonly " + typeName + "Ref mValue;");
 			builder.AppendLine("\t\tprivate readonly int mIndex;");
 			appendAggressiveInlining(builder, 2);
-			builder.AppendLine("\t\tinternal Entry(TKey key, int storageID, int index)");
+			builder.AppendLine("\t\tpublic Entry(TKey[] keys, " + typeName + "Ref value, int index)");
 			builder.AppendLine("\t\t{");
-			builder.AppendLine("\t\t\tmKey = key;");
-			builder.AppendLine("\t\t\tmStorageID = storageID;");
+			builder.AppendLine("\t\t\tmKeys = keys;");
+			builder.AppendLine("\t\t\tmValue = value;");
 			builder.AppendLine("\t\t\tmIndex = index;");
 			builder.AppendLine("\t\t}");
 			builder.AppendLine("\t\tpublic TKey Key");
@@ -694,7 +706,7 @@ namespace ECSSourceGenerator
 			appendAggressiveInlining(builder, 3);
 			builder.AppendLine("\t\t\tget");
 			builder.AppendLine("\t\t\t{");
-			builder.AppendLine("\t\t\t\treturn mKey;");
+			builder.AppendLine("\t\t\t\treturn mKeys[mIndex];");
 			builder.AppendLine("\t\t\t}");
 			builder.AppendLine("\t\t}");
 			builder.AppendLine("\t\tpublic " + typeName + "Ref Value");
@@ -702,19 +714,19 @@ namespace ECSSourceGenerator
 			appendAggressiveInlining(builder, 3);
 			builder.AppendLine("\t\t\tget");
 			builder.AppendLine("\t\t\t{");
-			builder.AppendLine("\t\t\t\treturn new " + typeName + "Ref(mStorageID, mIndex);");
+			builder.AppendLine("\t\t\t\treturn mValue;");
 			builder.AppendLine("\t\t\t}");
 			builder.AppendLine("\t\t}");
 			builder.AppendLine("\t}");
 		}
-		private static void generateDictionaryEnumerator(StringBuilder builder, string typeName, Backend backend)
+		private static void generateDictionaryEnumerator(StringBuilder builder, string typeName, Backend backend, bool unsafeHasManagedStorage)
 		{
 			builder.AppendLine("#if UNITY_EDITOR");
 			generateDictionaryEnumeratorEditor(builder, typeName);
 			builder.AppendLine("#else");
 			if (backend == Backend.Unsafe)
 			{
-				generateUnsafeDictionaryEnumeratorPlayer(builder, typeName);
+				generateUnsafeDictionaryEnumeratorPlayer(builder, typeName, unsafeHasManagedStorage);
 			}
 			else if (backend == Backend.SafeSpan)
 			{
@@ -774,19 +786,27 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t\t}");
 			builder.AppendLine("\t}");
 		}
-		private static void generateUnsafeDictionaryEnumeratorPlayer(StringBuilder builder, string typeName)
+		private static void generateUnsafeDictionaryEnumeratorPlayer(StringBuilder builder, string typeName, bool hasManagedStorage)
 		{
 			builder.AppendLine("\tpublic unsafe ref struct Enumerator");
 			builder.AppendLine("\t{");
 			builder.AppendLine("\t\tprivate readonly TKey[] mKeys;");
 			builder.AppendLine("\t\tprivate readonly " + typeName + "Storage* mStorage;");
+			if (hasManagedStorage)
+			{
+				builder.AppendLine("\t\tprivate readonly " + typeName + "ManagedStorage mManagedStorage;");
+			}
 			builder.AppendLine("\t\tprivate readonly int mCount;");
 			builder.AppendLine("\t\tprivate int mIndex;");
 			appendAggressiveInlining(builder, 2);
-			builder.AppendLine("\t\tinternal Enumerator(" + typeName + "ECSDictionary<TKey> owner)");
+			builder.AppendLine("\t\tpublic Enumerator(" + typeName + "ECSDictionary<TKey> owner)");
 			builder.AppendLine("\t\t{");
 			builder.AppendLine("\t\t\tmKeys = owner.mKeys;");
 			builder.AppendLine("\t\t\tmStorage = owner.mValues.getDictionaryStorage();");
+			if (hasManagedStorage)
+			{
+				builder.AppendLine("\t\t\tmManagedStorage = owner.mValues.getDictionaryManagedStorage();");
+			}
 			builder.AppendLine("\t\t\tmCount = owner.mValues.Count;");
 			builder.AppendLine("\t\t\tmIndex = -1;");
 			builder.AppendLine("\t\t}");
@@ -795,7 +815,7 @@ namespace ECSSourceGenerator
 			appendAggressiveInlining(builder, 3);
 			builder.AppendLine("\t\t\tget");
 			builder.AppendLine("\t\t\t{");
-			builder.AppendLine("\t\t\t\treturn new Entry(mKeys[mIndex], mStorage, mIndex);");
+			builder.AppendLine("\t\t\t\treturn new Entry(mKeys, new " + typeName + "Ref(mStorage" + (hasManagedStorage ? ", mManagedStorage" : string.Empty) + ", mIndex), mIndex);");
 			builder.AppendLine("\t\t\t}");
 			builder.AppendLine("\t\t}");
 			appendAggressiveInlining(builder, 2);
@@ -821,7 +841,7 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t\tprivate readonly int mCount;");
 			builder.AppendLine("\t\tprivate int mIndex;");
 			appendAggressiveInlining(builder, 2);
-			builder.AppendLine("\t\tinternal Enumerator(" + typeName + "ECSDictionary<TKey> owner)");
+			builder.AppendLine("\t\tpublic Enumerator(" + typeName + "ECSDictionary<TKey> owner)");
 			builder.AppendLine("\t\t{");
 			builder.AppendLine("\t\t\tmKeys = owner.mKeys;");
 			builder.AppendLine("\t\t\tmStorage = owner.mValues.getDictionaryStorage();");
@@ -833,7 +853,7 @@ namespace ECSSourceGenerator
 			appendAggressiveInlining(builder, 3);
 			builder.AppendLine("\t\t\tget");
 			builder.AppendLine("\t\t\t{");
-			builder.AppendLine("\t\t\t\treturn new Entry(mKeys[mIndex], mStorage, mIndex);");
+			builder.AppendLine("\t\t\t\treturn new Entry(mKeys, new " + typeName + "Ref(mStorage, mIndex), mIndex);");
 			builder.AppendLine("\t\t\t}");
 			builder.AppendLine("\t\t}");
 			appendAggressiveInlining(builder, 2);
@@ -859,7 +879,7 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t\tprivate readonly int mCount;");
 			builder.AppendLine("\t\tprivate int mIndex;");
 			appendAggressiveInlining(builder, 2);
-			builder.AppendLine("\t\tinternal Enumerator(" + typeName + "ECSDictionary<TKey> owner)");
+			builder.AppendLine("\t\tpublic Enumerator(" + typeName + "ECSDictionary<TKey> owner)");
 			builder.AppendLine("\t\t{");
 			builder.AppendLine("\t\t\tmKeys = owner.mKeys;");
 			builder.AppendLine("\t\t\tmStorageID = owner.mValues.getDictionaryStorageID();");
@@ -871,7 +891,7 @@ namespace ECSSourceGenerator
 			appendAggressiveInlining(builder, 3);
 			builder.AppendLine("\t\t\tget");
 			builder.AppendLine("\t\t\t{");
-			builder.AppendLine("\t\t\t\treturn new Entry(mKeys[mIndex], mStorageID, mIndex);");
+			builder.AppendLine("\t\t\t\treturn new Entry(mKeys, new " + typeName + "Ref(mStorageID, mIndex), mIndex);");
 			builder.AppendLine("\t\t\t}");
 			builder.AppendLine("\t\t}");
 			appendAggressiveInlining(builder, 2);
@@ -888,13 +908,13 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t\t}");
 			builder.AppendLine("\t}");
 		}
-		private static void generateDictionaryKeyEnumerable(StringBuilder builder, string typeName)
+		private static void generateDictionaryKeyEnumerable(StringBuilder builder, string typeName, bool hasSpan)
 		{
 			builder.AppendLine("\tpublic readonly struct KeyEnumerable");
 			builder.AppendLine("\t{");
 			builder.AppendLine("\t\tprivate readonly " + typeName + "ECSDictionary<TKey> mOwner;");
 			appendAggressiveInlining(builder, 2);
-			builder.AppendLine("\t\tinternal KeyEnumerable(" + typeName + "ECSDictionary<TKey> owner)");
+			builder.AppendLine("\t\tpublic KeyEnumerable(" + typeName + "ECSDictionary<TKey> owner)");
 			builder.AppendLine("\t\t{");
 			builder.AppendLine("\t\t\tmOwner = owner;");
 			builder.AppendLine("\t\t}");
@@ -909,50 +929,63 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t\t\t\treturn mOwner.mValues.Count;");
 			builder.AppendLine("\t\t\t}");
 			builder.AppendLine("\t\t}");
-			appendAggressiveInlining(builder, 2);
-			builder.AppendLine("\t\tpublic KeyEnumerator GetEnumerator()");
-			builder.AppendLine("\t\t{");
-			builder.AppendLine("#if UNITY_EDITOR");
-			builder.AppendLine("\t\t\tmOwner.validateAlive();");
-			builder.AppendLine("#endif");
-			builder.AppendLine("\t\t\treturn new KeyEnumerator(mOwner);");
-			builder.AppendLine("\t\t}");
+			if (hasSpan)
+			{
+				builder.AppendLine("#if UNITY_EDITOR");
+				appendAggressiveInlining(builder, 2);
+				builder.AppendLine("\t\tpublic KeyEnumerator GetEnumerator()");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tmOwner.validateAlive();");
+				builder.AppendLine("\t\t\treturn new KeyEnumerator(mOwner);");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("#else");
+				appendAggressiveInlining(builder, 2);
+				builder.AppendLine("\t\tpublic global::System.ReadOnlySpan<TKey>.Enumerator GetEnumerator()");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\treturn new global::System.ReadOnlySpan<TKey>(mOwner.mKeys, 0, mOwner.mValues.Count).GetEnumerator();");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("#endif");
+			}
+			else
+			{
+				appendAggressiveInlining(builder, 2);
+				builder.AppendLine("\t\tpublic KeyEnumerator GetEnumerator()");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("#if UNITY_EDITOR");
+				builder.AppendLine("\t\t\tmOwner.validateAlive();");
+				builder.AppendLine("#endif");
+				builder.AppendLine("\t\t\treturn new KeyEnumerator(mOwner);");
+				builder.AppendLine("\t\t}");
+			}
 			builder.AppendLine("\t}");
+			builder.AppendLine("#if UNITY_EDITOR");
 			builder.AppendLine("\tpublic struct KeyEnumerator");
 			builder.AppendLine("\t{");
 			builder.AppendLine("\t\tprivate readonly " + typeName + "ECSDictionary<TKey> mOwner;");
 			builder.AppendLine("\t\tprivate readonly int mCount;");
 			builder.AppendLine("\t\tprivate int mIndex;");
-			builder.AppendLine("#if UNITY_EDITOR");
 			builder.AppendLine("\t\tprivate readonly int mVersion;");
-			builder.AppendLine("#endif");
 			appendAggressiveInlining(builder, 2);
-			builder.AppendLine("\t\tinternal KeyEnumerator(" + typeName + "ECSDictionary<TKey> owner)");
+			builder.AppendLine("\t\tpublic KeyEnumerator(" + typeName + "ECSDictionary<TKey> owner)");
 			builder.AppendLine("\t\t{");
 			builder.AppendLine("\t\t\tmOwner = owner;");
 			builder.AppendLine("\t\t\tmCount = owner.mValues.Count;");
 			builder.AppendLine("\t\t\tmIndex = -1;");
-			builder.AppendLine("#if UNITY_EDITOR");
 			builder.AppendLine("\t\t\tmVersion = owner.mVersion;");
-			builder.AppendLine("#endif");
 			builder.AppendLine("\t\t}");
 			builder.AppendLine("\t\tpublic TKey Current");
 			builder.AppendLine("\t\t{");
 			appendAggressiveInlining(builder, 3);
 			builder.AppendLine("\t\t\tget");
 			builder.AppendLine("\t\t\t{");
-			builder.AppendLine("#if UNITY_EDITOR");
 			builder.AppendLine("\t\t\t\tmOwner.validateEnumeratorCurrent(mIndex, mCount, mVersion);");
-			builder.AppendLine("#endif");
 			builder.AppendLine("\t\t\t\treturn mOwner.mKeys[mIndex];");
 			builder.AppendLine("\t\t\t}");
 			builder.AppendLine("\t\t}");
 			appendAggressiveInlining(builder, 2);
 			builder.AppendLine("\t\tpublic bool MoveNext()");
 			builder.AppendLine("\t\t{");
-			builder.AppendLine("#if UNITY_EDITOR");
 			builder.AppendLine("\t\t\tmOwner.validateEnumeratorVersion(mVersion);");
-			builder.AppendLine("#endif");
 			builder.AppendLine("\t\t\tint nextIndex = mIndex + 1;");
 			builder.AppendLine("\t\t\tif ((uint)nextIndex < (uint)mCount)");
 			builder.AppendLine("\t\t\t{");
@@ -963,14 +996,52 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t\t\treturn false;");
 			builder.AppendLine("\t\t}");
 			builder.AppendLine("\t}");
+			if (!hasSpan)
+			{
+				builder.AppendLine("#else");
+				builder.AppendLine("\tpublic struct KeyEnumerator");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\tprivate readonly TKey[] mKeys;");
+				builder.AppendLine("\t\tprivate readonly int mCount;");
+				builder.AppendLine("\t\tprivate int mIndex;");
+				appendAggressiveInlining(builder, 2);
+				builder.AppendLine("\t\tpublic KeyEnumerator(" + typeName + "ECSDictionary<TKey> owner)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tmKeys = owner.mKeys;");
+				builder.AppendLine("\t\t\tmCount = owner.mValues.Count;");
+				builder.AppendLine("\t\t\tmIndex = -1;");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\tpublic TKey Current");
+				builder.AppendLine("\t\t{");
+				appendAggressiveInlining(builder, 3);
+				builder.AppendLine("\t\t\tget");
+				builder.AppendLine("\t\t\t{");
+				builder.AppendLine("\t\t\t\treturn mKeys[mIndex];");
+				builder.AppendLine("\t\t\t}");
+				builder.AppendLine("\t\t}");
+				appendAggressiveInlining(builder, 2);
+				builder.AppendLine("\t\tpublic bool MoveNext()");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tint nextIndex = mIndex + 1;");
+				builder.AppendLine("\t\t\tif ((uint)nextIndex < (uint)mCount)");
+				builder.AppendLine("\t\t\t{");
+				builder.AppendLine("\t\t\t\tmIndex = nextIndex;");
+				builder.AppendLine("\t\t\t\treturn true;");
+				builder.AppendLine("\t\t\t}");
+				builder.AppendLine("\t\t\tmIndex = mCount;");
+				builder.AppendLine("\t\t\treturn false;");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t}");
+			}
+			builder.AppendLine("#endif");
 		}
-		private static void generateDictionaryValueEnumerable(StringBuilder builder, string typeName)
+		private static void generateDictionaryValueEnumerable(StringBuilder builder, string typeName, Backend backend, bool unsafeHasManagedStorage)
 		{
 			builder.AppendLine("\tpublic readonly struct ValueEnumerable");
 			builder.AppendLine("\t{");
 			builder.AppendLine("\t\tprivate readonly " + typeName + "ECSDictionary<TKey> mOwner;");
 			appendAggressiveInlining(builder, 2);
-			builder.AppendLine("\t\tinternal ValueEnumerable(" + typeName + "ECSDictionary<TKey> owner)");
+			builder.AppendLine("\t\tpublic ValueEnumerable(" + typeName + "ECSDictionary<TKey> owner)");
 			builder.AppendLine("\t\t{");
 			builder.AppendLine("\t\t\tmOwner = owner;");
 			builder.AppendLine("\t\t}");
@@ -994,41 +1065,34 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t\t\treturn new ValueEnumerator(mOwner);");
 			builder.AppendLine("\t\t}");
 			builder.AppendLine("\t}");
+			builder.AppendLine("#if UNITY_EDITOR");
 			builder.AppendLine("\tpublic struct ValueEnumerator");
 			builder.AppendLine("\t{");
 			builder.AppendLine("\t\tprivate readonly " + typeName + "ECSDictionary<TKey> mOwner;");
 			builder.AppendLine("\t\tprivate readonly int mCount;");
 			builder.AppendLine("\t\tprivate int mIndex;");
-			builder.AppendLine("#if UNITY_EDITOR");
 			builder.AppendLine("\t\tprivate readonly int mVersion;");
-			builder.AppendLine("#endif");
 			appendAggressiveInlining(builder, 2);
-			builder.AppendLine("\t\tinternal ValueEnumerator(" + typeName + "ECSDictionary<TKey> owner)");
+			builder.AppendLine("\t\tpublic ValueEnumerator(" + typeName + "ECSDictionary<TKey> owner)");
 			builder.AppendLine("\t\t{");
 			builder.AppendLine("\t\t\tmOwner = owner;");
 			builder.AppendLine("\t\t\tmCount = owner.mValues.Count;");
 			builder.AppendLine("\t\t\tmIndex = -1;");
-			builder.AppendLine("#if UNITY_EDITOR");
 			builder.AppendLine("\t\t\tmVersion = owner.mVersion;");
-			builder.AppendLine("#endif");
 			builder.AppendLine("\t\t}");
 			builder.AppendLine("\t\tpublic " + typeName + "Ref Current");
 			builder.AppendLine("\t\t{");
 			appendAggressiveInlining(builder, 3);
 			builder.AppendLine("\t\t\tget");
 			builder.AppendLine("\t\t\t{");
-			builder.AppendLine("#if UNITY_EDITOR");
 			builder.AppendLine("\t\t\t\tmOwner.validateEnumeratorCurrent(mIndex, mCount, mVersion);");
-			builder.AppendLine("#endif");
 			builder.AppendLine("\t\t\t\treturn mOwner.mValues[mIndex];");
 			builder.AppendLine("\t\t\t}");
 			builder.AppendLine("\t\t}");
 			appendAggressiveInlining(builder, 2);
 			builder.AppendLine("\t\tpublic bool MoveNext()");
 			builder.AppendLine("\t\t{");
-			builder.AppendLine("#if UNITY_EDITOR");
 			builder.AppendLine("\t\t\tmOwner.validateEnumeratorVersion(mVersion);");
-			builder.AppendLine("#endif");
 			builder.AppendLine("\t\t\tint nextIndex = mIndex + 1;");
 			builder.AppendLine("\t\t\tif ((uint)nextIndex < (uint)mCount)");
 			builder.AppendLine("\t\t\t{");
@@ -1039,6 +1103,106 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t\t\treturn false;");
 			builder.AppendLine("\t\t}");
 			builder.AppendLine("\t}");
+			builder.AppendLine("#else");
+			if (backend == Backend.Unsafe)
+			{
+				builder.AppendLine("\tpublic unsafe struct ValueEnumerator");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\tprivate readonly " + typeName + "Storage* mStorage;");
+				if (unsafeHasManagedStorage)
+				{
+					builder.AppendLine("\t\tprivate readonly " + typeName + "ManagedStorage mManagedStorage;");
+				}
+				builder.AppendLine("\t\tprivate readonly int mCount;");
+				builder.AppendLine("\t\tprivate int mIndex;");
+				appendAggressiveInlining(builder, 2);
+				builder.AppendLine("\t\tpublic ValueEnumerator(" + typeName + "ECSDictionary<TKey> owner)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tmStorage = owner.mValues.getDictionaryStorage();");
+				if (unsafeHasManagedStorage)
+				{
+					builder.AppendLine("\t\t\tmManagedStorage = owner.mValues.getDictionaryManagedStorage();");
+				}
+				builder.AppendLine("\t\t\tmCount = owner.mValues.Count;");
+				builder.AppendLine("\t\t\tmIndex = -1;");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\tpublic " + typeName + "Ref Current");
+				builder.AppendLine("\t\t{");
+				appendAggressiveInlining(builder, 3);
+				builder.AppendLine("\t\t\tget");
+				builder.AppendLine("\t\t\t{");
+				builder.AppendLine("\t\t\t\treturn new " + typeName + "Ref(mStorage" + (unsafeHasManagedStorage ? ", mManagedStorage" : string.Empty) + ", mIndex);");
+				builder.AppendLine("\t\t\t}");
+				builder.AppendLine("\t\t}");
+				appendDictionarySimpleMoveNext(builder);
+				builder.AppendLine("\t}");
+			}
+			else if (backend == Backend.SafeSpan)
+			{
+				builder.AppendLine("\tpublic ref struct ValueEnumerator");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\tprivate readonly " + typeName + "Storage[] mStorage;");
+				builder.AppendLine("\t\tprivate readonly int mCount;");
+				builder.AppendLine("\t\tprivate int mIndex;");
+				appendAggressiveInlining(builder, 2);
+				builder.AppendLine("\t\tpublic ValueEnumerator(" + typeName + "ECSDictionary<TKey> owner)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tmStorage = owner.mValues.getDictionaryStorage();");
+				builder.AppendLine("\t\t\tmCount = owner.mValues.Count;");
+				builder.AppendLine("\t\t\tmIndex = -1;");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\tpublic " + typeName + "Ref Current");
+				builder.AppendLine("\t\t{");
+				appendAggressiveInlining(builder, 3);
+				builder.AppendLine("\t\t\tget");
+				builder.AppendLine("\t\t\t{");
+				builder.AppendLine("\t\t\t\treturn new " + typeName + "Ref(mStorage, mIndex);");
+				builder.AppendLine("\t\t\t}");
+				builder.AppendLine("\t\t}");
+				appendDictionarySimpleMoveNext(builder);
+				builder.AppendLine("\t}");
+			}
+			else
+			{
+				builder.AppendLine("\tpublic struct ValueEnumerator");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\tprivate readonly int mStorageID;");
+				builder.AppendLine("\t\tprivate readonly int mCount;");
+				builder.AppendLine("\t\tprivate int mIndex;");
+				appendAggressiveInlining(builder, 2);
+				builder.AppendLine("\t\tpublic ValueEnumerator(" + typeName + "ECSDictionary<TKey> owner)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tmStorageID = owner.mValues.getDictionaryStorageID();");
+				builder.AppendLine("\t\t\tmCount = owner.mValues.Count;");
+				builder.AppendLine("\t\t\tmIndex = -1;");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\tpublic " + typeName + "Ref Current");
+				builder.AppendLine("\t\t{");
+				appendAggressiveInlining(builder, 3);
+				builder.AppendLine("\t\t\tget");
+				builder.AppendLine("\t\t\t{");
+				builder.AppendLine("\t\t\t\treturn new " + typeName + "Ref(mStorageID, mIndex);");
+				builder.AppendLine("\t\t\t}");
+				builder.AppendLine("\t\t}");
+				appendDictionarySimpleMoveNext(builder);
+				builder.AppendLine("\t}");
+			}
+			builder.AppendLine("#endif");
+		}
+		private static void appendDictionarySimpleMoveNext(StringBuilder builder)
+		{
+			appendAggressiveInlining(builder, 2);
+			builder.AppendLine("\t\tpublic bool MoveNext()");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tint nextIndex = mIndex + 1;");
+			builder.AppendLine("\t\t\tif ((uint)nextIndex < (uint)mCount)");
+			builder.AppendLine("\t\t\t{");
+			builder.AppendLine("\t\t\t\tmIndex = nextIndex;");
+			builder.AppendLine("\t\t\t\treturn true;");
+			builder.AppendLine("\t\t\t}");
+			builder.AppendLine("\t\t\tmIndex = mCount;");
+			builder.AppendLine("\t\t\treturn false;");
+			builder.AppendLine("\t\t}");
 		}
 		private static void generateAoSBlock(StringBuilder builder, string typeName, List<IFieldSymbol> fields)
 		{
@@ -1052,16 +1216,57 @@ namespace ECSSourceGenerator
 		}
 		private static void generateUnsafeStorage(StringBuilder builder, string typeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields)
 		{
+			bool hasManagedAoS = aosFields.Any(field => !field.Type.IsUnmanagedType);
 			builder.AppendLine("internal unsafe struct " + typeName + "Storage");
 			builder.AppendLine("{");
 			foreach (IFieldSymbol field in ecsFields)
 			{
-				builder.AppendLine("\tpublic " + getTypeName(field.Type) + "* " + fieldAccess(field) + ";");
+				if (field.Type.IsUnmanagedType)
+				{
+					builder.AppendLine("\tpublic " + getTypeName(field.Type) + "* " + fieldAccess(field) + ";");
+				}
 			}
-			if (aosFields.Count > 0)
+			if (aosFields.Count > 0 && !hasManagedAoS)
 			{
 				builder.AppendLine("\tpublic " + typeName + "AoSBlock* mAoS;");
 			}
+			builder.AppendLine("}");
+		}
+		private static void generateUnsafeManagedStorage(StringBuilder builder, string typeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields)
+		{
+			bool hasManagedECS = ecsFields.Any(field => !field.Type.IsUnmanagedType);
+			bool hasManagedAoS = aosFields.Any(field => !field.Type.IsUnmanagedType);
+			if (!hasManagedECS && !hasManagedAoS)
+			{
+				return;
+			}
+			builder.AppendLine("internal sealed class " + typeName + "ManagedStorage");
+			builder.AppendLine("{");
+			foreach (IFieldSymbol field in ecsFields)
+			{
+				if (!field.Type.IsUnmanagedType)
+				{
+					builder.AppendLine("\tpublic " + getTypeName(field.Type) + "[] " + fieldAccess(field) + ";");
+				}
+			}
+			if (hasManagedAoS)
+			{
+				builder.AppendLine("\tpublic " + typeName + "AoSBlock[] mAoS;");
+			}
+			builder.AppendLine("\tpublic " + typeName + "ManagedStorage(int capacity)");
+			builder.AppendLine("\t{");
+			foreach (IFieldSymbol field in ecsFields)
+			{
+				if (!field.Type.IsUnmanagedType)
+				{
+					builder.AppendLine("\t\t" + fieldAccess(field) + " = new " + getTypeName(field.Type) + "[capacity];");
+				}
+			}
+			if (hasManagedAoS)
+			{
+				builder.AppendLine("\t\tmAoS = new " + typeName + "AoSBlock[capacity];");
+			}
+			builder.AppendLine("\t}");
 			builder.AppendLine("}");
 		}
 		private static void generateSafeSpanStorage(StringBuilder builder, string typeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields)
@@ -1105,9 +1310,15 @@ namespace ECSSourceGenerator
 		}
 		private static void generateUnsafeRef(StringBuilder builder, string accessibility, string typeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields)
 		{
+			bool hasManagedStorage = ecsFields.Any(field => !field.Type.IsUnmanagedType) || aosFields.Any(field => !field.Type.IsUnmanagedType);
+			bool hasManagedAoS = aosFields.Any(field => !field.Type.IsUnmanagedType);
 			builder.AppendLine(accessibility + " unsafe ref struct " + typeName + "Ref");
 			builder.AppendLine("{");
 			builder.AppendLine("\tprivate readonly " + typeName + "Storage* mStorage;");
+			if (hasManagedStorage)
+			{
+				builder.AppendLine("\tprivate readonly " + typeName + "ManagedStorage mManagedStorage;");
+			}
 			builder.AppendLine("\tprivate readonly int mIndex;");
 			builder.AppendLine("#if UNITY_EDITOR");
 			builder.AppendLine("\tprivate readonly " + typeName + "ECSList mOwner;");
@@ -1115,32 +1326,40 @@ namespace ECSSourceGenerator
 			builder.AppendLine("#endif");
 			builder.AppendLine("#if UNITY_EDITOR");
 			appendAggressiveInlining(builder, 1);
-			builder.AppendLine("\tinternal " + typeName + "Ref(" + typeName + "Storage* storage, int index, " + typeName + "ECSList owner, int generation)");
+			builder.AppendLine("\tinternal " + typeName + "Ref(" + typeName + "Storage* storage" + (hasManagedStorage ? ", " + typeName + "ManagedStorage managedStorage" : string.Empty) + ", int index, " + typeName + "ECSList owner, int generation)");
 			builder.AppendLine("\t{");
 			builder.AppendLine("\t\tmStorage = storage;");
+			if (hasManagedStorage)
+			{
+				builder.AppendLine("\t\tmManagedStorage = managedStorage;");
+			}
 			builder.AppendLine("\t\tmIndex = index;");
 			builder.AppendLine("\t\tmOwner = owner;");
 			builder.AppendLine("\t\tmGeneration = generation;");
 			builder.AppendLine("\t}");
 			builder.AppendLine("#else");
 			appendAggressiveInlining(builder, 1);
-			builder.AppendLine("\tinternal " + typeName + "Ref(" + typeName + "Storage* storage, int index)");
+			builder.AppendLine("\tinternal " + typeName + "Ref(" + typeName + "Storage* storage" + (hasManagedStorage ? ", " + typeName + "ManagedStorage managedStorage" : string.Empty) + ", int index)");
 			builder.AppendLine("\t{");
 			builder.AppendLine("\t\tmStorage = storage;");
+			if (hasManagedStorage)
+			{
+				builder.AppendLine("\t\tmManagedStorage = managedStorage;");
+			}
 			builder.AppendLine("\t\tmIndex = index;");
 			builder.AppendLine("\t}");
 			builder.AppendLine("#endif");
 			foreach (IFieldSymbol field in ecsFields)
 			{
-				generateUnsafeRefProperty(builder, field, false);
+				generateUnsafeRefProperty(builder, field, false, hasManagedAoS);
 			}
 			foreach (IFieldSymbol field in aosFields)
 			{
-				generateUnsafeRefProperty(builder, field, true);
+				generateUnsafeRefProperty(builder, field, true, hasManagedAoS);
 			}
 			builder.AppendLine("}");
 		}
-		private static void generateUnsafeRefProperty(StringBuilder builder, IFieldSymbol field, bool aos)
+		private static void generateUnsafeRefProperty(StringBuilder builder, IFieldSymbol field, bool aos, bool managedAoS)
 		{
 			string accessibility = field.DeclaredAccessibility == Accessibility.Public ? "public" : "internal";
 			builder.AppendLine("\t" + accessibility + " ref " + getTypeName(field.Type) + " " + fieldAccess(field));
@@ -1153,11 +1372,22 @@ namespace ECSSourceGenerator
 			builder.AppendLine("#endif");
 			if (aos)
 			{
-				builder.AppendLine("\t\t\treturn ref mStorage->mAoS[mIndex]." + fieldAccess(field) + ";");
+				if (managedAoS)
+				{
+					builder.AppendLine("\t\t\treturn ref mManagedStorage.mAoS[mIndex]." + fieldAccess(field) + ";");
+				}
+				else
+				{
+					builder.AppendLine("\t\t\treturn ref mStorage->mAoS[mIndex]." + fieldAccess(field) + ";");
+				}
+			}
+			else if (field.Type.IsUnmanagedType)
+			{
+				builder.AppendLine("\t\t\treturn ref mStorage->" + fieldAccess(field) + "[mIndex];");
 			}
 			else
 			{
-				builder.AppendLine("\t\t\treturn ref mStorage->" + fieldAccess(field) + "[mIndex];");
+				builder.AppendLine("\t\t\treturn ref mManagedStorage." + fieldAccess(field) + "[mIndex];");
 			}
 			builder.AppendLine("\t\t}");
 			builder.AppendLine("\t}");
@@ -1509,6 +1739,7 @@ namespace ECSSourceGenerator
 		}
 		private static void generateUnsafeList(StringBuilder builder, string accessibility, string typeName, string fullTypeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields, string backendReason)
 		{
+			bool hasManagedStorage = ecsFields.Any(field => !field.Type.IsUnmanagedType) || aosFields.Any(field => !field.Type.IsUnmanagedType);
 			builder.AppendLine(accessibility + " unsafe sealed class " + typeName + "ECSList : global::System.IDisposable");
 			builder.AppendLine("{");
 			builder.AppendLine("\tprivate const int ALIGNMENT = 64;");
@@ -1518,21 +1749,32 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\tprivate global::System.IntPtr mRawMemory;");
 			builder.AppendLine("\tprivate global::System.IntPtr mStorageMemory;");
 			builder.AppendLine("\tprivate " + typeName + "Storage* mStorage;");
+			if (hasManagedStorage)
+			{
+				builder.AppendLine("\tprivate " + typeName + "ManagedStorage mManagedStorage;");
+			}
 			builder.AppendLine("\tprivate int mCount;");
 			builder.AppendLine("\tprivate int mCapacity;");
 			builder.AppendLine("\tprivate bool mDisposed;");
 			generateEditorValidationFields(builder, true);
-			generateUnsafeProperties(builder, typeName);
-			generateUnsafeDictionaryStorageAccessor(builder, typeName);
+			generateUnsafeProperties(builder, typeName, hasManagedStorage);
+			generateUnsafeDictionaryStorageAccessor(builder, typeName, hasManagedStorage);
 			foreach (IFieldSymbol field in ecsFields)
 			{
-				generateUnsafeColumn(builder, typeName, field);
+				if (field.Type.IsUnmanagedType)
+				{
+					generateUnsafeColumn(builder, typeName, field);
+				}
+				else
+				{
+					generateUnsafeManagedColumn(builder, typeName, field);
+				}
 			}
-			generateUnsafeConstructor(builder, typeName);
+			generateUnsafeConstructor(builder, typeName, ecsFields, aosFields);
 			generateUnsafeContainerMethods(builder, typeName, fullTypeName, ecsFields, aosFields);
 			generateUnsafeResize(builder, typeName, ecsFields, aosFields);
 			generateUnsafeAllocateColumns(builder, typeName, ecsFields, aosFields);
-			generateUnsafeDispose(builder);
+			generateUnsafeDispose(builder, typeName, ecsFields, aosFields);
 			generateUnsafeHelpers(builder);
 			generateEditorValidationMethods(builder, typeName, true);
 			builder.AppendLine("}");
@@ -1587,13 +1829,21 @@ namespace ECSSourceGenerator
 			generateEditorValidationMethods(builder, typeName, true);
 			builder.AppendLine("}");
 		}
-		private static void generateUnsafeDictionaryStorageAccessor(StringBuilder builder, string typeName)
+		private static void generateUnsafeDictionaryStorageAccessor(StringBuilder builder, string typeName, bool hasManagedStorage)
 		{
 			appendAggressiveInlining(builder, 1);
 			builder.AppendLine("\tinternal " + typeName + "Storage* getDictionaryStorage()");
 			builder.AppendLine("\t{");
 			builder.AppendLine("\t\treturn mStorage;");
 			builder.AppendLine("\t}");
+			if (hasManagedStorage)
+			{
+				appendAggressiveInlining(builder, 1);
+				builder.AppendLine("\tinternal " + typeName + "ManagedStorage getDictionaryManagedStorage()");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\treturn mManagedStorage;");
+				builder.AppendLine("\t}");
+			}
 		}
 		private static void generateSafeSpanDictionaryStorageAccessor(StringBuilder builder, string typeName)
 		{
@@ -1696,6 +1946,13 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t\t\t++mRefGeneration[i];");
 			builder.AppendLine("\t\t}");
 			builder.AppendLine("\t}");
+			builder.AppendLine("\tprivate void invalidateRefsFrom(int index)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tfor (int i = index; i < mCount; ++i)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\t++mRefGeneration[i];");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t}");
 			appendAggressiveInlining(builder, 1);
 			builder.AppendLine("\tprivate void invalidateColumn()");
 			builder.AppendLine("\t{");
@@ -1711,7 +1968,7 @@ namespace ECSSourceGenerator
 			}
 			builder.AppendLine("#endif");
 		}
-		private static void generateUnsafeProperties(StringBuilder builder, string typeName)
+		private static void generateUnsafeProperties(StringBuilder builder, string typeName, bool hasManagedStorage)
 		{
 			generateCountCapacity(builder);
 			builder.AppendLine("\tpublic " + typeName + "Ref this[int index]");
@@ -1721,9 +1978,9 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t\t{");
 			builder.AppendLine("#if UNITY_EDITOR");
 			builder.AppendLine("\t\t\tvalidateIndex(index);");
-			builder.AppendLine("\t\t\treturn new " + typeName + "Ref(mStorage, index, this, mRefGeneration[index]);");
+			builder.AppendLine("\t\t\treturn new " + typeName + "Ref(mStorage" + (hasManagedStorage ? ", mManagedStorage" : string.Empty) + ", index, this, mRefGeneration[index]);");
 			builder.AppendLine("#else");
-			builder.AppendLine("\t\t\treturn new " + typeName + "Ref(mStorage, index);");
+			builder.AppendLine("\t\t\treturn new " + typeName + "Ref(mStorage" + (hasManagedStorage ? ", mManagedStorage" : string.Empty) + ", index);");
 			builder.AppendLine("#endif");
 			builder.AppendLine("\t\t}");
 			builder.AppendLine("\t}");
@@ -1838,6 +2095,22 @@ namespace ECSSourceGenerator
 			builder.AppendLine("#endif");
 			builder.AppendLine("\t}");
 		}
+		private static void generateUnsafeManagedColumn(StringBuilder builder, string typeName, IFieldSymbol field)
+		{
+			generateSafeColumnType(builder, typeName, field, true);
+			string accessibility = field.DeclaredAccessibility == Accessibility.Public ? "public" : "internal";
+			string columnType = getColumnTypeName(field.Name);
+			appendAggressiveInlining(builder, 1);
+			builder.AppendLine("\t" + accessibility + " " + columnType + " " + getColumnMethodName(field.Name) + "()");
+			builder.AppendLine("\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\tvalidateAlive();");
+			builder.AppendLine("\t\treturn new " + columnType + "(mManagedStorage." + fieldAccess(field) + ", this, mColumnVersion);");
+			builder.AppendLine("#else");
+			builder.AppendLine("\t\treturn new " + columnType + "(mManagedStorage." + fieldAccess(field) + ");");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t}");
+		}
 		private static void generateSafeSpanColumn(StringBuilder builder, string typeName, IFieldSymbol field)
 		{
 			generateSafeColumnType(builder, typeName, field, true);
@@ -1913,8 +2186,9 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t\t}");
 			builder.AppendLine("\t}");
 		}
-		private static void generateUnsafeConstructor(StringBuilder builder, string typeName)
+		private static void generateUnsafeConstructor(StringBuilder builder, string typeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields)
 		{
+			bool hasManagedStorage = ecsFields.Any(field => !field.Type.IsUnmanagedType) || aosFields.Any(field => !field.Type.IsUnmanagedType);
 			builder.AppendLine("\tpublic " + typeName + "ECSList(int capacity = 4)");
 			builder.AppendLine("\t{");
 			builder.AppendLine("\t\tif (capacity < 1)");
@@ -1923,6 +2197,10 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t\t}");
 			builder.AppendLine("\t\ttry");
 			builder.AppendLine("\t\t{");
+			if (hasManagedStorage)
+			{
+				builder.AppendLine("\t\t\tmManagedStorage = new " + typeName + "ManagedStorage(capacity);");
+			}
 			builder.AppendLine("\t\t\tmStorageMemory = global::System.Runtime.InteropServices.Marshal.AllocHGlobal(sizeof(" + typeName + "Storage));");
 			builder.AppendLine("\t\t\tmStorage = (" + typeName + "Storage*)mStorageMemory.ToPointer();");
 			builder.AppendLine("\t\t\t" + typeName + "Storage initialStorage;");
@@ -1944,6 +2222,10 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t\t\t}");
 			builder.AppendLine("\t\t\tmRefGeneration = null;");
 			builder.AppendLine("#endif");
+			if (hasManagedStorage)
+			{
+				builder.AppendLine("\t\t\tmManagedStorage = null;");
+			}
 			builder.AppendLine("\t\t\tif (mRawMemory != global::System.IntPtr.Zero)");
 			builder.AppendLine("\t\t\t{");
 			builder.AppendLine("\t\t\t\tglobal::System.Runtime.InteropServices.Marshal.FreeHGlobal(mRawMemory);");
@@ -2068,6 +2350,8 @@ namespace ECSSourceGenerator
 		}
 		private static void generateUnsafeContainerMethods(StringBuilder builder, string typeName, string fullTypeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields)
 		{
+			bool hasManagedECS = ecsFields.Any(field => !field.Type.IsUnmanagedType);
+			bool hasManagedAoS = aosFields.Any(field => !field.Type.IsUnmanagedType);
 			appendAggressiveInlining(builder, 1);
 			builder.AppendLine("\tpublic void Add(" + fullTypeName + " value)");
 			builder.AppendLine("\t{");
@@ -2091,11 +2375,25 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t\t" + fullTypeName + " value = default(" + fullTypeName + ");");
 			foreach (IFieldSymbol field in ecsFields)
 			{
-				builder.AppendLine("\t\tvalue." + fieldAccess(field) + " = mStorage->" + fieldAccess(field) + "[index];");
+				if (field.Type.IsUnmanagedType)
+				{
+					builder.AppendLine("\t\tvalue." + fieldAccess(field) + " = mStorage->" + fieldAccess(field) + "[index];");
+				}
+				else
+				{
+					builder.AppendLine("\t\tvalue." + fieldAccess(field) + " = mManagedStorage." + fieldAccess(field) + "[index];");
+				}
 			}
 			foreach (IFieldSymbol field in aosFields)
 			{
-				builder.AppendLine("\t\tvalue." + fieldAccess(field) + " = mStorage->mAoS[index]." + fieldAccess(field) + ";");
+				if (hasManagedAoS)
+				{
+					builder.AppendLine("\t\tvalue." + fieldAccess(field) + " = mManagedStorage.mAoS[index]." + fieldAccess(field) + ";");
+				}
+				else
+				{
+					builder.AppendLine("\t\tvalue." + fieldAccess(field) + " = mStorage->mAoS[index]." + fieldAccess(field) + ";");
+				}
 			}
 			builder.AppendLine("\t\treturn value;");
 			builder.AppendLine("\t}");
@@ -2120,6 +2418,20 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t\tinvalidateAllRefs();");
 			builder.AppendLine("\t\tinvalidateColumn();");
 			builder.AppendLine("#endif");
+			if (hasManagedECS)
+			{
+				foreach (IFieldSymbol field in ecsFields)
+				{
+					if (!field.Type.IsUnmanagedType)
+					{
+						builder.AppendLine("\t\tglobal::System.Array.Clear(mManagedStorage." + fieldAccess(field) + ", 0, mCount);");
+					}
+				}
+			}
+			if (hasManagedAoS)
+			{
+				builder.AppendLine("\t\tglobal::System.Array.Clear(mManagedStorage.mAoS, 0, mCount);");
+			}
 			builder.AppendLine("\t\tmCount = 0;");
 			builder.AppendLine("\t}");
 			builder.AppendLine("\tpublic void RemoveAtSwapBack(int index)");
@@ -2140,13 +2452,139 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t\t{");
 			foreach (IFieldSymbol field in ecsFields)
 			{
-				builder.AppendLine("\t\t\tmStorage->" + fieldAccess(field) + "[index] = mStorage->" + fieldAccess(field) + "[lastIndex];");
+				if (field.Type.IsUnmanagedType)
+				{
+					builder.AppendLine("\t\t\tmStorage->" + fieldAccess(field) + "[index] = mStorage->" + fieldAccess(field) + "[lastIndex];");
+				}
+				else
+				{
+					builder.AppendLine("\t\t\tmManagedStorage." + fieldAccess(field) + "[index] = mManagedStorage." + fieldAccess(field) + "[lastIndex];");
+				}
 			}
 			if (aosFields.Count > 0)
 			{
-				builder.AppendLine("\t\t\tmStorage->mAoS[index] = mStorage->mAoS[lastIndex];");
+				if (hasManagedAoS)
+				{
+					builder.AppendLine("\t\t\tmManagedStorage.mAoS[index] = mManagedStorage.mAoS[lastIndex];");
+				}
+				else
+				{
+					builder.AppendLine("\t\t\tmStorage->mAoS[index] = mStorage->mAoS[lastIndex];");
+				}
 			}
 			builder.AppendLine("\t\t}");
+			foreach (IFieldSymbol field in ecsFields)
+			{
+				if (!field.Type.IsUnmanagedType)
+				{
+					builder.AppendLine("\t\tmManagedStorage." + fieldAccess(field) + "[lastIndex] = default(" + getTypeName(field.Type) + ");");
+				}
+			}
+			if (hasManagedAoS)
+			{
+				builder.AppendLine("\t\tmManagedStorage.mAoS[lastIndex] = default(" + typeName + "AoSBlock);");
+			}
+			builder.AppendLine("\t\t--mCount;");
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tpublic void Insert(int index, " + fullTypeName + " value)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tif (mDisposed)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tthrow new global::System.ObjectDisposedException(\"" + typeName + "ECSList\");");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tif ((uint)index > (uint)mCount)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tthrow new global::System.ArgumentOutOfRangeException(nameof(index));");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tif (mCount >= mCapacity)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tresize(mCapacity * 2);");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\tinvalidateRefsFrom(index);");
+			builder.AppendLine("\t\tinvalidateColumn();");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\tif (index == mCount)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tsetValue(index, value);");
+			builder.AppendLine("\t\t\t++mCount;");
+			builder.AppendLine("\t\t\treturn;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tint moveCount = mCount - index;");
+			foreach (IFieldSymbol field in ecsFields)
+			{
+				if (field.Type.IsUnmanagedType)
+				{
+					string fieldType = getTypeName(field.Type);
+					builder.AppendLine("\t\tglobal::System.Buffer.MemoryCopy(mStorage->" + fieldAccess(field) + " + index, mStorage->" + fieldAccess(field) + " + index + 1, (long)moveCount * sizeof(" + fieldType + "), (long)moveCount * sizeof(" + fieldType + "));");
+				}
+			}
+			if (aosFields.Count > 0 && !hasManagedAoS)
+			{
+				builder.AppendLine("\t\tglobal::System.Buffer.MemoryCopy(mStorage->mAoS + index, mStorage->mAoS + index + 1, (long)moveCount * sizeof(" + typeName + "AoSBlock), (long)moveCount * sizeof(" + typeName + "AoSBlock));");
+			}
+			foreach (IFieldSymbol field in ecsFields)
+			{
+				if (!field.Type.IsUnmanagedType)
+				{
+					builder.AppendLine("\t\tglobal::System.Array.Copy(mManagedStorage." + fieldAccess(field) + ", index, mManagedStorage." + fieldAccess(field) + ", index + 1, mCount - index);");
+				}
+			}
+			if (hasManagedAoS)
+			{
+				builder.AppendLine("\t\tglobal::System.Array.Copy(mManagedStorage.mAoS, index, mManagedStorage.mAoS, index + 1, mCount - index);");
+			}
+			builder.AppendLine("\t\tsetValue(index, value);");
+			builder.AppendLine("\t\t++mCount;");
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tpublic void RemoveAt(int index)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tif (mDisposed)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tthrow new global::System.ObjectDisposedException(\"" + typeName + "ECSList\");");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tif ((uint)index >= (uint)mCount)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tthrow new global::System.ArgumentOutOfRangeException(nameof(index));");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\tinvalidateRefsFrom(index);");
+			builder.AppendLine("\t\tinvalidateColumn();");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\tint lastIndex = mCount - 1;");
+			builder.AppendLine("\t\tfor (int i = index; i < lastIndex; ++i)");
+			builder.AppendLine("\t\t{");
+			foreach (IFieldSymbol field in ecsFields)
+			{
+				if (field.Type.IsUnmanagedType)
+				{
+					builder.AppendLine("\t\t\tmStorage->" + fieldAccess(field) + "[i] = mStorage->" + fieldAccess(field) + "[i + 1];");
+				}
+			}
+			if (aosFields.Count > 0 && !hasManagedAoS)
+			{
+				builder.AppendLine("\t\t\tmStorage->mAoS[i] = mStorage->mAoS[i + 1];");
+			}
+			builder.AppendLine("\t\t}");
+			foreach (IFieldSymbol field in ecsFields)
+			{
+				if (!field.Type.IsUnmanagedType)
+				{
+					builder.AppendLine("\t\tif (index < lastIndex)");
+					builder.AppendLine("\t\t{");
+					builder.AppendLine("\t\t\tglobal::System.Array.Copy(mManagedStorage." + fieldAccess(field) + ", index + 1, mManagedStorage." + fieldAccess(field) + ", index, lastIndex - index);");
+					builder.AppendLine("\t\t}");
+					builder.AppendLine("\t\tmManagedStorage." + fieldAccess(field) + "[lastIndex] = default(" + getTypeName(field.Type) + ");");
+				}
+			}
+			if (hasManagedAoS)
+			{
+				builder.AppendLine("\t\tif (index < lastIndex)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tglobal::System.Array.Copy(mManagedStorage.mAoS, index + 1, mManagedStorage.mAoS, index, lastIndex - index);");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\tmManagedStorage.mAoS[lastIndex] = default(" + typeName + "AoSBlock);");
+			}
 			builder.AppendLine("\t\t--mCount;");
 			builder.AppendLine("\t}");
 			appendAggressiveInlining(builder, 1);
@@ -2154,11 +2592,25 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t{");
 			foreach (IFieldSymbol field in ecsFields)
 			{
-				builder.AppendLine("\t\tmStorage->" + fieldAccess(field) + "[index] = value." + fieldAccess(field) + ";");
+				if (field.Type.IsUnmanagedType)
+				{
+					builder.AppendLine("\t\tmStorage->" + fieldAccess(field) + "[index] = value." + fieldAccess(field) + ";");
+				}
+				else
+				{
+					builder.AppendLine("\t\tmManagedStorage." + fieldAccess(field) + "[index] = value." + fieldAccess(field) + ";");
+				}
 			}
 			foreach (IFieldSymbol field in aosFields)
 			{
-				builder.AppendLine("\t\tmStorage->mAoS[index]." + fieldAccess(field) + " = value." + fieldAccess(field) + ";");
+				if (hasManagedAoS)
+				{
+					builder.AppendLine("\t\tmManagedStorage.mAoS[index]." + fieldAccess(field) + " = value." + fieldAccess(field) + ";");
+				}
+				else
+				{
+					builder.AppendLine("\t\tmStorage->mAoS[index]." + fieldAccess(field) + " = value." + fieldAccess(field) + ";");
+				}
 			}
 			builder.AppendLine("\t}");
 		}
@@ -2276,6 +2728,77 @@ namespace ECSSourceGenerator
 			}
 			builder.AppendLine("\t\t--mCount;");
 			builder.AppendLine("\t}");
+			builder.AppendLine("\tpublic void Insert(int index, " + fullTypeName + " value)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tif (mDisposed)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tthrow new global::System.ObjectDisposedException(\"" + typeName + "ECSList\");");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tif ((uint)index > (uint)mCount)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tthrow new global::System.ArgumentOutOfRangeException(nameof(index));");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tif (mCount >= mCapacity)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tresize(mCapacity * 2);");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\t" + storageDeclaration);
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\tinvalidateRefsFrom(index);");
+			builder.AppendLine("\t\tinvalidateColumn();");
+			builder.AppendLine("#endif");
+			foreach (IFieldSymbol field in ecsFields)
+			{
+				builder.AppendLine("\t\tglobal::System.Array.Copy(storage." + fieldAccess(field) + ", index, storage." + fieldAccess(field) + ", index + 1, mCount - index);");
+			}
+			if (aosFields.Count > 0)
+			{
+				builder.AppendLine("\t\tglobal::System.Array.Copy(storage.mAoS, index, storage.mAoS, index + 1, mCount - index);");
+			}
+			builder.AppendLine("\t\tsetValue(index, value);");
+			builder.AppendLine("\t\t++mCount;");
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tpublic void RemoveAt(int index)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tif (mDisposed)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tthrow new global::System.ObjectDisposedException(\"" + typeName + "ECSList\");");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tif ((uint)index >= (uint)mCount)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tthrow new global::System.ArgumentOutOfRangeException(nameof(index));");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\t" + storageDeclaration);
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\tinvalidateRefsFrom(index);");
+			builder.AppendLine("\t\tinvalidateColumn();");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\tint lastIndex = mCount - 1;");
+			builder.AppendLine("\t\tint moveCount = lastIndex - index;");
+			builder.AppendLine("\t\tif (moveCount > 0)");
+			builder.AppendLine("\t\t{");
+			foreach (IFieldSymbol field in ecsFields)
+			{
+				builder.AppendLine("\t\t\tglobal::System.Array.Copy(storage." + fieldAccess(field) + ", index + 1, storage." + fieldAccess(field) + ", index, moveCount);");
+			}
+			if (aosFields.Count > 0)
+			{
+				builder.AppendLine("\t\t\tglobal::System.Array.Copy(storage.mAoS, index + 1, storage.mAoS, index, moveCount);");
+			}
+			builder.AppendLine("\t\t}");
+			foreach (IFieldSymbol field in ecsFields)
+			{
+				if (!field.Type.IsUnmanagedType)
+				{
+					builder.AppendLine("\t\tstorage." + fieldAccess(field) + "[lastIndex] = default(" + getTypeName(field.Type) + ");");
+				}
+			}
+			if (hasManagedAoS)
+			{
+				builder.AppendLine("\t\tstorage.mAoS[lastIndex] = default(" + typeName + "AoSBlock);");
+			}
+			builder.AppendLine("\t\t--mCount;");
+			builder.AppendLine("\t}");
 			appendAggressiveInlining(builder, 1);
 			builder.AppendLine("\tprivate void setValue(int index, " + fullTypeName + " value)");
 			builder.AppendLine("\t{");
@@ -2292,6 +2815,7 @@ namespace ECSSourceGenerator
 		}
 		private static void generateUnsafeResize(StringBuilder builder, string typeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields)
 		{
+			bool hasManagedAoS = aosFields.Any(field => !field.Type.IsUnmanagedType);
 			builder.AppendLine("\tprivate void resize(int capacity)");
 			builder.AppendLine("\t{");
 			builder.AppendLine("#if UNITY_EDITOR");
@@ -2299,20 +2823,49 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t\tint generationCopyCount = mRefGeneration.Length < capacity ? mRefGeneration.Length : capacity;");
 			builder.AppendLine("\t\tglobal::System.Array.Copy(mRefGeneration, newRefGeneration, generationCopyCount);");
 			builder.AppendLine("#endif");
+			foreach (IFieldSymbol field in ecsFields)
+			{
+				if (!field.Type.IsUnmanagedType)
+				{
+					string fieldType = getTypeName(field.Type);
+					string localName = "new_" + field.Name;
+					builder.AppendLine("\t\t" + fieldType + "[] " + localName + " = new " + fieldType + "[capacity];");
+					builder.AppendLine("\t\tglobal::System.Array.Copy(mManagedStorage." + fieldAccess(field) + ", " + localName + ", mCount);");
+				}
+			}
+			if (hasManagedAoS)
+			{
+				builder.AppendLine("\t\t" + typeName + "AoSBlock[] newAoS = new " + typeName + "AoSBlock[capacity];");
+				builder.AppendLine("\t\tglobal::System.Array.Copy(mManagedStorage.mAoS, newAoS, mCount);");
+			}
 			builder.AppendLine("\t\tglobal::System.IntPtr newRawMemory;");
 			builder.AppendLine("\t\t" + typeName + "Storage newStorage;");
 			builder.AppendLine("\t\tallocateColumns(capacity, out newRawMemory, out newStorage);");
 			foreach (IFieldSymbol field in ecsFields)
 			{
-				builder.AppendLine("\t\tcopyMemory(newStorage." + fieldAccess(field) + ", mStorage->" + fieldAccess(field) + ", (long)mCount * sizeof(" + getTypeName(field.Type) + "));");
+				if (field.Type.IsUnmanagedType)
+				{
+					builder.AppendLine("\t\tcopyMemory(newStorage." + fieldAccess(field) + ", mStorage->" + fieldAccess(field) + ", (long)mCount * sizeof(" + getTypeName(field.Type) + "));");
+				}
 			}
-			if (aosFields.Count > 0)
+			if (aosFields.Count > 0 && !hasManagedAoS)
 			{
 				builder.AppendLine("\t\tcopyMemory(newStorage.mAoS, mStorage->mAoS, (long)mCount * sizeof(" + typeName + "AoSBlock));");
 			}
 			builder.AppendLine("\t\tglobal::System.Runtime.InteropServices.Marshal.FreeHGlobal(mRawMemory);");
 			builder.AppendLine("\t\tmRawMemory = newRawMemory;");
 			builder.AppendLine("\t\t*mStorage = newStorage;");
+			foreach (IFieldSymbol field in ecsFields)
+			{
+				if (!field.Type.IsUnmanagedType)
+				{
+					builder.AppendLine("\t\tmManagedStorage." + fieldAccess(field) + " = new_" + field.Name + ";");
+				}
+			}
+			if (hasManagedAoS)
+			{
+				builder.AppendLine("\t\tmManagedStorage.mAoS = newAoS;");
+			}
 			builder.AppendLine("\t\tmCapacity = capacity;");
 			builder.AppendLine("#if UNITY_EDITOR");
 			builder.AppendLine("\t\tmRefGeneration = newRefGeneration;");
@@ -2369,17 +2922,21 @@ namespace ECSSourceGenerator
 		}
 		private static void generateUnsafeAllocateColumns(StringBuilder builder, string typeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields)
 		{
+			bool hasManagedAoS = aosFields.Any(field => !field.Type.IsUnmanagedType);
 			builder.AppendLine("\tprivate static void allocateColumns(int capacity, out global::System.IntPtr rawMemory, out " + typeName + "Storage storage)");
 			builder.AppendLine("\t{");
 			builder.AppendLine("\t\tstorage = default(" + typeName + "Storage);");
 			builder.AppendLine("\t\tlong totalBytes = ALIGNMENT;");
 			foreach (IFieldSymbol field in ecsFields)
 			{
-				string bytesName = getBytesVariableName(field.Name);
-				builder.AppendLine("\t\tlong " + bytesName + " = alignUp((long)capacity * sizeof(" + getTypeName(field.Type) + "), ALIGNMENT);");
-				builder.AppendLine("\t\ttotalBytes += " + bytesName + ";");
+				if (field.Type.IsUnmanagedType)
+				{
+					string bytesName = getBytesVariableName(field.Name);
+					builder.AppendLine("\t\tlong " + bytesName + " = alignUp((long)capacity * sizeof(" + getTypeName(field.Type) + "), ALIGNMENT);");
+					builder.AppendLine("\t\ttotalBytes += " + bytesName + ";");
+				}
 			}
-			if (aosFields.Count > 0)
+			if (aosFields.Count > 0 && !hasManagedAoS)
 			{
 				builder.AppendLine("\t\tlong aosBytes = alignUp((long)capacity * sizeof(" + typeName + "AoSBlock), ALIGNMENT);");
 				builder.AppendLine("\t\ttotalBytes += aosBytes;");
@@ -2388,18 +2945,23 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t\tbyte* current = alignPointer((byte*)rawMemory.ToPointer(), ALIGNMENT);");
 			foreach (IFieldSymbol field in ecsFields)
 			{
-				string bytesName = getBytesVariableName(field.Name);
-				builder.AppendLine("\t\tstorage." + fieldAccess(field) + " = (" + getTypeName(field.Type) + "*)current;");
-				builder.AppendLine("\t\tcurrent += " + bytesName + ";");
+				if (field.Type.IsUnmanagedType)
+				{
+					string bytesName = getBytesVariableName(field.Name);
+					builder.AppendLine("\t\tstorage." + fieldAccess(field) + " = (" + getTypeName(field.Type) + "*)current;");
+					builder.AppendLine("\t\tcurrent += " + bytesName + ";");
+				}
 			}
-			if (aosFields.Count > 0)
+			if (aosFields.Count > 0 && !hasManagedAoS)
 			{
 				builder.AppendLine("\t\tstorage.mAoS = (" + typeName + "AoSBlock*)current;");
 			}
 			builder.AppendLine("\t}");
 		}
-		private static void generateUnsafeDispose(StringBuilder builder)
+		private static void generateUnsafeDispose(StringBuilder builder, string typeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields)
 		{
+			bool hasManagedStorage = ecsFields.Any(field => !field.Type.IsUnmanagedType) || aosFields.Any(field => !field.Type.IsUnmanagedType);
+			bool hasManagedAoS = aosFields.Any(field => !field.Type.IsUnmanagedType);
 			builder.AppendLine("\tprivate void dispose()");
 			builder.AppendLine("\t{");
 			builder.AppendLine("\t\tif (mDisposed)");
@@ -2414,6 +2976,30 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t\t\tmDebugLifecycleID = 0;");
 			builder.AppendLine("\t\t}");
 			builder.AppendLine("#endif");
+			if (hasManagedStorage)
+			{
+				builder.AppendLine("\t\tif (mManagedStorage != null)");
+				builder.AppendLine("\t\t{");
+				foreach (IFieldSymbol field in ecsFields)
+				{
+					if (!field.Type.IsUnmanagedType)
+					{
+						builder.AppendLine("\t\t\tif (mCount > 0)");
+						builder.AppendLine("\t\t\t{");
+						builder.AppendLine("\t\t\t\tglobal::System.Array.Clear(mManagedStorage." + fieldAccess(field) + ", 0, mCount);");
+						builder.AppendLine("\t\t\t}");
+					}
+				}
+				if (hasManagedAoS)
+				{
+					builder.AppendLine("\t\t\tif (mCount > 0)");
+					builder.AppendLine("\t\t\t{");
+					builder.AppendLine("\t\t\t\tglobal::System.Array.Clear(mManagedStorage.mAoS, 0, mCount);");
+					builder.AppendLine("\t\t\t}");
+				}
+				builder.AppendLine("\t\t\tmManagedStorage = null;");
+				builder.AppendLine("\t\t}");
+			}
 			builder.AppendLine("\t\tif (mRawMemory != global::System.IntPtr.Zero)");
 			builder.AppendLine("\t\t{");
 			builder.AppendLine("\t\t\tglobal::System.Runtime.InteropServices.Marshal.FreeHGlobal(mRawMemory);");

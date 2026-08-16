@@ -12,6 +12,10 @@ public class RoleDataBenchmark : MonoBehaviour
 	private static double mResultSink;
 	private List<RoleData> mList;
 	private RoleData[] mArray;
+	private int[] mSoAHP;
+	private float[] mSoASpeed;
+	private float[] mSoAPositionX;
+	private float[] mSoAPositionY;
 	private RoleDataECSList mECSList;
 	private struct BenchmarkResult
 	{
@@ -45,6 +49,7 @@ public class RoleDataBenchmark : MonoBehaviour
 			runTest1();
 			runTest2();
 			runTest4();
+			runFourFieldAccessBreakdown();
 			Debug.Log("ResultSink:" + mResultSink);
 			Debug.Log("================ RoleData Benchmark End ================");
 		}
@@ -64,6 +69,8 @@ public class RoleDataBenchmark : MonoBehaviour
 		runCorrectnessTest("Resize后RoleDataRef", testResizeAfterRoleDataRef);
 		runCorrectnessTest("Direct Column", testDirectColumn);
 		runCorrectnessTest("Clear后重新使用", testClearReuse);
+		runCorrectnessTest("Insert", testInsert);
+		runCorrectnessTest("RemoveAt", testRemoveAt);
 		runCorrectnessTest("RemoveAtSwapBack", testRemoveAtSwapBack);
 		runCorrectnessTest("重复Dispose", testDoubleDispose);
 	}
@@ -201,6 +208,57 @@ public class RoleDataBenchmark : MonoBehaviour
 			list.Dispose();
 		}
 	}
+	private void testInsert()
+	{
+		RoleDataECSList list = new RoleDataECSList(1);
+		try
+		{
+			list.Add(createData(1));
+			list.Add(createData(2));
+			list.Add(createData(3));
+			list.Insert(0, createData(10));
+			list.Insert(2, createData(20));
+			list.Insert(list.Count, createData(30));
+			int[] expected = { 10, 1, 20, 2, 3, 30 };
+			check(list.Count == expected.Length, "Insert后Count错误");
+			for (int i = 0; i < expected.Length; ++i)
+			{
+				RoleData value = list.Get(i);
+				check(value.mID == expected[i], "Insert顺序错误,Index:" + i);
+				check(value.mHP == 100 + expected[i], "Insert mHP错误,Index:" + i);
+			}
+		}
+		finally
+		{
+			list.Dispose();
+		}
+	}
+	private void testRemoveAt()
+	{
+		RoleDataECSList list = new RoleDataECSList();
+		try
+		{
+			for (int i = 1; i <= 5; ++i)
+			{
+				list.Add(createData(i));
+			}
+			list.RemoveAt(0);
+			list.RemoveAt(1);
+			list.RemoveAt(list.Count - 1);
+			int[] expected = { 2, 4 };
+			check(list.Count == expected.Length, "RemoveAt后Count错误");
+			for (int i = 0; i < expected.Length; ++i)
+			{
+				RoleData value = list.Get(i);
+				check(value.mID == expected[i], "RemoveAt顺序错误,Index:" + i);
+				check(value.mHP == 100 + expected[i], "RemoveAt mHP错误,Index:" + i);
+			}
+		}
+		finally
+		{
+			list.Dispose();
+		}
+	}
 	private void testClearReuse()
 	{
 		RoleDataECSList list = new RoleDataECSList(2);
@@ -249,12 +307,20 @@ public class RoleDataBenchmark : MonoBehaviour
 	{
 		mList = new List<RoleData>(ENTITY_COUNT);
 		mArray = new RoleData[ENTITY_COUNT];
+		mSoAHP = new int[ENTITY_COUNT];
+		mSoASpeed = new float[ENTITY_COUNT];
+		mSoAPositionX = new float[ENTITY_COUNT];
+		mSoAPositionY = new float[ENTITY_COUNT];
 		mECSList = new RoleDataECSList(ENTITY_COUNT);
 		for (int i = 0; i < ENTITY_COUNT; ++i)
 		{
 			RoleData value = createData(i);
 			mList.Add(value);
 			mArray[i] = value;
+			mSoAHP[i] = value.mHP;
+			mSoASpeed[i] = value.mSpeed;
+			mSoAPositionX[i] = value.mPositionX;
+			mSoAPositionY[i] = value.mPositionY;
 			mECSList.Add(value);
 		}
 	}
@@ -284,6 +350,138 @@ public class RoleDataBenchmark : MonoBehaviour
 		BenchmarkResult localRef = measure(runECSRefFourFields, ENTITY_COUNT);
 		BenchmarkResult direct = measure(runECSDirectFourFields, ENTITY_COUNT);
 		printResult("访问4个字段", managedList, array, index, localRef, direct);
+	}
+	private void runFourFieldAccessBreakdown()
+	{
+		BenchmarkResult arrayRead = measure(runArrayFourFieldsReadOnly, ENTITY_COUNT);
+		BenchmarkResult soaRead = measure(runSoAFourFieldsReadOnly, ENTITY_COUNT);
+		BenchmarkResult indexRead = measure(runECSIndexerFourFieldsReadOnly, ENTITY_COUNT);
+		BenchmarkResult refRead = measure(runECSRefFourFieldsReadOnly, ENTITY_COUNT);
+		BenchmarkResult directRead = measure(runECSDirectFourFieldsReadOnly, ENTITY_COUNT);
+		Debug.Log(
+			"\n================ 4字段路径拆解:仅读 ================\n" +
+			format("RoleData[] AoS", arrayRead) + "\n" +
+			format("Raw SoA arrays", soaRead) + "\n" +
+			format("ECS repeated list[i]", indexRead) + "\n" +
+			format("ECS Local Ref", refRead) + "\n" +
+			format("ECS Direct", directRead) +
+			"\n--------------------------------------------------\n" +
+			"Indexer / Ref    : " + ratio(indexRead.mMedian, refRead.mMedian) + "\n" +
+			"Ref / Direct     : " + ratio(refRead.mMedian, directRead.mMedian) + "\n" +
+			"Direct / Raw SoA : " + ratio(directRead.mMedian, soaRead.mMedian) + "\n" +
+			"AoS / Raw SoA    : " + ratio(arrayRead.mMedian, soaRead.mMedian) + "\n" +
+			"==================================================");
+		BenchmarkResult arrayWrite = measure(runArrayFourFields, ENTITY_COUNT);
+		BenchmarkResult soaWrite = measure(runSoAFourFieldsUpdate, ENTITY_COUNT);
+		BenchmarkResult indexWrite = measure(runECSIndexerFourFields, ENTITY_COUNT);
+		BenchmarkResult refWrite = measure(runECSRefFourFields, ENTITY_COUNT);
+		BenchmarkResult refCachedSpeed = measure(runECSRefFourFieldsCachedSpeed, ENTITY_COUNT);
+		BenchmarkResult directWrite = measure(runECSDirectFourFields, ENTITY_COUNT);
+		Debug.Log(
+			"\n================ 4字段路径拆解:读写 ================\n" +
+			format("RoleData[] AoS", arrayWrite) + "\n" +
+			format("Raw SoA arrays", soaWrite) + "\n" +
+			format("ECS repeated list[i]", indexWrite) + "\n" +
+			format("ECS Local Ref", refWrite) + "\n" +
+			format("ECS Ref cache speed", refCachedSpeed) + "\n" +
+			format("ECS Direct", directWrite) +
+			"\n--------------------------------------------------\n" +
+			"Indexer / Ref       : " + ratio(indexWrite.mMedian, refWrite.mMedian) + "\n" +
+			"Ref / CachedRef     : " + ratio(refWrite.mMedian, refCachedSpeed.mMedian) + "\n" +
+			"CachedRef / Direct  : " + ratio(refCachedSpeed.mMedian, directWrite.mMedian) + "\n" +
+			"Direct / Raw SoA    : " + ratio(directWrite.mMedian, soaWrite.mMedian) + "\n" +
+			"AoS / Raw SoA       : " + ratio(arrayWrite.mMedian, soaWrite.mMedian) + "\n" +
+			"==================================================");
+	}
+	private void runArrayFourFieldsReadOnly()
+	{
+		double sum = 0.0;
+		for (int i = 0; i < mArray.Length; ++i)
+		{
+			sum += mArray[i].mHP;
+			sum += mArray[i].mSpeed;
+			sum += mArray[i].mPositionX;
+			sum += mArray[i].mPositionY;
+		}
+		mResultSink += sum;
+	}
+	private void runSoAFourFieldsReadOnly()
+	{
+		double sum = 0.0;
+		for (int i = 0; i < ENTITY_COUNT; ++i)
+		{
+			sum += mSoAHP[i];
+			sum += mSoASpeed[i];
+			sum += mSoAPositionX[i];
+			sum += mSoAPositionY[i];
+		}
+		mResultSink += sum;
+	}
+	private void runECSIndexerFourFieldsReadOnly()
+	{
+		double sum = 0.0;
+		for (int i = 0; i < mECSList.Count; ++i)
+		{
+			sum += mECSList[i].mHP;
+			sum += mECSList[i].mSpeed;
+			sum += mECSList[i].mPositionX;
+			sum += mECSList[i].mPositionY;
+		}
+		mResultSink += sum;
+	}
+	private void runECSRefFourFieldsReadOnly()
+	{
+		double sum = 0.0;
+		for (int i = 0; i < mECSList.Count; ++i)
+		{
+			RoleDataRef value = mECSList[i];
+			sum += value.mHP;
+			sum += value.mSpeed;
+			sum += value.mPositionX;
+			sum += value.mPositionY;
+		}
+		mResultSink += sum;
+	}
+	private void runECSDirectFourFieldsReadOnly()
+	{
+		double sum = 0.0;
+		var hp = mECSList.getHPColumn();
+		var speed = mECSList.getSpeedColumn();
+		var positionX = mECSList.getPositionXColumn();
+		var positionY = mECSList.getPositionYColumn();
+		for (int i = 0; i < mECSList.Count; ++i)
+		{
+			sum += hp[i];
+			sum += speed[i];
+			sum += positionX[i];
+			sum += positionY[i];
+		}
+		mResultSink += sum;
+	}
+	private void runSoAFourFieldsUpdate()
+	{
+		for (int i = 0; i < ENTITY_COUNT; ++i)
+		{
+			mSoAHP[i] += 1;
+			float speed = mSoASpeed[i];
+			mSoAPositionX[i] += speed;
+			mSoAPositionY[i] -= speed;
+		}
+		int last = ENTITY_COUNT - 1;
+		mResultSink += mSoAHP[last] + mSoAPositionX[last] + mSoAPositionY[last];
+	}
+	private void runECSRefFourFieldsCachedSpeed()
+	{
+		for (int i = 0; i < mECSList.Count; ++i)
+		{
+			RoleDataRef value = mECSList[i];
+			float speed = value.mSpeed;
+			value.mHP += 1;
+			value.mPositionX += speed;
+			value.mPositionY -= speed;
+		}
+		RoleDataRef last = mECSList[mECSList.Count - 1];
+		mResultSink += last.mHP + last.mPositionX + last.mPositionY;
 	}
 	private void runListOneField()
 	{
