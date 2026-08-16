@@ -1,12 +1,16 @@
 {
 	"name": "com.zhourui.easyecs",
 	"displayName": "EasyECS",
-	"version": "1.0.0",
-	"description": "OOP-compatible SoA data layout optimizer for Unity.",
+	"version": "1.1.0",
+	"description": "OOP-compatible SoA data layout optimizer for Unity. Source Generator transparently generates SoA/AoS hybrid storage, ECSList and ECSDictionary while preserving normal OOP-style business code.",
 	"keywords": [
 		"unity",
 		"ecs",
-		"oop"
+		"soa",
+		"oop",
+		"source-generator",
+		"performance",
+		"data-layout"
 	],
 	"author": {
 		"name": "ZHOURUIH",
@@ -16,7 +20,7 @@
 	"samples": [
 		{
 			"displayName": "Benchmark",
-			"description": "EasyECS correctness, lifecycle and performance benchmark.",
+			"description": "EasyECS List, Dictionary, runtime correctness, lifecycle and performance tests.",
 			"path": "Samples~/Benchmark"
 		}
 	],

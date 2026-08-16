@@ -1,4 +1,5 @@
 using System;
+using EasyECS;
 using UnityEngine;
 
 [ECS]
@@ -38,7 +39,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 		Debug.Log("================ EasyECS Runtime Unit Test Start ================");
 		Debug.Log("Backend:" + EasyECSRuntimeTestDataECSList.BackendName + ",Reason:" + EasyECSRuntimeTestDataECSList.BackendReason);
 		Debug.Log("Managed Backend:" + EasyECSManagedRuntimeTestDataECSList.BackendName + ",Reason:" + EasyECSManagedRuntimeTestDataECSList.BackendReason);
-		runTest("非Unsafe后端检查", testBackendSelection);
+		runTest("Backend选择检查", testBackendSelection);
 		runTest("List构造/Count/Capacity", testListConstructor);
 		runTest("List Add/Get/Resize/全部字段", testListAddGetResize);
 		runTest("List Set", testListSet);
@@ -189,7 +190,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 		assertFalse(EasyECSManagedRuntimeTestDataECSList.IsUnsafeBackend, "ECS_FORCE_SAFE_REGISTRY下Managed数据不应生成Unsafe后端");
 #else
 		assertTrue(backend == "Unsafe" || backend == "SafeSpan" || backend == "SafeRegistry", "普通数据生成了未知Backend:" + backend);
-		assertTrue(managedBackend == "SafeSpan" || managedBackend == "SafeRegistry", "Managed数据不允许生成Unsafe Backend:" + managedBackend);
+		assertTrue(managedBackend == "SafeSpan" || managedBackend == "SafeRegistry", "Managed数据生成了不允许的Backend:" + managedBackend);
 		assertFalse(EasyECSManagedRuntimeTestDataECSList.IsUnsafeBackend, "包含Managed字段的数据不允许生成Unsafe后端");
 		if (backend == "SafeSpan")
 		{

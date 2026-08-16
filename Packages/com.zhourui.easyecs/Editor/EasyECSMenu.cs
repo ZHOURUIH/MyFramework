@@ -4,7 +4,7 @@ using UnityEditor.PackageManager.UI;
 using UnityEngine;
 using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
-internal static class EasyECSMenu
+public static class EasyECSMenu
 {
 	private const string PACKAGE_NAME = "com.zhourui.easyecs";
 	private const string SAMPLE_NAME = "Benchmark";
@@ -14,24 +14,24 @@ internal static class EasyECSMenu
 		PackageInfo packageInfo = PackageInfo.FindForAssetPath("Packages/" + PACKAGE_NAME + "/package.json");
 		if (packageInfo == null)
 		{
-			Debug.LogError("[EasyECS] ÎŞ·¨»ñÈ¡PackageInfo:" + PACKAGE_NAME);
+			Debug.LogError("[EasyECS] æ— æ³•è·å–PackageInfo:" + PACKAGE_NAME);
 			return;
 		}
 		Sample sample = Sample.FindByPackage(packageInfo.name, packageInfo.version).FirstOrDefault(item => item.displayName == SAMPLE_NAME);
 		if (string.IsNullOrEmpty(sample.displayName))
 		{
-			Debug.LogError("[EasyECS] Î´ÕÒµ½²âÊÔÓÃÀı:" + SAMPLE_NAME);
+			Debug.LogError("[EasyECS] æœªæ‰¾åˆ°æµ‹è¯•ç”¨ä¾‹:" + SAMPLE_NAME);
 			return;
 		}
 		if (sample.isImported)
 		{
-			if (!EditorUtility.DisplayDialog("EasyECS", "Benchmark²âÊÔÓÃÀıÒÑ¾­µ¼Èë,ÊÇ·ñÖØĞÂµ¼Èë²¢¸²¸Ç?", "ÖØĞÂµ¼Èë", "È¡Ïû"))
+			if (!EditorUtility.DisplayDialog("EasyECS", "Benchmarkæµ‹è¯•ç”¨ä¾‹å·²ç»å¯¼å…¥,æ˜¯å¦é‡æ–°å¯¼å…¥å¹¶è¦†ç›–?", "é‡æ–°å¯¼å…¥", "å–æ¶ˆ"))
 			{
 				return;
 			}
 			if (!sample.Import(Sample.ImportOptions.OverridePreviousImports))
 			{
-				Debug.LogError("[EasyECS] Benchmark²âÊÔÓÃÀıÖØĞÂµ¼ÈëÊ§°Ü");
+				Debug.LogError("[EasyECS] Benchmarkæµ‹è¯•ç”¨ä¾‹é‡æ–°å¯¼å…¥å¤±è´¥");
 				return;
 			}
 		}
@@ -39,11 +39,11 @@ internal static class EasyECSMenu
 		{
 			if (!sample.Import())
 			{
-				Debug.LogError("[EasyECS] Benchmark²âÊÔÓÃÀıµ¼ÈëÊ§°Ü");
+				Debug.LogError("[EasyECS] Benchmarkæµ‹è¯•ç”¨ä¾‹å¯¼å…¥å¤±è´¥");
 				return;
 			}
 		}
 		AssetDatabase.Refresh();
-		Debug.Log("[EasyECS] Benchmark²âÊÔÓÃÀıµ¼Èë³É¹¦:" + sample.importPath);
+		Debug.Log("[EasyECS] Benchmarkæµ‹è¯•ç”¨ä¾‹å¯¼å…¥æˆåŠŸ:" + sample.importPath);
 	}
 }
