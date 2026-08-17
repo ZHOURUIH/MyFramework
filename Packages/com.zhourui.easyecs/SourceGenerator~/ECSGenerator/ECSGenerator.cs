@@ -243,6 +243,7 @@ namespace ECSSourceGenerator
 		}
 		private static void generateDictionary(StringBuilder builder, string accessibility, string typeName, string fullTypeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields, Backend backend, bool hasSpan)
 		{
+			appendGeneratedFor(builder, typeName, fullTypeName, "Dictionary&lt;TKey&gt;");
 			builder.AppendLine(accessibility + " sealed class " + typeName + "ECSDictionary<TKey> : global::System.IDisposable");
 			builder.AppendLine("{");
 			builder.AppendLine("\tprivate readonly global::System.Collections.Generic.Dictionary<TKey, int> mIndexMap;");
@@ -1740,6 +1741,7 @@ namespace ECSSourceGenerator
 		private static void generateUnsafeList(StringBuilder builder, string accessibility, string typeName, string fullTypeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields, string backendReason)
 		{
 			bool hasManagedStorage = ecsFields.Any(field => !field.Type.IsUnmanagedType) || aosFields.Any(field => !field.Type.IsUnmanagedType);
+			appendGeneratedFor(builder, typeName, fullTypeName, "List");
 			builder.AppendLine(accessibility + " unsafe sealed class " + typeName + "ECSList : global::System.IDisposable");
 			builder.AppendLine("{");
 			builder.AppendLine("\tprivate const int ALIGNMENT = 64;");
@@ -1781,6 +1783,7 @@ namespace ECSSourceGenerator
 		}
 		private static void generateSafeSpanList(StringBuilder builder, string accessibility, string typeName, string fullTypeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields, string backendReason)
 		{
+			appendGeneratedFor(builder, typeName, fullTypeName, "List");
 			builder.AppendLine(accessibility + " sealed class " + typeName + "ECSList : global::System.IDisposable");
 			builder.AppendLine("{");
 			builder.AppendLine("\tpublic const bool IsUnsafeBackend = false;");
@@ -1806,6 +1809,7 @@ namespace ECSSourceGenerator
 		}
 		private static void generateSafeRegistryList(StringBuilder builder, string accessibility, string typeName, string fullTypeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields, string backendReason)
 		{
+			appendGeneratedFor(builder, typeName, fullTypeName, "List");
 			builder.AppendLine(accessibility + " sealed class " + typeName + "ECSList : global::System.IDisposable");
 			builder.AppendLine("{");
 			builder.AppendLine("\tpublic const bool IsUnsafeBackend = false;");
@@ -3110,6 +3114,13 @@ namespace ECSSourceGenerator
 				}
 			}
 			return false;
+		}
+		private static void appendGeneratedFor(StringBuilder builder, string typeName, string fullTypeName, string containerName)
+		{
+			builder.AppendLine("/// <summary>");
+			builder.AppendLine("/// <see cref=\"" + typeName + "\"/>的EasyECS " + containerName + ".");
+			builder.AppendLine("/// </summary>");
+			builder.AppendLine("[global::EasyECS.ECSGeneratedFor(typeof(" + fullTypeName + "))]");
 		}
 		private static string getTypeName(ITypeSymbol type)
 		{

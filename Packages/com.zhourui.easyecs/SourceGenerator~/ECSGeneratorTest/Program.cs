@@ -23,6 +23,18 @@ public sealed class ECSAttribute : Attribute
 public sealed class NotECSAttribute : Attribute
 {
 }
+namespace EasyECS
+{
+	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+	public sealed class ECSGeneratedForAttribute : Attribute
+	{
+		public Type SourceType { get; }
+		public ECSGeneratedForAttribute(Type sourceType)
+		{
+			SourceType = sourceType;
+		}
+	}
+}
 ";
 		private const string DICTIONARY_DATA_SOURCE = @"
 [ECS]
@@ -110,6 +122,7 @@ public static class DictionaryUsage
 				new TestCase("正常字段不生成@", testNormalIdentifierDoesNotEscape),
 				new TestCase("关键字字段正确生成@", testKeywordIdentifierEscape),
 				new TestCase("生成代码排版", testGeneratedCodeFormatting),
+				new TestCase("生成容器可导航到原始类型", testGeneratedContainerSourceNavigation),
 				new TestCase("Struct标签冲突ECS001", testStructAttributeConflict),
 				new TestCase("Field标签冲突ECS001", testFieldAttributeConflict),
 				new TestCase("嵌套Struct报ECS002", testNestedStructDiagnostic),
@@ -677,6 +690,22 @@ public struct RoleData
 			assertContains(source, "if (capacity < 1)\n\t\t{\n\t\t\tcapacity = 1;\n\t\t}");
 			assertContains(source, "if (mCount >= mCapacity)\n\t\t{\n\t\t\tresize(mCapacity * 2);\n\t\t}");
 			assertContains(source, "if ((uint)index >= (uint)mCount)\n\t\t{");
+		}
+		private static void testGeneratedContainerSourceNavigation()
+		{
+			GeneratorTestResult result = runGenerator(@"
+[ECS]
+public struct RoleData
+{
+	public int mHP;
+}
+", false);
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "/// <see cref=\"RoleData\"/>的EasyECS List.");
+			assertContains(result.mGeneratedSource, "[global::EasyECS.ECSGeneratedFor(typeof(global::RoleData))]");
+			assertContains(result.mGeneratedSource, "public sealed class RoleDataECSList");
+			assertContains(result.mGeneratedSource, "/// <see cref=\"RoleData\"/>的EasyECS Dictionary&lt;TKey&gt;.");
+			assertContains(result.mGeneratedSource, "public sealed class RoleDataECSDictionary<TKey>");
 		}
 		private static void testStructAttributeConflict()
 		{
