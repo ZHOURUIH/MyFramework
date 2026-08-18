@@ -279,7 +279,10 @@ public abstract class PlatformBase
 	public void updateRemoteVersion()
 	{
 		mRemoteVersion = mObjectStorageSystem.downloadTxt(getRemotePathInEditor("") + VERSION);
-		log("更新远端版本号:" + mRemoteVersion);
+		if (!mRemoteVersion.isEmpty())
+		{
+			log("更新远端版本号:" + mRemoteVersion);
+		}
 		updateEditVersionNumber();
 	}
 	// 将本地的版本号上传到远端
