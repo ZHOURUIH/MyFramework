@@ -224,7 +224,7 @@ public class GameReleaseWindow : GameEditorWindow
 					}
 				}
 
-				long localBigVersion = mPlatform.mVersionNumber[0].SToL() * 1000000000 + mPlatform.mVersionNumber[1].SToL();
+				long localBigVersion = mPlatform.mVersionNumber.get(0).SToL() * 1000000000 + mPlatform.mVersionNumber.get(1).SToL();
 				long remoteBigVersion = getVersionPart(mPlatform.mRemoteVersion, 0) * 1000000000 + getVersionPart(mPlatform.mRemoteVersion, 1);
 				// 大版本更新打包
 				if (button("大版本更新,打包AB+打包程序+上传", "大版本更新打包,会执行打包AB,构建xcode工程或生成apk,并且上传StreamingAssets资源", 200, 30))
