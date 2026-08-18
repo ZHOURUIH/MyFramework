@@ -252,16 +252,16 @@ public abstract class PlatformBase
 	}
 	public string generateMainVersion()
 	{
-		string number0 = mVersionNumber[0];
-		string number1 = (mVersionNumber[1].SToI() + 1).IToS();
+		string number0 = mVersionNumber.get(0).isEmpty() ? "0" : mVersionNumber.get(0);
+		string number1 = (mVersionNumber.get(1).SToI() + 1).IToS();
 		string number2 = "1";
 		return new List<string>() { number0, number1, number2 }.stringsToString('.');
 	}
 	public string generateSubVersion()
 	{
-		string number0 = mVersionNumber[0];
-		string number1 = mVersionNumber[1];
-		string number2 = (mVersionNumber[2].SToI() + 1).IToS();
+		string number0 = mVersionNumber.get(0).isEmpty() ? "0" : mVersionNumber.get(0);
+		string number1 = mVersionNumber.get(0).isEmpty() ? "0" : mVersionNumber.get(1);
+		string number2 = (mVersionNumber.get(2).SToI() + 1).IToS();
 		return new List<string>() { number0, number1, number2 }.stringsToString('.');
 	}
 	// 是否仅本地版本号的低位版本号大于远端的低位版本号
@@ -271,14 +271,14 @@ public abstract class PlatformBase
 		{
 			return false;
 		}
-		return getVersionPart(mRemoteVersion, 0) == mVersionNumber[0].SToL() &&
-			   getVersionPart(mRemoteVersion, 1) == mVersionNumber[1].SToL() &&
-			   getVersionPart(mRemoteVersion, 2) < mVersionNumber[2].SToL();
+		return getVersionPart(mRemoteVersion, 0) == mVersionNumber.get(0).SToL() &&
+			   getVersionPart(mRemoteVersion, 1) == mVersionNumber.get(1).SToL() &&
+			   getVersionPart(mRemoteVersion, 2) < mVersionNumber.get(2).SToL();
 	}
 	// 下载远端的版本号
 	public void updateRemoteVersion()
 	{
-		mRemoteVersion = mObjectStorageSystem.downloadTxt(getRemotePathInEditor("") + VERSION);
+		mRemoteVersion = mObjectStorageSystem?.downloadTxt(getRemotePathInEditor("") + VERSION);
 		if (!mRemoteVersion.isEmpty())
 		{
 			log("更新远端版本号:" + mRemoteVersion);
@@ -291,7 +291,7 @@ public abstract class PlatformBase
 		string remotePath = getRemotePathInEditor("") + VERSION;
 		uploadSingleFile(mAssetBundleFullPath + VERSION, remotePath, true);
 		// 上传版本号以后立即刷新cdn
-		mObjectStorageSystem.refreshCDN(remotePath);
+		mObjectStorageSystem?.refreshCDN(remotePath);
 		updateRemoteVersion();
 		return true;
 	}
@@ -316,9 +316,9 @@ public abstract class PlatformBase
 		// 因为中间可能会上传失败,所以需要多次重试,最多尝试3次
 		log("开始上传文件, path:" + uploadLocalPath);
 		progressBar(displayTitle, "正在获取远端文件列表");
-		var remoteFileList = mObjectStorageSystem.getFileList(remotePath);
+		var remoteFileList = mObjectStorageSystem?.getFileList(remotePath);
 		remoteFileList.remove(mIgnoreFile);
-		log("远端共" + remoteFileList.Count + "个文件");
+		log("远端共" + remoteFileList.count() + "个文件");
 		progressBar(displayTitle, "正在计算本地文件列表");
 		// 对比远端和本地的文件,删除远端无用的文件
 		// 排除的文件和排除的目录
@@ -581,6 +581,10 @@ public abstract class PlatformBase
 	}
 	protected bool doDelete(List<string> deleteList, string remotePath, string displayTitle)
 	{
+		if (mObjectStorageSystem == null)
+		{
+			return false;
+		}
 		bool hasError = false;
 		log("需要删除" + deleteList.Count + "个文件");
 		for (int i = 0; i < deleteList.Count; ++i)
@@ -620,6 +624,10 @@ public abstract class PlatformBase
 	}
 	protected bool uploadSingleFile(string file, string remotePath, bool noCache)
 	{
+		if (mObjectStorageSystem == null)
+		{
+			return false;
+		}
 		log("上传文件:" + file + ", 远端路径:" + remotePath);
 		// 如果上传失败,则最多重试5次
 		HttpStatusCode code = 0;
