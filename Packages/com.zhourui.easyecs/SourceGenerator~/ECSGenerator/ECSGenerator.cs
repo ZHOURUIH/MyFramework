@@ -35,6 +35,11 @@ namespace ECSSourceGenerator
 			CSharpCompilationOptions compilationOptions = context.Compilation.Options as CSharpCompilationOptions;
 			bool allowUnsafe = compilationOptions != null && compilationOptions.AllowUnsafe;
 			bool hasSpan = context.Compilation.GetTypeByMetadataName("System.Span`1") != null && context.Compilation.GetTypeByMetadataName("System.ReadOnlySpan`1") != null;
+			bool hasBurstJobs = context.Compilation.GetTypeByMetadataName("Unity.Burst.BurstCompileAttribute") != null
+				&& context.Compilation.GetTypeByMetadataName("Unity.Jobs.JobHandle") != null
+				&& context.Compilation.GetTypeByMetadataName("Unity.Jobs.IJobParallelFor") != null
+				&& context.Compilation.GetTypeByMetadataName("Unity.Jobs.IJobParallelForExtensions") != null
+				&& context.Compilation.GetTypeByMetadataName("Unity.Collections.LowLevel.Unsafe.NativeDisableUnsafePtrRestrictionAttribute") != null;
 			bool forceSafeRegistry = hasPreprocessorSymbol(context.Compilation, "ECS_FORCE_SAFE_REGISTRY");
 			bool needLeakTracker = false;
 			HashSet<string> generatedTypeSet = new HashSet<string>();
@@ -106,7 +111,7 @@ namespace ECSSourceGenerator
 					backendReason = "SpanUnavailable";
 					needLeakTracker = true;
 				}
-				string source = generateCode(structSymbol, ecsFields, aosFields, backend, backendReason, hasSpan);
+				string source = generateCode(structSymbol, ecsFields, aosFields, backend, backendReason, hasSpan, hasBurstJobs);
 				context.AddSource(getHintName(structSymbol) + ".ECS.g.cs", SourceText.From(source, Encoding.UTF8));
 			}
 			if (needLeakTracker)
@@ -197,7 +202,7 @@ namespace ECSSourceGenerator
 			}
 			return true;
 		}
-		private static string generateCode(INamedTypeSymbol structSymbol, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields, Backend backend, string backendReason, bool hasSpan)
+		private static string generateCode(INamedTypeSymbol structSymbol, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields, Backend backend, string backendReason, bool hasSpan, bool hasBurstJobs)
 		{
 			string typeName = structSymbol.Name;
 			string fullTypeName = getTypeName(structSymbol);
@@ -220,7 +225,7 @@ namespace ECSSourceGenerator
 					generateUnsafeStorage(builder, typeName, ecsFields, aosFields);
 					generateUnsafeManagedStorage(builder, typeName, ecsFields, aosFields);
 					generateUnsafeRef(builder, accessibility, typeName, ecsFields, aosFields);
-					generateUnsafeList(builder, accessibility, typeName, fullTypeName, ecsFields, aosFields, backendReason, hasSpan);
+					generateUnsafeList(builder, accessibility, typeName, fullTypeName, ecsFields, aosFields, backendReason, hasSpan, hasBurstJobs);
 					break;
 				case Backend.SafeSpan:
 					generateSafeSpanStorage(builder, typeName, ecsFields, aosFields);
@@ -234,15 +239,16 @@ namespace ECSSourceGenerator
 					generateSafeRegistryList(builder, accessibility, typeName, fullTypeName, ecsFields, aosFields, backendReason);
 					break;
 			}
-			generateDictionary(builder, accessibility, typeName, fullTypeName, ecsFields, aosFields, backend, hasSpan);
+			generateDictionary(builder, accessibility, typeName, fullTypeName, ecsFields, aosFields, backend, hasSpan, hasBurstJobs);
 			if (!string.IsNullOrEmpty(namespaceName))
 			{
 				builder.AppendLine("}");
 			}
 			return builder.ToString();
 		}
-		private static void generateDictionary(StringBuilder builder, string accessibility, string typeName, string fullTypeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields, Backend backend, bool hasSpan)
+		private static void generateDictionary(StringBuilder builder, string accessibility, string typeName, string fullTypeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields, Backend backend, bool hasSpan, bool hasBurstJobs)
 		{
+			bool hasBurstIntegration = backend == Backend.Unsafe && hasBurstJobs && ecsFields.Any(field => isBurstCompatibleType(field.Type));
 			appendGeneratedFor(builder, typeName, fullTypeName, "Dictionary&lt;TKey&gt;");
 			builder.AppendLine(accessibility + " sealed class " + typeName + "ECSDictionary<TKey> : global::System.IDisposable");
 			builder.AppendLine("{");
@@ -316,6 +322,33 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t\t\treturn new ValueEnumerable(this);");
 			builder.AppendLine("\t\t}");
 			builder.AppendLine("\t}");
+			if (hasBurstIntegration)
+			{
+				builder.AppendLine("\tpublic " + typeName + "ECSList.BurstView GetBurstView()");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\treturn mValues.GetBurstView();");
+				builder.AppendLine("\t}");
+				builder.AppendLine("\tpublic global::Unity.Jobs.JobHandle ScheduleBurst<TJob>(TJob job, int innerloopBatchCount = 64) where TJob : struct, global::Unity.Jobs.IJobParallelFor");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\treturn mValues.ScheduleBurst(job, innerloopBatchCount);");
+				builder.AppendLine("\t}");
+				builder.AppendLine("\tpublic global::Unity.Jobs.JobHandle ScheduleBurst<TJob>(TJob job, int innerloopBatchCount, global::Unity.Jobs.JobHandle dependsOn) where TJob : struct, global::Unity.Jobs.IJobParallelFor");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\treturn mValues.ScheduleBurst(job, innerloopBatchCount, dependsOn);");
+				builder.AppendLine("\t}");
+				builder.AppendLine("\tpublic global::Unity.Jobs.JobHandle GetBurstDependency()");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\treturn mValues.GetBurstDependency();");
+				builder.AppendLine("\t}");
+				builder.AppendLine("\tpublic void RegisterBurstJob(global::Unity.Jobs.JobHandle handle)");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\tmValues.RegisterBurstJob(handle);");
+				builder.AppendLine("\t}");
+				builder.AppendLine("\tpublic void CompleteBurstJobs()");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\tmValues.CompleteBurstJobs();");
+				builder.AppendLine("\t}");
+			}
 			builder.AppendLine("\tpublic " + typeName + "Ref this[TKey key]");
 			builder.AppendLine("\t{");
 			appendAggressiveInlining(builder, 2);
@@ -2027,9 +2060,11 @@ namespace ECSSourceGenerator
 			builder.AppendLine("#endif");
 			return builder.ToString();
 		}
-		private static void generateUnsafeList(StringBuilder builder, string accessibility, string typeName, string fullTypeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields, string backendReason, bool hasSpan)
+		private static void generateUnsafeList(StringBuilder builder, string accessibility, string typeName, string fullTypeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields, string backendReason, bool hasSpan, bool hasBurstJobs)
 		{
 			bool hasManagedStorage = ecsFields.Any(field => !field.Type.IsUnmanagedType) || aosFields.Any(field => !field.Type.IsUnmanagedType);
+			List<IFieldSymbol> burstFields = hasBurstJobs ? ecsFields.Where(field => isBurstCompatibleType(field.Type)).ToList() : new List<IFieldSymbol>();
+			bool hasBurstIntegration = burstFields.Count > 0;
 			appendGeneratedFor(builder, typeName, fullTypeName, "List");
 			builder.AppendLine(accessibility + " unsafe sealed class " + typeName + "ECSList : global::System.IDisposable");
 			builder.AppendLine("{");
@@ -2047,6 +2082,11 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\tprivate int mCount;");
 			builder.AppendLine("\tprivate int mCapacity;");
 			builder.AppendLine("\tprivate bool mDisposed;");
+			if (hasBurstIntegration)
+			{
+				builder.AppendLine("\tprivate global::Unity.Jobs.JobHandle mBurstJobHandle;");
+				builder.AppendLine("\tprivate bool mHasPendingBurstJob;");
+			}
 			generateEditorValidationFields(builder, true);
 			generateUnsafeProperties(builder, typeName, hasManagedStorage);
 			generateUnsafeDictionaryStorageAccessor(builder, typeName, hasManagedStorage);
@@ -2061,13 +2101,17 @@ namespace ECSSourceGenerator
 					generateUnsafeManagedColumn(builder, typeName, field);
 				}
 			}
-			generateUnsafeConstructor(builder, typeName, ecsFields, aosFields);
+			if (hasBurstIntegration)
+			{
+				generateUnsafeBurstIntegration(builder, typeName, burstFields);
+			}
+			generateUnsafeConstructor(builder, typeName, ecsFields, aosFields, hasBurstIntegration);
 			generateUnsafeContainerMethods(builder, typeName, fullTypeName, ecsFields, aosFields);
 			generateExtendedListMethods(builder, typeName, fullTypeName, ecsFields, aosFields);
 			generateUnsafeExtendedListHelpers(builder, typeName, fullTypeName, ecsFields, aosFields, hasSpan);
-			generateUnsafeResize(builder, typeName, ecsFields, aosFields);
+			generateUnsafeResize(builder, typeName, ecsFields, aosFields, hasBurstIntegration);
 			generateUnsafeAllocateColumns(builder, typeName, ecsFields, aosFields);
-			generateUnsafeDispose(builder, typeName, ecsFields, aosFields);
+			generateUnsafeDispose(builder, typeName, ecsFields, aosFields, hasBurstIntegration);
 			generateUnsafeHelpers(builder);
 			generateEditorValidationMethods(builder, typeName, true);
 			builder.AppendLine("}");
@@ -2495,7 +2539,175 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t\t}");
 			builder.AppendLine("\t}");
 		}
-		private static void generateUnsafeConstructor(StringBuilder builder, string typeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields)
+		private static void generateUnsafeBurstIntegration(StringBuilder builder, string typeName, List<IFieldSymbol> burstFields)
+		{
+			builder.AppendLine("\tpublic readonly unsafe struct BurstView");
+			builder.AppendLine("\t{");
+			foreach (IFieldSymbol field in burstFields)
+			{
+				builder.AppendLine("\t\t[global::Unity.Collections.LowLevel.Unsafe.NativeDisableUnsafePtrRestriction]");
+				builder.AppendLine("\t\tpublic readonly " + getTypeName(field.Type) + "* " + fieldAccess(field) + ";");
+			}
+			builder.AppendLine("\t\tpublic readonly int Count;");
+			builder.Append("\t\tpublic BurstView(");
+			for (int i = 0; i < burstFields.Count; ++i)
+			{
+				if (i > 0)
+				{
+					builder.Append(", ");
+				}
+				IFieldSymbol field = burstFields[i];
+				builder.Append(getTypeName(field.Type) + "* " + fieldAccess(field));
+			}
+			builder.AppendLine(", int count)");
+			builder.AppendLine("\t\t{");
+			foreach (IFieldSymbol field in burstFields)
+			{
+				builder.AppendLine("\t\t\tthis." + fieldAccess(field) + " = " + fieldAccess(field) + ";");
+			}
+			builder.AppendLine("\t\t\tCount = count;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tpublic BurstView GetBurstView()");
+			builder.AppendLine("\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\tvalidateAlive();");
+			builder.AppendLine("#endif");
+			builder.Append("\t\treturn new BurstView(");
+			for (int i = 0; i < burstFields.Count; ++i)
+			{
+				if (i > 0)
+				{
+					builder.Append(", ");
+				}
+				builder.Append("mStorage->" + fieldAccess(burstFields[i]));
+			}
+			builder.AppendLine(", mCount);");
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tpublic global::Unity.Jobs.JobHandle ScheduleBurst<TJob>(TJob job, int innerloopBatchCount = 64) where TJob : struct, global::Unity.Jobs.IJobParallelFor");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\treturn ScheduleBurst(job, innerloopBatchCount, default(global::Unity.Jobs.JobHandle));");
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tpublic global::Unity.Jobs.JobHandle ScheduleBurst<TJob>(TJob job, int innerloopBatchCount, global::Unity.Jobs.JobHandle dependsOn) where TJob : struct, global::Unity.Jobs.IJobParallelFor");
+			builder.AppendLine("\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\tvalidateAlive();");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\tif (innerloopBatchCount < 1)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tthrow new global::System.ArgumentOutOfRangeException(nameof(innerloopBatchCount));");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tif (mHasPendingBurstJob)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tdependsOn = global::Unity.Jobs.JobHandle.CombineDependencies(mBurstJobHandle, dependsOn);");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tglobal::Unity.Jobs.JobHandle handle = global::Unity.Jobs.IJobParallelForExtensions.Schedule(job, mCount, innerloopBatchCount, dependsOn);");
+			builder.AppendLine("\t\tmBurstJobHandle = handle;");
+			builder.AppendLine("\t\tmHasPendingBurstJob = true;");
+			builder.AppendLine("\t\treturn handle;");
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tpublic global::Unity.Jobs.JobHandle GetBurstDependency()");
+			builder.AppendLine("\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\tvalidateAlive();");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\treturn mHasPendingBurstJob ? mBurstJobHandle : default(global::Unity.Jobs.JobHandle);");
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tpublic void RegisterBurstJob(global::Unity.Jobs.JobHandle handle)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\tvalidateAlive();");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\tif (mHasPendingBurstJob)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tmBurstJobHandle = global::Unity.Jobs.JobHandle.CombineDependencies(mBurstJobHandle, handle);");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\telse");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tmBurstJobHandle = handle;");
+			builder.AppendLine("\t\t\tmHasPendingBurstJob = true;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tpublic void CompleteBurstJobs()");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tcompleteBurstJobs();");
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tprivate void completeBurstJobs()");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tif (!mHasPendingBurstJob)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\treturn;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tmBurstJobHandle.Complete();");
+			builder.AppendLine("\t\tmBurstJobHandle = default(global::Unity.Jobs.JobHandle);");
+			builder.AppendLine("\t\tmHasPendingBurstJob = false;");
+			builder.AppendLine("\t}");
+		}
+		private static bool isBurstCompatibleType(ITypeSymbol type)
+		{
+			return isBurstCompatibleType(type, new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default));
+		}
+		private static bool isBurstCompatibleType(ITypeSymbol type, HashSet<ITypeSymbol> visiting)
+		{
+			if (type == null || !type.IsUnmanagedType)
+			{
+				return false;
+			}
+			if (type.TypeKind == TypeKind.Enum)
+			{
+				return true;
+			}
+			if (type is IPointerTypeSymbol pointerType)
+			{
+				return isBurstCompatibleType(pointerType.PointedAtType, visiting);
+			}
+			switch (type.SpecialType)
+			{
+				case SpecialType.System_Boolean:
+				case SpecialType.System_Byte:
+				case SpecialType.System_SByte:
+				case SpecialType.System_Int16:
+				case SpecialType.System_UInt16:
+				case SpecialType.System_Int32:
+				case SpecialType.System_UInt32:
+				case SpecialType.System_Int64:
+				case SpecialType.System_UInt64:
+				case SpecialType.System_Single:
+				case SpecialType.System_Double:
+					return true;
+				case SpecialType.System_Char:
+				case SpecialType.System_Decimal:
+					return false;
+			}
+			string metadataName = type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+			if (metadataName == "global::System.IntPtr" || metadataName == "global::System.UIntPtr")
+			{
+				return true;
+			}
+			if (!(type is INamedTypeSymbol namedType) || namedType.TypeKind != TypeKind.Struct)
+			{
+				return false;
+			}
+			if (!visiting.Add(type))
+			{
+				return true;
+			}
+			foreach (IFieldSymbol field in namedType.GetMembers().OfType<IFieldSymbol>())
+			{
+				if (field.IsStatic || field.IsImplicitlyDeclared)
+				{
+					continue;
+				}
+				if (!isBurstCompatibleType(field.Type, visiting))
+				{
+					visiting.Remove(type);
+					return false;
+				}
+			}
+			visiting.Remove(type);
+			return true;
+		}
+		private static void generateUnsafeConstructor(StringBuilder builder, string typeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields, bool hasBurstIntegration)
 		{
 			bool hasManagedStorage = ecsFields.Any(field => !field.Type.IsUnmanagedType) || aosFields.Any(field => !field.Type.IsUnmanagedType);
 			builder.AppendLine("\tpublic " + typeName + "ECSList(int capacity = 4)");
@@ -2564,6 +2776,13 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t\t\tmDebugLifecycleID = 0;");
 			builder.AppendLine("\t\t}");
 			builder.AppendLine("#endif");
+			if (hasBurstIntegration)
+			{
+				builder.AppendLine("\t\tif (mHasPendingBurstJob)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\treturn;");
+				builder.AppendLine("\t\t}");
+			}
 			builder.AppendLine("\t\tdispose();");
 			builder.AppendLine("\t}");
 			builder.AppendLine("\tpublic void Dispose()");
@@ -5259,11 +5478,15 @@ namespace ECSSourceGenerator
 				builder.AppendLine("\t}");
 			}
 		}
-		private static void generateUnsafeResize(StringBuilder builder, string typeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields)
+		private static void generateUnsafeResize(StringBuilder builder, string typeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields, bool hasBurstIntegration)
 		{
 			bool hasManagedAoS = aosFields.Any(field => !field.Type.IsUnmanagedType);
 			builder.AppendLine("\tprivate void resize(int capacity)");
 			builder.AppendLine("\t{");
+			if (hasBurstIntegration)
+			{
+				builder.AppendLine("\t\tcompleteBurstJobs();");
+			}
 			builder.AppendLine("#if UNITY_EDITOR");
 			builder.AppendLine("\t\tint[] newRefGeneration = new int[capacity];");
 			builder.AppendLine("\t\tint generationCopyCount = mRefGeneration.Length < capacity ? mRefGeneration.Length : capacity;");
@@ -5404,12 +5627,16 @@ namespace ECSSourceGenerator
 			}
 			builder.AppendLine("\t}");
 		}
-		private static void generateUnsafeDispose(StringBuilder builder, string typeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields)
+		private static void generateUnsafeDispose(StringBuilder builder, string typeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields, bool hasBurstIntegration)
 		{
 			bool hasManagedStorage = ecsFields.Any(field => !field.Type.IsUnmanagedType) || aosFields.Any(field => !field.Type.IsUnmanagedType);
 			bool hasManagedAoS = aosFields.Any(field => !field.Type.IsUnmanagedType);
 			builder.AppendLine("\tprivate void dispose()");
 			builder.AppendLine("\t{");
+			if (hasBurstIntegration)
+			{
+				builder.AppendLine("\t\tcompleteBurstJobs();");
+			}
 			builder.AppendLine("\t\tif (mDisposed)");
 			builder.AppendLine("\t\t{");
 			builder.AppendLine("\t\t\treturn;");

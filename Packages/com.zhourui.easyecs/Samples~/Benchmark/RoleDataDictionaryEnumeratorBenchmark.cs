@@ -127,7 +127,6 @@ public class RoleDataDictionaryEnumeratorBenchmark : MonoBehaviour
 	}
 	private void runKeyBenchmark()
 	{
-		Debug.Log("ECS KeyEnumerationStrategy:" + RoleDataECSDictionary<int>.KeyEnumerationStrategy);
 		BenchmarkResult arrayFor = measure(runKeyArrayFor, ENTITY_COUNT);
 		BenchmarkResult arrayForeach = measure(runKeyArrayForeach, ENTITY_COUNT);
 		BenchmarkResult readOnlySpanForeach = measure(runKeyReadOnlySpanForeach, ENTITY_COUNT);

@@ -36,6 +36,47 @@ namespace EasyECS
 	}
 }
 ";
+
+		private const string BURST_STUB_SOURCE = @"
+namespace Unity.Burst
+{
+	[global::System.AttributeUsage(global::System.AttributeTargets.Struct | global::System.AttributeTargets.Class | global::System.AttributeTargets.Method)]
+	public sealed class BurstCompileAttribute : global::System.Attribute
+	{
+	}
+}
+namespace Unity.Collections.LowLevel.Unsafe
+{
+	[global::System.AttributeUsage(global::System.AttributeTargets.Field)]
+	public sealed class NativeDisableUnsafePtrRestrictionAttribute : global::System.Attribute
+	{
+	}
+}
+namespace Unity.Jobs
+{
+	public struct JobHandle
+	{
+		public void Complete()
+		{
+		}
+		public static JobHandle CombineDependencies(JobHandle left, JobHandle right)
+		{
+			return default(JobHandle);
+		}
+	}
+	public interface IJobParallelFor
+	{
+		void Execute(int index);
+	}
+	public static class IJobParallelForExtensions
+	{
+		public static JobHandle Schedule<TJob>(TJob jobData, int arrayLength, int innerloopBatchCount, JobHandle dependsOn) where TJob : struct, IJobParallelFor
+		{
+			return default(JobHandle);
+		}
+	}
+}
+";
 		private const string DICTIONARY_DATA_SOURCE = @"
 [ECS]
 public struct RoleData
@@ -238,6 +279,11 @@ public static class DictionaryUsage
 				new TestCase("Fixed字段报ECS003", testFixedFieldDiagnostic),
 				new TestCase("Private字段报ECS003", testPrivateFieldDiagnostic),
 				new TestCase("Column名称冲突报ECS004", testColumnNameConflictDiagnostic),
+				new TestCase("Burst不存在不生成Burst接口", testBurstUnavailableDoesNotGenerate),
+				new TestCase("Burst存在Unsafe生成BurstView", testBurstUnsafeGeneration),
+				new TestCase("Burst Managed Hybrid过滤Managed字段", testBurstHybridFieldFiltering),
+				new TestCase("Burst Safe后端不生成Burst接口", testBurstSafeBackendDoesNotGenerate),
+				new TestCase("Burst接口编译", testBurstUsageCompile),
 				new TestCase("ECSDictionary生成", testDictionaryGeneration),
 				new TestCase("ECSDictionary TryGetIndex生成", testDictionaryTryGetIndexGeneration),
 				new TestCase("ECSDictionary DenseIndex/GetOrAddIndex生成", testDictionaryDenseIndexGeneration),
@@ -1116,6 +1162,100 @@ public struct RoleData
 	public int HP;
 }
 ", false, "ECS004");
+		}
+		private static void testBurstUnavailableDoesNotGenerate()
+		{
+			GeneratorTestResult result = runGenerator(DICTIONARY_DATA_SOURCE, true);
+			assertNoErrors(result);
+			assertDoesNotContain(result.mGeneratedSource, "struct BurstView");
+			assertDoesNotContain(result.mGeneratedSource, "ScheduleBurst<TJob>");
+			assertDoesNotContain(result.mGeneratedSource, "CompleteBurstJobs()");
+			assertDoesNotContain(result.mGeneratedSource, "global::Unity.Jobs");
+		}
+		private static void testBurstUnsafeGeneration()
+		{
+			GeneratorTestResult result = runGenerator(BURST_STUB_SOURCE + DICTIONARY_DATA_SOURCE, true);
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "public readonly unsafe struct BurstView");
+			assertContains(result.mGeneratedSource, "public readonly int* mHP;");
+			assertContains(result.mGeneratedSource, "public readonly float* mSpeed;");
+			assertContains(result.mGeneratedSource, "public readonly float* mPositionX;");
+			assertContains(result.mGeneratedSource, "public readonly float* mPositionY;");
+			assertContains(result.mGeneratedSource, "public readonly int Count;");
+			assertContains(result.mGeneratedSource, "public BurstView(");
+			assertContains(result.mGeneratedSource, "public BurstView GetBurstView()");
+			assertContains(result.mGeneratedSource, "public global::Unity.Jobs.JobHandle ScheduleBurst<TJob>");
+			assertContains(result.mGeneratedSource, "public global::Unity.Jobs.JobHandle GetBurstDependency()");
+			assertContains(result.mGeneratedSource, "public void RegisterBurstJob(global::Unity.Jobs.JobHandle handle)");
+			assertContains(result.mGeneratedSource, "public void CompleteBurstJobs()");
+			assertContains(result.mGeneratedSource, "global::Unity.Jobs.JobHandle.CombineDependencies(mBurstJobHandle, dependsOn)");
+			assertContains(result.mGeneratedSource, "global::Unity.Jobs.IJobParallelForExtensions.Schedule(job, mCount, innerloopBatchCount, dependsOn)");
+			assertContains(result.mGeneratedSource, "completeBurstJobs();");
+			assertContains(result.mGeneratedSource, "~RoleDataECSList()");
+			assertContains(result.mGeneratedSource, "if (mHasPendingBurstJob)");
+			assertContains(result.mGeneratedSource, "public RoleDataECSList.BurstView GetBurstView()");
+		}
+		private static void testBurstHybridFieldFiltering()
+		{
+			GeneratorTestResult result = runGenerator(BURST_STUB_SOURCE + @"
+[ECS]
+public struct BurstHybridData
+{
+	public int mHP;
+	public float mSpeed;
+	public string mName;
+	public object mPayload;
+	[NotECS] public int mID;
+}
+", true);
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "public const string BackendReason = \"AllowUnsafe=true,HybridStorage=true\";");
+			assertContains(result.mGeneratedSource, "public readonly unsafe struct BurstView");
+			assertContains(result.mGeneratedSource, "public readonly int* mHP;");
+			assertContains(result.mGeneratedSource, "public readonly float* mSpeed;");
+			assertDoesNotContain(result.mGeneratedSource, "public readonly string* mName;");
+			assertDoesNotContain(result.mGeneratedSource, "public readonly object* mPayload;");
+			assertDoesNotContain(result.mGeneratedSource, "public readonly int* mID;");
+		}
+		private static void testBurstSafeBackendDoesNotGenerate()
+		{
+			GeneratorTestResult safeSpanResult = runGenerator(BURST_STUB_SOURCE + DICTIONARY_DATA_SOURCE, false);
+			assertNoErrors(safeSpanResult);
+			assertContains(safeSpanResult.mGeneratedSource, "public const string BackendName = \"SafeSpan\";");
+			assertDoesNotContain(safeSpanResult.mGeneratedSource, "struct BurstView");
+			GeneratorTestResult safeRegistryResult = runGenerator(BURST_STUB_SOURCE + DICTIONARY_DATA_SOURCE, true, "ECS_FORCE_SAFE_REGISTRY");
+			assertNoErrors(safeRegistryResult);
+			assertContains(safeRegistryResult.mGeneratedSource, "public const string BackendName = \"SafeRegistry\";");
+			assertDoesNotContain(safeRegistryResult.mGeneratedSource, "struct BurstView");
+		}
+		private static void testBurstUsageCompile()
+		{
+			GeneratorTestResult result = runGenerator(BURST_STUB_SOURCE + DICTIONARY_DATA_SOURCE + @"
+public unsafe struct RoleBurstTestJob : Unity.Jobs.IJobParallelFor
+{
+	public RoleDataECSList.BurstView mData;
+	public void Execute(int index)
+	{
+		mData.mHP[index] += 1;
+		mData.mPositionX[index] += mData.mSpeed[index];
+	}
+}
+public static class RoleBurstUsage
+{
+	public static int Run()
+	{
+		RoleDataECSList list = new RoleDataECSList(8);
+		list.Add(new RoleData { mHP = 10, mSpeed = 2.0f, mPositionX = 1.0f });
+		RoleDataECSList.BurstView view = list.GetBurstView();
+		Unity.Jobs.JobHandle handle = list.ScheduleBurst(new RoleBurstTestJob { mData = view }, 64);
+		list.CompleteBurstJobs();
+		int value = list[0].mHP;
+		list.Dispose();
+		return value;
+	}
+}
+", true);
+			assertNoErrors(result);
 		}
 		private static void testDictionaryGeneration()
 		{
