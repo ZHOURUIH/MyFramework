@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -48,6 +48,78 @@ public struct RoleData
 	[NotECS] public int mCamp;
 }
 ";
+		private const string LIST_EXTENDED_USAGE_SOURCE = @"
+[ECS]
+public struct RangeData
+{
+	public int mValue;
+	[NotECS] public int mID;
+}
+public static class ListExtendedUsage
+{
+	public static int Run()
+	{
+		RangeDataECSList list = new RangeDataECSList(1);
+		RangeData[] source = new RangeData[]
+		{
+			new RangeData { mValue = 3, mID = 3 },
+			new RangeData { mValue = 1, mID = 1 },
+			new RangeData { mValue = 2, mID = 2 },
+		};
+		list.AddRange(source);
+		list.InsertRange(1, source, 1, 2);
+		RangeDataECSList other = new RangeDataECSList();
+		other.AddRange(source);
+		list.AddRange(other);
+		list.InsertRange(0, other);
+		list.RemoveRange(0, 1);
+		list.RemoveAll(value => value.mValue < 0);
+		list.Contains(source[0]);
+		list.IndexOf(source[0]);
+		list.LastIndexOf(source[0]);
+		list.Remove(source[0]);
+		list.Reverse();
+		list.Reverse(0, list.Count);
+		list.Sort((left, right) => left.mValue.CompareTo(right.mValue));
+		global::System.Collections.Generic.IComparer<RangeData> comparer = global::System.Collections.Generic.Comparer<RangeData>.Create((left, right) => left.mValue.CompareTo(right.mValue));
+		list.Sort(comparer);
+		list.Sort(0, list.Count, comparer);
+		list.SortByValue();
+		global::System.Collections.Generic.IComparer<int> valueComparer = global::System.Collections.Generic.Comparer<int>.Default;
+		list.SortByValue(valueComparer);
+		list.SortByValue(0, list.Count, valueComparer);
+		int search = list.BinarySearch(source[1], comparer);
+		list.BinarySearch(0, list.Count, source[1], comparer);
+		search += list.BinarySearchByValue(source[1].mValue);
+		search += list.BinarySearchByValue(source[1].mValue, valueComparer);
+		search += list.BinarySearchByValue(0, list.Count, source[1].mValue, valueComparer);
+		list.ContainsByValue(source[1].mValue);
+		search += list.IndexOfByValue(source[1].mValue);
+		search += list.LastIndexOfByValue(source[1].mValue);
+		list.ExistsByValue(value => value == 1);
+		search += list.FindIndexByValue(value => value == 1);
+		search += list.FindIndexByValue(0, value => value == 1);
+		search += list.FindIndexByValue(0, list.Count, value => value == 1);
+		search += list.RemoveAllByValue(value => value < 0);
+		list.Exists(value => value.mValue == 1);
+		list.Find(value => value.mValue == 1);
+		list.FindIndex(value => value.mValue == 1);
+		list.FindLast(value => value.mValue == 1);
+		list.FindLastIndex(value => value.mValue == 1);
+		list.TrueForAll(value => value.mValue >= 0);
+		RangeData[] copy = list.ToArray();
+		list.CopyTo(copy);
+		list.CopyTo(copy, 0);
+		list.CopyTo(0, copy, 0, list.Count);
+		list.EnsureCapacity(64);
+		list.TrimExcess();
+		int result = list.Count + search;
+		other.Dispose();
+		list.Dispose();
+		return result;
+	}
+}
+";
 		private const string DICTIONARY_USAGE_SOURCE = @"
 public static class DictionaryUsage
 {
@@ -67,6 +139,8 @@ public static class DictionaryUsage
 		{
 			sum += index;
 		}
+		int directIndex = dict.GetIndex(1);
+		sum += directIndex;
 		foreach (var item in dict)
 		{
 			int key = item.Key;
@@ -83,6 +157,31 @@ public static class DictionaryUsage
 			value.mHP += 1;
 			sum += value.mHP;
 		}
+		dict.SetValue(1, new RoleData { mHP = 30, mSpeed = 3.0f, mPositionX = 6.0f, mPositionY = 9.0f, mID = 1, mCamp = 4 });
+		dict.TrySetValue(1, new RoleData { mHP = 31, mSpeed = 3.1f, mPositionX = 6.2f, mPositionY = 9.3f, mID = 1, mCamp = 4 });
+		dict.SetValueByHP(1, 32);
+		dict.TrySetValueByHP(1, 33);
+		sum += dict.GetValueByHP(1);
+		if (dict.TryGetValueByHP(1, out int hpValue))
+		{
+			sum += hpValue;
+		}
+		RoleDataRef setOrAdd = dict.SetOrAdd(3, new RoleData { mHP = 40, mID = 3 });
+		RoleDataRef getOrAdd = dict.GetOrAdd(4, new RoleData { mHP = 50, mID = 4 });
+		RoleDataRef getOrAddDefault = dict.GetOrAdd(5);
+		int existingIndex = dict.GetOrAddIndex(4, new RoleData { mHP = 500, mID = 4 });
+		int addedIndex = dict.GetOrAddIndex(6, new RoleData { mHP = 60, mID = 6 }, out bool addedIndexValue);
+		sum += existingIndex + addedIndex + (addedIndexValue ? 1 : 0);
+		if (dict.ContainsValue(new RoleData { mHP = 50, mID = 4 }))
+		{
+			sum += getOrAdd.mHP;
+		}
+		if (dict.Remove(5, out RoleData removed))
+		{
+			sum += removed.mHP;
+		}
+		dict.EnsureCapacity(32);
+		dict.TrimExcess();
 		RoleDataRef denseValue = dict.getValueAt(0);
 		denseValue.mHP += dict.getKeyAt(0);
 		var hp = dict.getHPColumn();
@@ -119,6 +218,12 @@ public static class DictionaryUsage
 				new TestCase("ECSList SafeRegistry Insert/RemoveAt编译", testListInsertRemoveAtSafeRegistryCompile),
 				new TestCase("ECSList Hybrid Unsafe Insert/RemoveAt编译", testListInsertRemoveAtHybridUnsafeCompile),
 				new TestCase("ECSList Insert/RemoveAt Editor区间失效生成", testListInsertRemoveAtEditorInvalidationGeneration),
+				new TestCase("ECSList扩展API生成", testListExtendedApiGeneration),
+				new TestCase("ECSList SortBy自适应策略生成", testListSortByAdaptiveStrategyGeneration),
+				new TestCase("ECSList数组转换自适应策略生成", testListArrayConversionStrategyGeneration),
+				new TestCase("ECSList扩展API Unsafe编译", testListExtendedApiUnsafeCompile),
+				new TestCase("ECSList扩展API SafeSpan编译", testListExtendedApiSafeSpanCompile),
+				new TestCase("ECSList扩展API SafeRegistry编译", testListExtendedApiSafeRegistryCompile),
 				new TestCase("正常字段不生成@", testNormalIdentifierDoesNotEscape),
 				new TestCase("关键字字段正确生成@", testKeywordIdentifierEscape),
 				new TestCase("生成代码排版", testGeneratedCodeFormatting),
@@ -135,6 +240,8 @@ public static class DictionaryUsage
 				new TestCase("Column名称冲突报ECS004", testColumnNameConflictDiagnostic),
 				new TestCase("ECSDictionary生成", testDictionaryGeneration),
 				new TestCase("ECSDictionary TryGetIndex生成", testDictionaryTryGetIndexGeneration),
+				new TestCase("ECSDictionary DenseIndex/GetOrAddIndex生成", testDictionaryDenseIndexGeneration),
+				new TestCase("ECSDictionary扩展API生成", testDictionaryExtendedApiGeneration),
 				new TestCase("ECSDictionary Unsafe编译", testDictionaryUnsafeCompile),
 				new TestCase("ECSDictionary Hybrid Unsafe编译", testDictionaryHybridUnsafeCompile),
 				new TestCase("ECSDictionary SafeSpan编译", testDictionarySafeSpanCompile),
@@ -635,6 +742,191 @@ public struct RoleData
 			}
 			assertContains(result.mGeneratedSource, "invalidateColumn();");
 		}
+		private static void testListExtendedApiGeneration()
+		{
+			GeneratorTestResult result = runGenerator(@"
+[ECS]
+public struct RoleData
+{
+	public int mHP;
+	[NotECS] public int mID;
+}
+", true);
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "public int EnsureCapacity(int capacity)");
+			assertContains(result.mGeneratedSource, "public void TrimExcess()");
+			assertContains(result.mGeneratedSource, "public void AddRange(global::RoleData[] values)");
+			assertContains(result.mGeneratedSource, "public void AddRange(RoleDataECSList values)");
+			assertContains(result.mGeneratedSource, "public void InsertRange(int index, global::RoleData[] values");
+			assertContains(result.mGeneratedSource, "public void InsertRange(int index, RoleDataECSList values)");
+			assertContains(result.mGeneratedSource, "public void RemoveRange(int index, int count)");
+			assertContains(result.mGeneratedSource, "public int RemoveAll(global::System.Predicate<global::RoleData> match)");
+			assertContains(result.mGeneratedSource, "public void Reverse(int index, int count)");
+			assertContains(result.mGeneratedSource, "public void Sort(global::System.Comparison<global::RoleData> comparison)");
+			assertContains(result.mGeneratedSource, "public int BinarySearch(int index, int count, global::RoleData value");
+			assertContains(result.mGeneratedSource, "public void SortByHP()");
+			assertContains(result.mGeneratedSource, "private void introSortBy");
+			assertContains(result.mGeneratedSource, "pickPivotAndPartitionBy");
+			assertDoesNotContain(result.mGeneratedSource, "[global::System.ThreadStaticAttribute]");
+			assertDoesNotContain(result.mGeneratedSource, "private static int[] rentSortPermutation(int count)");
+			assertDoesNotContain(result.mGeneratedSource, "private void applySortPermutation(int index, int count, int[] permutation)");
+			assertDoesNotContain(result.mGeneratedSource, "introSortPermutation(permutation");
+			assertContains(result.mGeneratedSource, "public int BinarySearchByHP(");
+			assertContains(result.mGeneratedSource, "public bool ContainsByHP(");
+			assertContains(result.mGeneratedSource, "public int IndexOfByHP(");
+			assertContains(result.mGeneratedSource, "public int LastIndexOfByHP(");
+			assertContains(result.mGeneratedSource, "public bool ExistsByHP(");
+			assertContains(result.mGeneratedSource, "public int FindIndexByHP(");
+			assertContains(result.mGeneratedSource, "public int RemoveAllByHP(");
+			if (result.mGeneratedSource.IndexOf("ContainsByID(", StringComparison.Ordinal) >= 0 || result.mGeneratedSource.IndexOf("RemoveAllByID(", StringComparison.Ordinal) >= 0)
+			{
+				throw new Exception("NotECS字段不应生成ByColumn高速API");
+			}
+			assertContains(result.mGeneratedSource, "public global::RoleData[] ToArray()");
+			assertContains(result.mGeneratedSource, "private void moveRange(int sourceIndex, int destinationIndex, int count)");
+			assertContains(result.mGeneratedSource, "private void copyFromArray(global::RoleData[] source");
+			assertContains(result.mGeneratedSource, "private void copyToArray(int sourceIndex, global::RoleData[] destination");
+			assertContains(result.mGeneratedSource, "private void reverseRange(int index, int count)");
+			assertContains(result.mGeneratedSource, "private void invalidateRefsRange(int index, int count)");
+		}
+		private static void testListSortByAdaptiveStrategyGeneration()
+		{
+			GeneratorTestResult unmanagedResult = runGenerator(@"
+[ECS]
+public struct UnmanagedRole
+{
+	public int mHP;
+	public float mSpeed;
+	[NotECS] public int mID;
+}
+", true);
+			assertNoErrors(unmanagedResult);
+			assertContains(unmanagedResult.mGeneratedSource, "private void introSortBy");
+			assertContains(unmanagedResult.mGeneratedSource, "pickPivotAndPartitionBy");
+			assertDoesNotContain(unmanagedResult.mGeneratedSource, "rentSortPermutation");
+			assertDoesNotContain(unmanagedResult.mGeneratedSource, "applySortPermutation");
+			GeneratorTestResult managedECSResult = runGenerator(@"
+[ECS]
+public struct ManagedRole
+{
+	public int mHP;
+	public string mName;
+	[NotECS] public int mID;
+}
+", true);
+			assertNoErrors(managedECSResult);
+			assertContains(managedECSResult.mGeneratedSource, "[global::System.ThreadStaticAttribute]");
+			assertContains(managedECSResult.mGeneratedSource, "private static int[] rentSortPermutation(int count)");
+			assertContains(managedECSResult.mGeneratedSource, "private void applySortPermutation(int index, int count, int[] permutation)");
+			assertContains(managedECSResult.mGeneratedSource, "introSortPermutation(permutation");
+			assertDoesNotContain(managedECSResult.mGeneratedSource, "private void introSortBy");
+			GeneratorTestResult managedAoSResult = runGenerator(@"
+[ECS]
+public struct ManagedAoSRole
+{
+	public int mHP;
+	[NotECS] public string mPath;
+}
+", true);
+			assertNoErrors(managedAoSResult);
+			assertContains(managedAoSResult.mGeneratedSource, "rentSortPermutation");
+			assertContains(managedAoSResult.mGeneratedSource, "applySortPermutation");
+			assertDoesNotContain(managedAoSResult.mGeneratedSource, "private void introSortBy");
+		}
+		private static void testListArrayConversionStrategyGeneration()
+		{
+			GeneratorTestResult unmanagedResult = runGenerator(@"
+[ECS]
+public struct UnmanagedBulkData
+{
+	public int mHP;
+	public float mSpeed;
+	[NotECS] public int mID;
+}
+", true);
+			assertNoErrors(unmanagedResult);
+			assertDoesNotContain(unmanagedResult.mGeneratedSource, "ref global::UnmanagedBulkData sourceValue = ref source[sourceCursor];");
+			GeneratorTestResult managedUnsafeResult = runGenerator(@"
+[ECS]
+public struct ManagedBulkData
+{
+	public int mHP;
+	public string mName;
+	public object mPayload;
+	[NotECS] public int mID;
+	[NotECS] public string mPath;
+}
+", true);
+			assertNoErrors(managedUnsafeResult);
+			assertContains(managedUnsafeResult.mGeneratedSource, "int* column0 = mStorage->mHP;");
+			assertContains(managedUnsafeResult.mGeneratedSource, "string[] column1 = mManagedStorage.mName;");
+			assertContains(managedUnsafeResult.mGeneratedSource, "ref global::ManagedBulkData sourceValue = ref source[sourceCursor];");
+			assertContains(managedUnsafeResult.mGeneratedSource, "ref global::ManagedBulkData destinationValue = ref destination[destinationCursor];");
+			assertContains(managedUnsafeResult.mGeneratedSource, "destinationValue.mHP = column0[sourceCursor];");
+			assertContains(managedUnsafeResult.mGeneratedSource, "destinationValue.mPath = aosColumn[sourceCursor].mPath;");
+			assertDoesNotContain(managedUnsafeResult.mGeneratedSource, "global::ManagedBulkData destinationValue = default(global::ManagedBulkData);");
+			assertDoesNotContain(managedUnsafeResult.mGeneratedSource, "destination[destinationCursor] = destinationValue;");
+			GeneratorTestResult managedSafeSpanResult = runGenerator(@"
+[ECS]
+public struct ManagedBulkData
+{
+	public int mHP;
+	public string mName;
+	public object mPayload;
+	[NotECS] public int mID;
+	[NotECS] public string mPath;
+}
+", false);
+			assertNoErrors(managedSafeSpanResult);
+			assertContains(managedSafeSpanResult.mGeneratedSource, "public const string BackendName = \"SafeSpan\";");
+			assertContains(managedSafeSpanResult.mGeneratedSource, "int[] column0 = storage.mHP;");
+			assertContains(managedSafeSpanResult.mGeneratedSource, "ref global::ManagedBulkData destinationValue = ref destination[destinationCursor];");
+			assertDoesNotContain(managedSafeSpanResult.mGeneratedSource, "global::ManagedBulkData destinationValue = default(global::ManagedBulkData);");
+			GeneratorTestResult managedSafeRegistryResult = runGenerator(@"
+[ECS]
+public struct ManagedBulkData
+{
+	public int mHP;
+	public string mName;
+	public object mPayload;
+	[NotECS] public int mID;
+	[NotECS] public string mPath;
+}
+", false, "ECS_FORCE_SAFE_REGISTRY");
+			assertNoErrors(managedSafeRegistryResult);
+			assertContains(managedSafeRegistryResult.mGeneratedSource, "public const string BackendName = \"SafeRegistry\";");
+			assertContains(managedSafeRegistryResult.mGeneratedSource, "string[] column1 = storage.mName;");
+			assertContains(managedSafeRegistryResult.mGeneratedSource, "ref global::ManagedBulkData destinationValue = ref destination[destinationCursor];");
+		}
+		private static void testListExtendedApiUnsafeCompile()
+		{
+			GeneratorTestResult result = runGenerator(LIST_EXTENDED_USAGE_SOURCE, true);
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "public const string BackendName = \"Unsafe\";");
+			assertContains(result.mGeneratedSource, "copyRangeFrom(RangeDataECSList source");
+			assertContains(result.mGeneratedSource, "mStorage->mValue + sourceIndex, count).CopyTo");
+			assertContains(result.mGeneratedSource, "getSortField_mValue");
+			assertContains(result.mGeneratedSource, "private void introSortBy");
+			assertDoesNotContain(result.mGeneratedSource, "applySortPermutation");
+		}
+		private static void testListExtendedApiSafeSpanCompile()
+		{
+			GeneratorTestResult result = runGenerator(LIST_EXTENDED_USAGE_SOURCE, false);
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "public const string BackendName = \"SafeSpan\";");
+			assertContains(result.mGeneratedSource, "global::System.Array.Copy(storage.mValue, sourceIndex, storage.mValue, destinationIndex, count);");
+			assertContains(result.mGeneratedSource, "private void introSortBy");
+			assertDoesNotContain(result.mGeneratedSource, "applySortPermutation");
+		}
+		private static void testListExtendedApiSafeRegistryCompile()
+		{
+			GeneratorTestResult result = runGenerator(LIST_EXTENDED_USAGE_SOURCE, true, "ECS_FORCE_SAFE_REGISTRY");
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "public const string BackendName = \"SafeRegistry\";");
+			assertContains(result.mGeneratedSource, "RangeDataStorage storage = RangeDataStorageRegistry.getStorage(mStorageID);");
+			assertContains(result.mGeneratedSource, "private void introSortBy");
+			assertDoesNotContain(result.mGeneratedSource, "applySortPermutation");
+		}
 		private static void testNormalIdentifierDoesNotEscape()
 		{
 			GeneratorTestResult result = runGenerator(@"
@@ -849,6 +1141,42 @@ public struct RoleData
 			assertContains(result.mGeneratedSource, "public bool TryGetIndex(TKey key, out int index)");
 			assertContains(result.mGeneratedSource, "return mIndexMap.TryGetValue(key, out index);");
 		}
+		private static void testDictionaryDenseIndexGeneration()
+		{
+			GeneratorTestResult result = runGenerator(DICTIONARY_DATA_SOURCE, true);
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "public int GetIndex(TKey key)");
+			assertContains(result.mGeneratedSource, "return mIndexMap[key];");
+			assertContains(result.mGeneratedSource, "public int GetOrAddIndex(TKey key)");
+			assertContains(result.mGeneratedSource, "public int GetOrAddIndex(TKey key, global::RoleData value)");
+			assertContains(result.mGeneratedSource, "public int GetOrAddIndex(TKey key, global::RoleData value, out bool added)");
+			assertContains(result.mGeneratedSource, "return addValue(key, value);");
+			assertContains(result.mGeneratedSource, "private int addValue(TKey key, global::RoleData value)");
+			assertContains(result.mGeneratedSource, "return index;");
+		}
+		private static void testDictionaryExtendedApiGeneration()
+		{
+			GeneratorTestResult result = runGenerator(DICTIONARY_DATA_SOURCE, true);
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "public void SetValue(TKey key, global::RoleData value)");
+			assertContains(result.mGeneratedSource, "public bool TrySetValue(TKey key, global::RoleData value)");
+			assertContains(result.mGeneratedSource, "public RoleDataRef SetOrAdd(TKey key, global::RoleData value)");
+			assertContains(result.mGeneratedSource, "public RoleDataRef GetOrAdd(TKey key)");
+			assertContains(result.mGeneratedSource, "public int GetOrAddIndex(TKey key)");
+			assertContains(result.mGeneratedSource, "public int GetOrAddIndex(TKey key, global::RoleData value, out bool added)");
+			assertContains(result.mGeneratedSource, "public bool ContainsValue(global::RoleData value)");
+			assertContains(result.mGeneratedSource, "public bool Remove(TKey key, out global::RoleData value)");
+			assertContains(result.mGeneratedSource, "public int EnsureCapacity(int capacity)");
+			assertContains(result.mGeneratedSource, "public void TrimExcess()");
+			assertContains(result.mGeneratedSource, "public unsafe int GetValueByHP(TKey key)");
+			assertContains(result.mGeneratedSource, "public unsafe bool TryGetValueByHP(TKey key, out int value)");
+			assertContains(result.mGeneratedSource, "public unsafe void SetValueByHP(TKey key, int value)");
+			assertContains(result.mGeneratedSource, "public unsafe bool TrySetValueByHP(TKey key, int value)");
+			assertDoesNotContain(result.mGeneratedSource, "GetValueByID");
+			assertContains(result.mGeneratedSource, "mValues.getDictionaryStorage()->mHP[index] = value;");
+			assertContains(result.mGeneratedSource, "if (!mIndexMap.Remove(key, out int removeIndex))");
+			assertContains(result.mGeneratedSource, "if (!mIndexMap.TryAdd(key, index))");
+		}
 		private static void testDictionaryUnsafeCompile()
 		{
 			GeneratorTestResult result = runGenerator(DICTIONARY_DATA_SOURCE + DICTIONARY_USAGE_SOURCE, true);
@@ -879,6 +1207,12 @@ public static class Usage
 		var names = dict.getNameColumn();
 		hp[0] += 1;
 		names[0] = ""C"";
+		dict.SetValueByHP(1, 12);
+		dict.SetValueByName(1, ""Fast"");
+		dict.TryGetValueByName(1, out string fastName);
+		int denseIndex = dict.GetIndex(1);
+		int getOrAddIndex = dict.GetOrAddIndex(2, new RoleData { mHP = 20, mName = ""Added"", mID = 2, mModelPath = ""Path/2"" }, out bool indexAdded);
+		hp[denseIndex] += getOrAddIndex + (indexAdded ? 1 : 0);
 		foreach (var item in dict)
 		{
 			item.Value.mHP += 1;
@@ -893,18 +1227,24 @@ public static class Usage
 			assertContains(result.mGeneratedSource, "getDictionaryManagedStorage()");
 			assertContains(result.mGeneratedSource, "private readonly RoleDataManagedStorage mManagedStorage;");
 			assertContains(result.mGeneratedSource, "return new RoleDataRef(mStorage, mManagedStorage, mIndex);");
+			assertContains(result.mGeneratedSource, "public unsafe void SetValueByHP(TKey key, int value)");
+			assertContains(result.mGeneratedSource, "public void SetValueByName(TKey key, string value)");
+			assertContains(result.mGeneratedSource, "mValues.getDictionaryStorage()->mHP[index] = value;");
+			assertContains(result.mGeneratedSource, "mValues.getDictionaryManagedStorage().mName[index] = value;");
 		}
 		private static void testDictionarySafeSpanCompile()
 		{
 			GeneratorTestResult result = runGenerator(DICTIONARY_DATA_SOURCE + DICTIONARY_USAGE_SOURCE, false);
 			assertNoErrors(result);
 			assertContains(result.mGeneratedSource, "public const string BackendName = \"SafeSpan\";");
+			assertContains(result.mGeneratedSource, "mValues.getDictionaryStorage()[0].mHP[index] = value;");
 		}
 		private static void testDictionarySafeRegistryCompile()
 		{
 			GeneratorTestResult result = runGenerator(DICTIONARY_DATA_SOURCE + DICTIONARY_USAGE_SOURCE, false, "ECS_FORCE_SAFE_REGISTRY");
 			assertNoErrors(result);
 			assertContains(result.mGeneratedSource, "public const string BackendName = \"SafeRegistry\";");
+			assertContains(result.mGeneratedSource, "RoleDataStorageRegistry.get_mHP(mValues.getDictionaryStorageID(), index) = value;");
 		}
 		private static void testDictionaryUnsafeForeachFastPath()
 		{
@@ -1001,7 +1341,6 @@ public struct RoleData
 		{
 			GeneratorTestResult result = runGenerator(DICTIONARY_DATA_SOURCE, true);
 			assertNoErrors(result);
-			assertContains(result.mGeneratedSource, "public const string KeyEnumerationStrategy = \"ReadOnlySpan<TKey>.Enumerator\";");
 			assertContains(result.mGeneratedSource, "public global::System.ReadOnlySpan<TKey>.Enumerator GetEnumerator()");
 			assertContains(result.mGeneratedSource, "return new global::System.ReadOnlySpan<TKey>(mOwner.mKeys, 0, mOwner.mValues.Count).GetEnumerator();");
 			assertDoesNotContain(getPlayerDictionaryKeysSource(result.mGeneratedSource), "public struct KeyEnumerator");
@@ -1009,12 +1348,10 @@ public struct RoleData
 
 			GeneratorTestResult safeSpanResult = runGenerator(DICTIONARY_DATA_SOURCE, false);
 			assertNoErrors(safeSpanResult);
-			assertContains(safeSpanResult.mGeneratedSource, "public const string KeyEnumerationStrategy = \"ReadOnlySpan<TKey>.Enumerator\";");
 			assertContains(safeSpanResult.mGeneratedSource, "public global::System.ReadOnlySpan<TKey>.Enumerator GetEnumerator()");
 
 			GeneratorTestResult registryResult = runGenerator(DICTIONARY_DATA_SOURCE, false, "ECS_FORCE_SAFE_REGISTRY");
 			assertNoErrors(registryResult);
-			assertContains(registryResult.mGeneratedSource, "public const string KeyEnumerationStrategy = \"ReadOnlySpan<TKey>.Enumerator\";");
 			assertContains(registryResult.mGeneratedSource, "public global::System.ReadOnlySpan<TKey>.Enumerator GetEnumerator()");
 		}
 		private static string getPlayerDictionaryKeysSource(string generatedSource)

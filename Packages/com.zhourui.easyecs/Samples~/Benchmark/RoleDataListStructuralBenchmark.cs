@@ -86,6 +86,7 @@ public sealed class RoleDataListStructuralBenchmark : MonoBehaviour
 		runRemoveAtBenchmark("RemoveAt尾部", 2);
 		runSwapBackBenchmark();
 		runManagedHybridBenchmark();
+		EasyECSExtendedAPIBenchmark.runListBenchmark();
 		runCapacityGrowthBenchmark();
 		runProfilerGCRegression();
 		Debug.Log("ResultSink:" + mResultSink);

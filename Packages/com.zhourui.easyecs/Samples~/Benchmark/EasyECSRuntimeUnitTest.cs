@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using EasyECS;
 using UnityEngine;
@@ -68,6 +68,14 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 		runTest("List Insert/RemoveAt边界检查", testListInsertRemoveAtBounds);
 		runTest("List Clear后重新使用", testListClearReuse);
 		runTest("List 空Clear", testListEmptyClear);
+		runTest("List AddRange数组/ECSList/自身", testListAddRange);
+		runTest("List InsertRange数组/ECSList/自身", testListInsertRange);
+		runTest("List RemoveRange", testListRemoveRange);
+		runTest("List Contains/IndexOf/RemoveAll", testListSearchAndRemoveAll);
+		runTest("List Reverse/Sort/BinarySearch", testListReverseSortBinarySearch);
+		runTest("List SortBy自适应策略/Range/重复Key", testListSortByPermutation);
+		runTest("List ByColumn Search/RemoveAll", testListByColumnSearchRemoveAll);
+		runTest("List CopyTo/ToArray/Find/Capacity", testListCopyFindCapacity);
 		runTest("List 重复Dispose", testListDoubleDispose);
 		runTest("Managed字段 Add/Get/Set/Clear/Remove", testManagedFields);
 		runTest("Managed List Add/Get/Resize/全部字段", testManagedListAddGetResize);
@@ -78,6 +86,8 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 		runTest("Managed List 大块Insert/RemoveAt移动", testManagedListLargeStructuralMove);
 		runTest("AllManaged List Insert/RemoveAt", testAllManagedListInsertRemoveAt);
 		runTest("Managed List null字段", testManagedListNullFields);
+		runTest("Managed List Range/Sort", testManagedListRangeSort);
+		runTest("Managed List 数组批量转换/局部区间", testManagedListArrayConversion);
 		runTest("Dictionary构造/Count/Capacity/Comparer", testDictionaryConstructor);
 		runTest("Dictionary Add/Indexer/Resize", testDictionaryAddIndexerResize);
 		runTest("Dictionary Add重复Key抛异常", testDictionaryDuplicateAdd);
@@ -97,8 +107,13 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 		runTest("Dictionary 手动Enumerator", testDictionaryManualEnumerator);
 		runTest("Dictionary Direct Column", testDictionaryDirectColumn);
 		runTest("Dictionary TryGetIndex+Direct Column", testDictionaryTryGetIndexDirectColumn);
+		runTest("Dictionary GetIndex/GetOrAddIndex+Direct Column", testDictionaryDenseIndexFastPath);
 		runTest("Dictionary Clear后重新使用", testDictionaryClearReuse);
 		runTest("Dictionary 自定义Comparer", testDictionaryComparer);
+		runTest("Dictionary Set/TrySet/SetOrAdd/GetOrAdd", testDictionarySetAndGetOrAdd);
+		runTest("Dictionary 字段级Get/Set快速路径", testDictionaryFieldFastPath);
+		runTest("Dictionary ContainsValue/Remove out", testDictionaryContainsValueRemoveOut);
+		runTest("Dictionary EnsureCapacity/TrimExcess", testDictionaryCapacityMethods);
 		runTest("Dictionary 重复Dispose", testDictionaryDoubleDispose);
 		runTest("Managed Dictionary Add/Indexer/Resize", testManagedDictionaryAddIndexerResize);
 		runTest("Managed Dictionary TryGetValue与Ref修改", testManagedDictionaryTryGetValue);
@@ -121,6 +136,8 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 		runTest("Editor List RemoveAt影响区间Ref失效", testEditorListRemoveAtAffectedRefs);
 		runTest("Editor List RemoveAt前方Ref保持有效", testEditorListRemoveAtEarlierRef);
 		runTest("Editor List RemoveAt旧Ref不会复活", testEditorListRemoveAtRefDoesNotRevive);
+		runTest("Editor List InsertRange/RemoveRange Ref失效", testEditorListRangeRefInvalidation);
+		runTest("Editor List Sort/Reverse Ref失效", testEditorListSortReverseRefInvalidation);
 		runTest("Editor List Resize后Ref保持有效", testEditorListRefAfterResize);
 		runTest("Editor List Add后Column失效", testEditorListColumnAfterAdd);
 		runTest("Editor List Insert后Column失效", testEditorListColumnAfterInsert);
@@ -205,6 +222,14 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 		{
 			throw new Exception(message);
 		}
+	}
+	private static void assertManagedDataEqual(EasyECSManagedRuntimeTestData expected, EasyECSManagedRuntimeTestData actual, string message)
+	{
+		assertEqual(expected.mHP, actual.mHP, message + ",mHP");
+		assertEqual(expected.mName, actual.mName, message + ",mName");
+		assertSame(expected.mPayload, actual.mPayload, message + ",mPayload");
+		assertEqual(expected.mID, actual.mID, message + ",mID");
+		assertEqual(expected.mModelPath, actual.mModelPath, message + ",mModelPath");
 	}
 	private static void testBackendSelection()
 	{
@@ -718,6 +743,394 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 			list.Dispose();
 		}
 	}
+	private static void testListAddRange()
+	{
+		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList(1);
+		EasyECSRuntimeTestDataECSList other = new EasyECSRuntimeTestDataECSList(1);
+		try
+		{
+			EasyECSRuntimeTestData[] source = { createData(1), createData(2), createData(3) };
+			list.AddRange(source);
+			assertEqual(3, list.Count, "AddRange数组Count错误");
+			for (int i = 0; i < 3; ++i)
+			{
+				assertData(list.Get(i), i + 1, 100, 2.0f, 1, "AddRange数组数据错误,Index:" + i);
+			}
+			other.Add(createData(4));
+			other.Add(createData(5));
+			list.AddRange(other);
+			assertEqual(5, list.Count, "AddRange ECSList Count错误");
+			assertEqual(4, list.Get(3).mID, "AddRange ECSList第一个元素错误");
+			assertEqual(5, list.Get(4).mID, "AddRange ECSList第二个元素错误");
+			list.AddRange(list);
+			assertEqual(10, list.Count, "AddRange自身Count错误");
+			for (int i = 0; i < 5; ++i)
+			{
+				assertEqual(list.Get(i).mID, list.Get(i + 5).mID, "AddRange自身数据错误,Index:" + i);
+			}
+		}
+		finally
+		{
+			other.Dispose();
+			list.Dispose();
+		}
+	}
+	private static void testListInsertRange()
+	{
+		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList(1);
+		EasyECSRuntimeTestDataECSList other = new EasyECSRuntimeTestDataECSList(1);
+		EasyECSRuntimeTestDataECSList self = new EasyECSRuntimeTestDataECSList(1);
+		try
+		{
+			list.Add(createData(1));
+			list.Add(createData(4));
+			EasyECSRuntimeTestData[] source = { createData(2), createData(3) };
+			list.InsertRange(1, source);
+			int[] expected = { 1, 2, 3, 4 };
+			for (int i = 0; i < expected.Length; ++i)
+			{
+				assertEqual(expected[i], list.Get(i).mID, "InsertRange数组顺序错误,Index:" + i);
+			}
+			other.Add(createData(8));
+			other.Add(createData(9));
+			list.InsertRange(2, other);
+			expected = new[] { 1, 2, 8, 9, 3, 4 };
+			for (int i = 0; i < expected.Length; ++i)
+			{
+				assertEqual(expected[i], list.Get(i).mID, "InsertRange ECSList顺序错误,Index:" + i);
+			}
+			self.Add(createData(1));
+			self.Add(createData(2));
+			self.Add(createData(3));
+			self.InsertRange(1, self);
+			expected = new[] { 1, 1, 2, 3, 2, 3 };
+			assertEqual(expected.Length, self.Count, "InsertRange自身Count错误");
+			for (int i = 0; i < expected.Length; ++i)
+			{
+				assertEqual(expected[i], self.Get(i).mID, "InsertRange自身顺序错误,Index:" + i);
+			}
+		}
+		finally
+		{
+			self.Dispose();
+			other.Dispose();
+			list.Dispose();
+		}
+	}
+	private static void testListRemoveRange()
+	{
+		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		try
+		{
+			for (int i = 1; i <= 6; ++i)
+			{
+				list.Add(createData(i));
+			}
+			list.RemoveRange(1, 3);
+			int[] expected = { 1, 5, 6 };
+			assertEqual(expected.Length, list.Count, "RemoveRange Count错误");
+			for (int i = 0; i < expected.Length; ++i)
+			{
+				assertEqual(expected[i], list.Get(i).mID, "RemoveRange顺序错误,Index:" + i);
+			}
+			list.RemoveRange(2, 1);
+			assertEqual(2, list.Count, "RemoveRange尾部Count错误");
+			list.RemoveRange(0, list.Count);
+			assertEqual(0, list.Count, "RemoveRange全部元素后Count错误");
+			list.Add(createData(9));
+			assertEqual(9, list.Get(0).mID, "RemoveRange后重新Add失败");
+		}
+		finally
+		{
+			list.Dispose();
+		}
+	}
+	private static void testListSearchAndRemoveAll()
+	{
+		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		try
+		{
+			EasyECSRuntimeTestData duplicate = createData(2, 202, 3.0f, 4);
+			list.Add(createData(1));
+			list.Add(duplicate);
+			list.Add(createData(3));
+			list.Add(duplicate);
+			assertTrue(list.Contains(duplicate), "Contains已有元素失败");
+			assertEqual(1, list.IndexOf(duplicate), "IndexOf错误");
+			assertEqual(3, list.LastIndexOf(duplicate), "LastIndexOf错误");
+			assertTrue(list.Remove(duplicate), "Remove已有元素失败");
+			assertEqual(2, list.LastIndexOf(duplicate), "Remove后剩余重复元素位置错误");
+			list.Add(createData(4));
+			list.Add(createData(5));
+			int predicateCount = 0;
+			int removed = list.RemoveAll(value =>
+			{
+				++predicateCount;
+				return (value.mID & 1) == 0;
+			});
+			assertEqual(5, predicateCount, "RemoveAll Predicate应对每个元素只调用一次");
+			assertEqual(2, removed, "RemoveAll删除数量错误");
+			int[] expected = { 1, 3, 5 };
+			assertEqual(expected.Length, list.Count, "RemoveAll Count错误");
+			for (int i = 0; i < expected.Length; ++i)
+			{
+				assertEqual(expected[i], list.Get(i).mID, "RemoveAll顺序错误,Index:" + i);
+			}
+			list.Clear();
+			for (int i = 0; i < 16; ++i)
+			{
+				list.Add(createData(i));
+			}
+			removed = list.RemoveAll(value => value.mID < 8);
+			assertEqual(8, removed, "RemoveAll连续区间删除数量错误");
+			assertEqual(8, list.Count, "RemoveAll连续区间Count错误");
+			for (int i = 0; i < 8; ++i)
+			{
+				assertEqual(i + 8, list.Get(i).mID, "RemoveAll连续区间批量搬移错误,Index:" + i);
+			}
+		}
+		finally
+		{
+			list.Dispose();
+		}
+	}
+	private static void testListReverseSortBinarySearch()
+	{
+		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		try
+		{
+			list.Add(createData(3));
+			list.Add(createData(1));
+			list.Add(createData(4));
+			list.Add(createData(2));
+			list.Reverse();
+			int[] reversed = { 2, 4, 1, 3 };
+			for (int i = 0; i < reversed.Length; ++i)
+			{
+				assertEqual(reversed[i], list.Get(i).mID, "Reverse顺序错误,Index:" + i);
+			}
+			list.Sort((left, right) => left.mID.CompareTo(right.mID));
+			for (int i = 0; i < 4; ++i)
+			{
+				assertEqual(i + 1, list.Get(i).mID, "Sort Comparison顺序错误,Index:" + i);
+			}
+			IComparer<EasyECSRuntimeTestData> comparer = Comparer<EasyECSRuntimeTestData>.Create((left, right) => left.mID.CompareTo(right.mID));
+			assertEqual(2, list.BinarySearch(createData(3), comparer), "BinarySearch已有元素错误");
+			EasyECSRuntimeTestData missing = createData(5);
+			assertEqual(~4, list.BinarySearch(missing, comparer), "BinarySearch不存在元素插入位置错误");
+			list.Clear();
+			for (int i = 5; i >= 1; --i)
+			{
+				list.Add(createData(i));
+			}
+			list.Sort(1, 3, comparer);
+			int[] rangeSorted = { 5, 2, 3, 4, 1 };
+			for (int i = 0; i < rangeSorted.Length; ++i)
+			{
+				assertEqual(rangeSorted[i], list.Get(i).mID, "Sort Range顺序错误,Index:" + i);
+			}
+			list.Clear();
+			list.Add(createData(3, 30));
+			list.Add(createData(1, 10));
+			list.Add(createData(4, 40));
+			list.Add(createData(2, 20));
+			list.SortByHP();
+			for (int i = 0; i < 4; ++i)
+			{
+				assertEqual((i + 1) * 10, list.Get(i).mHP, "SortByHP HP顺序错误,Index:" + i);
+				assertEqual(i + 1, list.Get(i).mID, "SortByHP行数据同步错误,Index:" + i);
+			}
+			assertEqual(2, list.BinarySearchByHP(30), "BinarySearchByHP已有元素错误");
+			assertEqual(~4, list.BinarySearchByHP(50), "BinarySearchByHP不存在元素插入位置错误");
+		}
+		finally
+		{
+			list.Dispose();
+		}
+	}
+	private static void testListSortByPermutation()
+	{
+		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList(1);
+		try
+		{
+			const int count = 257;
+			bool[] idSeen = new bool[count + 1];
+			for (int i = 0; i < count; ++i)
+			{
+				int id = i + 1;
+				int hp = (i * 37) % 23;
+				list.Add(createData(id, hp, id + 0.25f, id % 5));
+			}
+			list.SortByHP();
+			int previousHP = int.MinValue;
+			for (int i = 0; i < count; ++i)
+			{
+				EasyECSRuntimeTestData value = list.Get(i);
+				assertTrue(value.mHP >= previousHP, "SortByHP重复Key顺序错误,Index:" + i);
+				previousHP = value.mHP;
+				assertTrue(value.mID >= 1 && value.mID <= count, "SortByHP ID范围错误,Index:" + i);
+				assertFalse(idSeen[value.mID], "SortByHP出现重复行,ID:" + value.mID);
+				idSeen[value.mID] = true;
+				assertEqual((value.mID - 1) * 37 % 23, value.mHP, "SortByHP HP与ID错位,ID:" + value.mID);
+				assertEqual(value.mID * 10.0f, value.mPositionX, "SortByHP PositionX与ID错位,ID:" + value.mID);
+				assertEqual(value.mID * -5.0f, value.mPositionY, "SortByHP PositionY与ID错位,ID:" + value.mID);
+				assertEqual(value.mID + 0.25f, value.mSpeed, "SortByHP Speed与ID错位,ID:" + value.mID);
+				assertEqual(value.mID % 5, value.mCamp, "SortByHP NotECS字段与ID错位,ID:" + value.mID);
+			}
+			list.Clear();
+			for (int i = 0; i < 20; ++i)
+			{
+				list.Add(createData(i + 1, 200 - i * 3));
+			}
+			int firstOutsideHP = list.Get(4).mHP;
+			int lastOutsideHP = list.Get(15).mHP;
+			list.SortByHP(5, 10, Comparer<int>.Default);
+			assertEqual(firstOutsideHP, list.Get(4).mHP, "SortByHP Range修改了前方元素");
+			assertEqual(lastOutsideHP, list.Get(15).mHP, "SortByHP Range修改了后方元素");
+			for (int i = 6; i < 15; ++i)
+			{
+				assertTrue(list.Get(i - 1).mHP <= list.Get(i).mHP, "SortByHP Range顺序错误,Index:" + i);
+			}
+			IComparer<int> descending = Comparer<int>.Create((left, right) => right.CompareTo(left));
+			list.SortByHP(descending);
+			for (int i = 1; i < list.Count; ++i)
+			{
+				assertTrue(list.Get(i - 1).mHP >= list.Get(i).mHP, "SortByHP降序Comparer错误,Index:" + i);
+			}
+			list.SortByHP();
+			for (int i = 1; i < list.Count; ++i)
+			{
+				assertTrue(list.Get(i - 1).mHP <= list.Get(i).mHP, "SortByHP缓存复用后二次排序错误,Index:" + i);
+			}
+		}
+		finally
+		{
+			list.Dispose();
+		}
+		EasyECSManagedRuntimeTestDataECSList managedList = new EasyECSManagedRuntimeTestDataECSList(1);
+		try
+		{
+			const int managedCount = 65;
+			object[] payloads = new object[managedCount + 1];
+			for (int i = 0; i < managedCount; ++i)
+			{
+				int id = i + 1;
+				payloads[id] = new object();
+				managedList.Add(createManagedData(id, (i * 19) % 11, "Name" + id, payloads[id], "Path/" + id));
+			}
+			managedList.SortByHP();
+			int previousHP = int.MinValue;
+			for (int i = 0; i < managedCount; ++i)
+			{
+				EasyECSManagedRuntimeTestData value = managedList.Get(i);
+				assertTrue(value.mHP >= previousHP, "Managed SortByHP重复Key顺序错误,Index:" + i);
+				previousHP = value.mHP;
+				assertEqual((value.mID - 1) * 19 % 11, value.mHP, "Managed SortByHP HP与ID错位,ID:" + value.mID);
+				assertEqual("Name" + value.mID, value.mName, "Managed SortByHP Name与ID错位,ID:" + value.mID);
+				assertSame(payloads[value.mID], value.mPayload, "Managed SortByHP Payload与ID错位,ID:" + value.mID);
+				assertEqual("Path/" + value.mID, value.mModelPath, "Managed SortByHP NotECS字段与ID错位,ID:" + value.mID);
+			}
+		}
+		finally
+		{
+			managedList.Dispose();
+		}
+	}
+	private static void testListByColumnSearchRemoveAll()
+	{
+		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		try
+		{
+			list.Add(createData(1, 10));
+			list.Add(createData(2, 20));
+			list.Add(createData(3, 20));
+			list.Add(createData(4, 30));
+			list.Add(createData(5, 40));
+			assertTrue(list.ContainsByHP(20), "ContainsByHP已有值失败");
+			assertFalse(list.ContainsByHP(99), "ContainsByHP不存在值错误");
+			assertEqual(1, list.IndexOfByHP(20), "IndexOfByHP错误");
+			assertEqual(2, list.LastIndexOfByHP(20), "LastIndexOfByHP错误");
+			assertTrue(list.ExistsByHP(value => value >= 30), "ExistsByHP错误");
+			assertEqual(3, list.FindIndexByHP(value => value == 30), "FindIndexByHP错误");
+			assertEqual(2, list.FindIndexByHP(2, value => value == 20), "FindIndexByHP startIndex错误");
+			assertEqual(-1, list.FindIndexByHP(3, 2, value => value == 20), "FindIndexByHP Range错误");
+			int predicateCount = 0;
+			int removed = list.RemoveAllByHP(value =>
+			{
+				++predicateCount;
+				return value == 20 || value == 40;
+			});
+			assertEqual(5, predicateCount, "RemoveAllByHP Predicate应对每个元素只调用一次");
+			assertEqual(3, removed, "RemoveAllByHP删除数量错误");
+			assertEqual(2, list.Count, "RemoveAllByHP Count错误");
+			assertEqual(1, list.Get(0).mID, "RemoveAllByHP首行同步错误");
+			assertEqual(10, list.Get(0).mHP, "RemoveAllByHP首行HP错误");
+			assertEqual(4, list.Get(1).mID, "RemoveAllByHP末行同步错误");
+			assertEqual(30, list.Get(1).mHP, "RemoveAllByHP末行HP错误");
+		}
+		finally
+		{
+			list.Dispose();
+		}
+		EasyECSManagedRuntimeTestDataECSList managedList = new EasyECSManagedRuntimeTestDataECSList();
+		try
+		{
+			object payload1 = new object();
+			object payload2 = new object();
+			managedList.Add(createManagedData(1, 10, "A", payload1));
+			managedList.Add(createManagedData(2, 20, "B", payload2));
+			managedList.Add(createManagedData(3, 30, "B", payload1));
+			managedList.Add(createManagedData(4, 40, "C", payload2));
+			assertTrue(managedList.ContainsByName("B"), "Managed ContainsByName错误");
+			assertEqual(1, managedList.IndexOfByName("B"), "Managed IndexOfByName错误");
+			assertEqual(2, managedList.LastIndexOfByName("B"), "Managed LastIndexOfByName错误");
+			assertEqual(3, managedList.FindIndexByName(value => value == "C"), "Managed FindIndexByName错误");
+			int removed = managedList.RemoveAllByName(value => value == "B");
+			assertEqual(2, removed, "Managed RemoveAllByName删除数量错误");
+			assertEqual(2, managedList.Count, "Managed RemoveAllByName Count错误");
+			assertEqual(1, managedList.Get(0).mID, "Managed RemoveAllByName首行ID错误");
+			assertTrue(object.ReferenceEquals(payload1, managedList.Get(0).mPayload), "Managed RemoveAllByName首行Payload错误");
+			assertEqual(4, managedList.Get(1).mID, "Managed RemoveAllByName末行ID错误");
+			assertTrue(object.ReferenceEquals(payload2, managedList.Get(1).mPayload), "Managed RemoveAllByName末行Payload错误");
+		}
+		finally
+		{
+			managedList.Dispose();
+		}
+	}
+	private static void testListCopyFindCapacity()
+	{
+		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList(1);
+		try
+		{
+			assertTrue(list.EnsureCapacity(64) >= 64, "EnsureCapacity扩容失败");
+			list.Add(createData(1));
+			list.Add(createData(2));
+			list.Add(createData(3));
+			EasyECSRuntimeTestData[] array = list.ToArray();
+			assertEqual(3, array.Length, "ToArray长度错误");
+			for (int i = 0; i < array.Length; ++i)
+			{
+				assertEqual(i + 1, array[i].mID, "ToArray数据错误,Index:" + i);
+			}
+			EasyECSRuntimeTestData[] target = new EasyECSRuntimeTestData[5];
+			list.CopyTo(target, 1);
+			assertEqual(1, target[1].mID, "CopyTo arrayIndex第一个数据错误");
+			assertEqual(3, target[3].mID, "CopyTo arrayIndex最后数据错误");
+			assertTrue(list.Exists(value => value.mID == 2), "Exists失败");
+			assertEqual(2, list.Find(value => value.mID == 2).mID, "Find失败");
+			assertEqual(1, list.FindIndex(value => value.mID == 2), "FindIndex失败");
+			assertEqual(3, list.FindLast(value => value.mID <= 3).mID, "FindLast失败");
+			assertEqual(2, list.FindLastIndex(value => value.mID <= 3), "FindLastIndex失败");
+			assertTrue(list.TrueForAll(value => value.mID > 0), "TrueForAll失败");
+			list.TrimExcess();
+			assertEqual(3, list.Capacity, "TrimExcess后Capacity应收缩到Count");
+		}
+		finally
+		{
+			list.Dispose();
+		}
+	}
 	private static void testListDoubleDispose()
 	{
 		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
@@ -997,6 +1410,100 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 			assertTrue(list.Get(0).mName == null, "Managed Ref写回null mName失败");
 			assertTrue(list.Get(0).mPayload == null, "Managed Ref写回null mPayload失败");
 			assertTrue(list.Get(0).mModelPath == null, "Managed Ref写回null mModelPath失败");
+		}
+		finally
+		{
+			list.Dispose();
+		}
+	}
+	private static void testManagedListRangeSort()
+	{
+		EasyECSManagedRuntimeTestDataECSList list = new EasyECSManagedRuntimeTestDataECSList(1);
+		try
+		{
+			object payload1 = new object();
+			object payload2 = new object();
+			EasyECSManagedRuntimeTestData[] values =
+			{
+				createManagedData(3, 100, "C", payload1),
+				createManagedData(1, 100, "A", payload2),
+				createManagedData(2, 100, "B", payload1),
+			};
+			list.AddRange(values);
+			list.InsertRange(1, new[] { createManagedData(4, 100, "D", payload2) });
+			list.RemoveRange(0, 1);
+			list.Sort((left, right) => left.mID.CompareTo(right.mID));
+			int[] expected = { 1, 2, 4 };
+			for (int i = 0; i < expected.Length; ++i)
+			{
+				assertEqual(expected[i], list.Get(i).mID, "Managed Range/Sort ID错误,Index:" + i);
+			}
+			assertEqual("A", list.Get(0).mName, "Managed Range/Sort Name错误");
+			assertTrue(object.ReferenceEquals(payload2, list.Get(0).mPayload), "Managed Range/Sort Payload错误");
+			list.Clear();
+			list.Add(createManagedData(3, 30, "C", payload1));
+			list.Add(createManagedData(1, 10, "A", payload2));
+			list.Add(createManagedData(2, 20, "B", payload1));
+			list.SortByHP();
+			assertEqual(1, list.Get(0).mID, "Managed SortByHP行数据同步错误");
+			assertEqual("A", list.Get(0).mName, "Managed SortByHP Name错误");
+			assertTrue(object.ReferenceEquals(payload2, list.Get(0).mPayload), "Managed SortByHP Payload错误");
+			assertEqual(1, list.BinarySearchByHP(20), "Managed BinarySearchByHP错误");
+			list.Reverse();
+			assertEqual(3, list.Get(0).mID, "Managed Reverse错误");
+		}
+		finally
+		{
+			list.Dispose();
+		}
+	}
+	private static void testManagedListArrayConversion()
+	{
+		EasyECSManagedRuntimeTestData[] source = new EasyECSManagedRuntimeTestData[10];
+		object[] payloads = new object[source.Length];
+		for (int i = 0; i < source.Length; ++i)
+		{
+			payloads[i] = new object();
+			source[i] = createManagedData(100 + i, 1000 + i, "BulkName" + i, payloads[i], "BulkPath/" + i);
+		}
+		source[5].mName = null;
+		source[5].mPayload = null;
+		source[5].mModelPath = null;
+		EasyECSManagedRuntimeTestDataECSList list = new EasyECSManagedRuntimeTestDataECSList(2);
+		try
+		{
+			list.AddRange(source, 2, 5);
+			int[] expectedSourceIndices = { 2, 3, 4, 5, 6 };
+			for (int i = 0; i < expectedSourceIndices.Length; ++i)
+			{
+				assertManagedDataEqual(source[expectedSourceIndices[i]], list.Get(i), "Managed AddRange局部区间错误,Index:" + i);
+			}
+			list.InsertRange(2, source, 7, 2);
+			expectedSourceIndices = new[] { 2, 3, 7, 8, 4, 5, 6 };
+			assertEqual(expectedSourceIndices.Length, list.Count, "Managed InsertRange局部区间Count错误");
+			for (int i = 0; i < expectedSourceIndices.Length; ++i)
+			{
+				assertManagedDataEqual(source[expectedSourceIndices[i]], list.Get(i), "Managed InsertRange局部区间错误,Index:" + i);
+			}
+			EasyECSManagedRuntimeTestData sentinel = createManagedData(-1, -1, "Sentinel", new object(), "SentinelPath");
+			EasyECSManagedRuntimeTestData[] copy = new EasyECSManagedRuntimeTestData[10];
+			for (int i = 0; i < copy.Length; ++i)
+			{
+				copy[i] = sentinel;
+			}
+			list.CopyTo(1, copy, 3, 4);
+			assertManagedDataEqual(sentinel, copy[2], "Managed CopyTo不应修改目标区间前元素");
+			assertManagedDataEqual(sentinel, copy[7], "Managed CopyTo不应修改目标区间后元素");
+			for (int i = 0; i < 4; ++i)
+			{
+				assertManagedDataEqual(list.Get(1 + i), copy[3 + i], "Managed CopyTo局部区间错误,Index:" + i);
+			}
+			EasyECSManagedRuntimeTestData[] all = list.ToArray();
+			assertEqual(list.Count, all.Length, "Managed ToArray长度错误");
+			for (int i = 0; i < all.Length; ++i)
+			{
+				assertManagedDataEqual(list.Get(i), all[i], "Managed ToArray数据错误,Index:" + i);
+			}
 		}
 		finally
 		{
@@ -1377,6 +1884,60 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 			dict.Dispose();
 		}
 	}
+	private static void testDictionaryDenseIndexFastPath()
+	{
+		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSManagedRuntimeTestDataECSDictionary<int> managedDict = new EasyECSManagedRuntimeTestDataECSDictionary<int>();
+		try
+		{
+			dict.Add(10, createData(1, 100, 1.5f, 2));
+			dict.Add(20, createData(2, 200, 2.5f, 3));
+			int index = dict.GetIndex(20);
+			var hp = dict.getHPColumn();
+			var speed = dict.getSpeedColumn();
+			var positionX = dict.getPositionXColumn();
+			var positionY = dict.getPositionYColumn();
+			hp[index] = 888;
+			speed[index] = 8.5f;
+			positionX[index] = 18.0f;
+			positionY[index] = 28.0f;
+			assertEqual(888, dict[20].mHP, "GetIndex+Direct HP修改失败");
+			assertEqual(8.5f, dict[20].mSpeed, "GetIndex+Direct Speed修改失败");
+			assertEqual(18.0f, dict[20].mPositionX, "GetIndex+Direct PositionX修改失败");
+			assertEqual(28.0f, dict[20].mPositionY, "GetIndex+Direct PositionY修改失败");
+			EasyECSRuntimeTestData replacement = createData(20, 999, 9.0f, 9);
+			int existingIndex = dict.GetOrAddIndex(20, replacement, out bool existingAdded);
+			assertFalse(existingAdded, "GetOrAddIndex已有Key不应标记为新增");
+			assertEqual(index, existingIndex, "GetOrAddIndex已有Key索引错误");
+			assertEqual(888, dict[20].mHP, "GetOrAddIndex已有Key不应覆盖原值");
+			EasyECSRuntimeTestData addedValue = createData(3, 300, 3.5f, 4);
+			int addedIndex = dict.GetOrAddIndex(30, addedValue, out bool added);
+			assertTrue(added, "GetOrAddIndex新Key应标记为新增");
+			assertEqual(3, dict.Count, "GetOrAddIndex新增后Count错误");
+			assertEqual(addedIndex, dict.GetIndex(30), "GetOrAddIndex新增索引错误");
+			assertEqual(300, dict[30].mHP, "GetOrAddIndex新增值错误");
+			bool caught = false;
+			try
+			{
+				dict.GetIndex(99);
+			}
+			catch (KeyNotFoundException)
+			{
+				caught = true;
+			}
+			assertTrue(caught, "GetIndex不存在Key应抛KeyNotFoundException");
+			object payload = new object();
+			int managedIndex = managedDict.GetOrAddIndex(1, new EasyECSManagedRuntimeTestData { mHP = 10, mName = "Managed", mPayload = payload, mID = 1, mModelPath = "Path/1" }, out bool managedAdded);
+			assertTrue(managedAdded, "Managed GetOrAddIndex新Key应标记为新增");
+			assertEqual(managedIndex, managedDict.GetIndex(1), "Managed GetIndex索引错误");
+			assertTrue(ReferenceEquals(payload, managedDict[1].mPayload), "Managed GetOrAddIndex应保持引用身份");
+		}
+		finally
+		{
+			dict.Dispose();
+			managedDict.Dispose();
+		}
+	}
 	private static void testDictionaryClearReuse()
 	{
 		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>(2);
@@ -1420,6 +1981,137 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 		dict.Add(1, createData(1));
 		dict.Dispose();
 		dict.Dispose();
+	}
+	private static void testDictionarySetAndGetOrAdd()
+	{
+		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		try
+		{
+			dict.Add(1, createData(1, 100));
+			dict.SetValue(1, createData(1, 200));
+			assertEqual(200, dict[1].mHP, "SetValue更新失败");
+			assertFalse(dict.TrySetValue(2, createData(2, 300)), "TrySetValue不存在Key应返回false");
+			assertTrue(dict.TrySetValue(1, createData(1, 201)), "TrySetValue已有Key应返回true");
+			assertEqual(201, dict[1].mHP, "TrySetValue更新失败");
+			EasyECSRuntimeTestDataRef existing = dict.SetOrAdd(1, createData(1, 202));
+			assertEqual(1, dict.Count, "SetOrAdd更新已有Key不应增加Count");
+			assertEqual(202, existing.mHP, "SetOrAdd已有Key返回值错误");
+			EasyECSRuntimeTestDataRef added = dict.SetOrAdd(2, createData(2, 300));
+			assertEqual(2, dict.Count, "SetOrAdd新增Key Count错误");
+			assertEqual(300, added.mHP, "SetOrAdd新增Key返回值错误");
+			EasyECSRuntimeTestDataRef getExisting = dict.GetOrAdd(2, createData(2, 999));
+			assertEqual(300, getExisting.mHP, "GetOrAdd已有Key不应覆盖原值");
+			EasyECSRuntimeTestDataRef getDefault = dict.GetOrAdd(3);
+			getDefault.mID = 3;
+			getDefault.mHP = 333;
+			assertEqual(333, dict[3].mHP, "GetOrAdd default返回Ref修改失败");
+			bool caught = false;
+			try
+			{
+				dict.SetValue(99, createData(99));
+			}
+			catch (KeyNotFoundException)
+			{
+				caught = true;
+			}
+			assertTrue(caught, "SetValue不存在Key应抛KeyNotFoundException");
+		}
+		finally
+		{
+			dict.Dispose();
+		}
+	}
+	private static void testDictionaryFieldFastPath()
+	{
+		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSManagedRuntimeTestDataECSDictionary<int> managedDict = new EasyECSManagedRuntimeTestDataECSDictionary<int>();
+		try
+		{
+			EasyECSRuntimeTestData original = createData(1, 100, 1.5f, 2);
+			dict.Add(10, original);
+			assertEqual(100, dict.GetValueByHP(10), "GetValueByHP读取错误");
+			assertTrue(dict.TryGetValueByHP(10, out int hp), "TryGetValueByHP已有Key应成功");
+			assertEqual(100, hp, "TryGetValueByHP值错误");
+			assertFalse(dict.TryGetValueByHP(99, out hp), "TryGetValueByHP不存在Key应失败");
+			dict.SetValueByHP(10, 200);
+			assertEqual(200, dict[10].mHP, "SetValueByHP更新失败");
+			assertEqual(original.mID, dict[10].mID, "SetValueByHP不应修改NotECS字段");
+			assertEqual(original.mSpeed, dict[10].mSpeed, "SetValueByHP不应修改其他ECS字段");
+			assertTrue(dict.TrySetValueByHP(10, 201), "TrySetValueByHP已有Key应成功");
+			assertFalse(dict.TrySetValueByHP(99, 300), "TrySetValueByHP不存在Key应失败");
+			assertEqual(201, dict.GetValueByHP(10), "TrySetValueByHP更新失败");
+			bool caught = false;
+			try
+			{
+				dict.SetValueByHP(99, 1);
+			}
+			catch (KeyNotFoundException)
+			{
+				caught = true;
+			}
+			assertTrue(caught, "SetValueByHP不存在Key应抛KeyNotFoundException");
+			object payload = new object();
+			managedDict.Add(1, new EasyECSManagedRuntimeTestData { mHP = 10, mName = "A", mPayload = payload, mID = 1, mModelPath = "Path/A" });
+			managedDict.SetValueByName(1, "B");
+			assertEqual("B", managedDict.GetValueByName(1), "Managed SetValueByName更新失败");
+			assertTrue(managedDict.TrySetValueByPayload(1, null), "Managed TrySetValueByPayload已有Key应成功");
+			assertTrue(managedDict.TryGetValueByPayload(1, out object managedPayload), "Managed TryGetValueByPayload已有Key应成功");
+			assertTrue(managedPayload == null, "Managed字段级API应支持null");
+			assertEqual(1, managedDict[1].mID, "Managed字段级API不应修改NotECS字段");
+		}
+		finally
+		{
+			dict.Dispose();
+			managedDict.Dispose();
+		}
+	}
+	private static void testDictionaryContainsValueRemoveOut()
+	{
+		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		try
+		{
+			EasyECSRuntimeTestData value1 = createData(1, 111, 1.5f, 2);
+			EasyECSRuntimeTestData value2 = createData(2, 222, 2.5f, 3);
+			EasyECSRuntimeTestData value3 = createData(3, 333, 3.5f, 4);
+			dict.Add(10, value1);
+			dict.Add(20, value2);
+			dict.Add(30, value3);
+			assertTrue(dict.ContainsValue(value2), "ContainsValue已有值失败");
+			assertFalse(dict.ContainsValue(createData(9)), "ContainsValue不存在值错误");
+			assertTrue(dict.Remove(20, out EasyECSRuntimeTestData removed), "Remove out已有Key失败");
+			assertEqual(2, removed.mID, "Remove out返回数据错误");
+			assertEqual(222, removed.mHP, "Remove out返回HP错误");
+			assertFalse(dict.ContainsKey(20), "Remove out后Key仍存在");
+			assertTrue(dict.ContainsKey(30), "Remove out SwapBack后最后Key丢失");
+			assertFalse(dict.Remove(99, out EasyECSRuntimeTestData missing), "Remove out不存在Key应返回false");
+			assertEqual(0, missing.mID, "Remove out不存在Key应返回default");
+		}
+		finally
+		{
+			dict.Dispose();
+		}
+	}
+	private static void testDictionaryCapacityMethods()
+	{
+		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>(1);
+		try
+		{
+			assertTrue(dict.EnsureCapacity(64) >= 64, "Dictionary EnsureCapacity失败");
+			for (int i = 0; i < 10; ++i)
+			{
+				dict.Add(i, createData(i));
+			}
+			dict.TrimExcess();
+			assertEqual(dict.Count, dict.Capacity, "Dictionary TrimExcess后Value Capacity应等于Count");
+			for (int i = 0; i < 10; ++i)
+			{
+				assertEqual(i, dict[i].mID, "Dictionary TrimExcess后数据错误,Key:" + i);
+			}
+		}
+		finally
+		{
+			dict.Dispose();
+		}
 	}
 	private static void testManagedDictionaryAddIndexerResize()
 	{
@@ -1925,6 +2617,50 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 			caught = true;
 		}
 		assertTrue(caught, message);
+	}
+	private static void testEditorListRangeRefInvalidation()
+	{
+		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		try
+		{
+			list.Add(createData(1));
+			list.Add(createData(2));
+			list.Add(createData(3));
+			EasyECSRuntimeTestDataRef first = list[0];
+			EasyECSRuntimeTestDataRef affected = list[1];
+			list.InsertRange(1, new[] { createData(9), createData(8) });
+			assertEqual(1, first.mID, "InsertRange前方Ref应保持有效");
+			assertInvalidRef(affected, "InsertRange影响区间Ref应失效");
+			EasyECSRuntimeTestDataRef firstAfterInsert = list[0];
+			EasyECSRuntimeTestDataRef removedAffected = list[2];
+			list.RemoveRange(1, 2);
+			assertEqual(1, firstAfterInsert.mID, "RemoveRange前方Ref应保持有效");
+			assertInvalidRef(removedAffected, "RemoveRange影响区间Ref应失效");
+		}
+		finally
+		{
+			list.Dispose();
+		}
+	}
+	private static void testEditorListSortReverseRefInvalidation()
+	{
+		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		try
+		{
+			list.Add(createData(3));
+			list.Add(createData(1));
+			list.Add(createData(2));
+			EasyECSRuntimeTestDataRef sortedRef = list[1];
+			list.Sort((left, right) => left.mID.CompareTo(right.mID));
+			assertInvalidRef(sortedRef, "Sort后排序区间Ref应失效");
+			EasyECSRuntimeTestDataRef reversedRef = list[0];
+			list.Reverse();
+			assertInvalidRef(reversedRef, "Reverse后反转区间Ref应失效");
+		}
+		finally
+		{
+			list.Dispose();
+		}
 	}
 	private static void testEditorListRefAfterResize()
 	{

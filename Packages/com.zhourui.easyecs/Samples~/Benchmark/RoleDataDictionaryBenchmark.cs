@@ -310,6 +310,7 @@ public class RoleDataDictionaryBenchmark : MonoBehaviour
 			runDenseFourFieldBenchmark();
 			runMixedBenchmark();
 			runEnumeratorBenchmark();
+			EasyECSExtendedAPIBenchmark.runDictionaryBenchmark();
 			Debug.Log("ResultSink:" + mResultSink);
 			Debug.Log("================ RoleData ECSDictionary Benchmark End ================");
 		}

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -220,7 +220,7 @@ namespace ECSSourceGenerator
 					generateUnsafeStorage(builder, typeName, ecsFields, aosFields);
 					generateUnsafeManagedStorage(builder, typeName, ecsFields, aosFields);
 					generateUnsafeRef(builder, accessibility, typeName, ecsFields, aosFields);
-					generateUnsafeList(builder, accessibility, typeName, fullTypeName, ecsFields, aosFields, backendReason);
+					generateUnsafeList(builder, accessibility, typeName, fullTypeName, ecsFields, aosFields, backendReason, hasSpan);
 					break;
 				case Backend.SafeSpan:
 					generateSafeSpanStorage(builder, typeName, ecsFields, aosFields);
@@ -250,7 +250,6 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\tprivate readonly " + typeName + "ECSList mValues;");
 			builder.AppendLine("\tprivate TKey[] mKeys;");
 			builder.AppendLine("\tprivate bool mDisposed;");
-			builder.AppendLine("\tpublic const string KeyEnumerationStrategy = \"" + (hasSpan ? "ReadOnlySpan<TKey>.Enumerator" : "CustomKeyEnumerator") + "\";");
 			builder.AppendLine("#if UNITY_EDITOR");
 			builder.AppendLine("\tprivate int mVersion;");
 			builder.AppendLine("#endif");
@@ -364,12 +363,7 @@ namespace ECSSourceGenerator
 			builder.AppendLine("#if UNITY_EDITOR");
 			builder.AppendLine("\t\tvalidateAlive();");
 			builder.AppendLine("#endif");
-			builder.AppendLine("\t\tif (mIndexMap.ContainsKey(key))");
-			builder.AppendLine("\t\t{");
-			builder.AppendLine("\t\t\treturn false;");
-			builder.AppendLine("\t\t}");
-			builder.AppendLine("\t\taddValue(key, value);");
-			builder.AppendLine("\t\treturn true;");
+			builder.AppendLine("\t\treturn tryAddValue(key, value);");
 			builder.AppendLine("\t}");
 			appendAggressiveInlining(builder, 1);
 			builder.AppendLine("\tpublic bool ContainsKey(TKey key)");
@@ -394,6 +388,14 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t\treturn true;");
 			builder.AppendLine("\t}");
 			appendAggressiveInlining(builder, 1);
+			builder.AppendLine("\tpublic int GetIndex(TKey key)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\tvalidateAlive();");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\treturn mIndexMap[key];");
+			builder.AppendLine("\t}");
+			appendAggressiveInlining(builder, 1);
 			builder.AppendLine("\tpublic bool TryGetIndex(TKey key, out int index)");
 			builder.AppendLine("\t{");
 			builder.AppendLine("#if UNITY_EDITOR");
@@ -406,7 +408,7 @@ namespace ECSSourceGenerator
 			builder.AppendLine("#if UNITY_EDITOR");
 			builder.AppendLine("\t\tvalidateAlive();");
 			builder.AppendLine("#endif");
-			builder.AppendLine("\t\tif (!mIndexMap.TryGetValue(key, out int removeIndex))");
+			builder.AppendLine("\t\tif (!mIndexMap.Remove(key, out int removeIndex))");
 			builder.AppendLine("\t\t{");
 			builder.AppendLine("\t\t\treturn false;");
 			builder.AppendLine("\t\t}");
@@ -419,7 +421,6 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t\t\tmIndexMap[lastKey] = removeIndex;");
 			builder.AppendLine("\t\t}");
 			builder.AppendLine("\t\tmKeys[lastIndex] = default(TKey);");
-			builder.AppendLine("\t\tmIndexMap.Remove(key);");
 			builder.AppendLine("#if UNITY_EDITOR");
 			builder.AppendLine("\t\t++mVersion;");
 			builder.AppendLine("#endif");
@@ -442,6 +443,8 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t\t++mVersion;");
 			builder.AppendLine("#endif");
 			builder.AppendLine("\t}");
+			generateExtendedDictionaryMethods(builder, typeName, fullTypeName);
+			generateDictionaryFieldMethods(builder, typeName, ecsFields, backend);
 			appendAggressiveInlining(builder, 1);
 			builder.AppendLine("\tpublic TKey getKeyAt(int index)");
 			builder.AppendLine("\t{");
@@ -490,7 +493,7 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t\t}");
 			builder.AppendLine("\t\tmValues.Dispose();");
 			builder.AppendLine("\t}");
-			builder.AppendLine("\tprivate void addValue(TKey key, " + fullTypeName + " value)");
+			builder.AppendLine("\tprivate int addValue(TKey key, " + fullTypeName + " value)");
 			builder.AppendLine("\t{");
 			builder.AppendLine("\t\tint index = mValues.Count;");
 			builder.AppendLine("\t\tmIndexMap.Add(key, index);");
@@ -502,6 +505,34 @@ namespace ECSSourceGenerator
 			builder.AppendLine("#if UNITY_EDITOR");
 			builder.AppendLine("\t\t\t++mVersion;");
 			builder.AppendLine("#endif");
+			builder.AppendLine("\t\t\treturn index;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tcatch");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tif (mKeys != null && (uint)index < (uint)mKeys.Length)");
+			builder.AppendLine("\t\t\t{");
+			builder.AppendLine("\t\t\t\tmKeys[index] = default(TKey);");
+			builder.AppendLine("\t\t\t}");
+			builder.AppendLine("\t\t\tmIndexMap.Remove(key);");
+			builder.AppendLine("\t\t\tthrow;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tprivate bool tryAddValue(TKey key, " + fullTypeName + " value)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tint index = mValues.Count;");
+			builder.AppendLine("\t\tif (!mIndexMap.TryAdd(key, index))");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\treturn false;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\ttry");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tensureKeyCapacity(index + 1);");
+			builder.AppendLine("\t\t\tmKeys[index] = key;");
+			builder.AppendLine("\t\t\tmValues.Add(value);");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\t\t++mVersion;");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\t\treturn true;");
 			builder.AppendLine("\t\t}");
 			builder.AppendLine("\t\tcatch");
 			builder.AppendLine("\t\t{");
@@ -568,6 +599,264 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\t}");
 			builder.AppendLine("#endif");
 			builder.AppendLine("}");
+		}
+		private static void generateDictionaryFieldMethods(StringBuilder builder, string typeName, List<IFieldSymbol> ecsFields, Backend backend)
+		{
+			foreach (IFieldSymbol field in ecsFields)
+			{
+				string fieldType = getTypeName(field.Type);
+				string suffix = getSortMethodSuffix(field.Name);
+				string access = fieldAccess(field);
+				string fieldExpression;
+				string unsafeModifier = backend == Backend.Unsafe && field.Type.IsUnmanagedType ? "unsafe " : string.Empty;
+				if (backend == Backend.Unsafe)
+				{
+					fieldExpression = field.Type.IsUnmanagedType ? "mValues.getDictionaryStorage()->" + access + "[index]" : "mValues.getDictionaryManagedStorage()." + access + "[index]";
+				}
+				else if (backend == Backend.SafeSpan)
+				{
+					fieldExpression = "mValues.getDictionaryStorage()[0]." + access + "[index]";
+				}
+				else
+				{
+					fieldExpression = typeName + "StorageRegistry.get_" + field.Name + "(mValues.getDictionaryStorageID(), index)";
+				}
+				appendAggressiveInlining(builder, 1);
+				builder.AppendLine("\tpublic " + unsafeModifier + fieldType + " GetValueBy" + suffix + "(TKey key)");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\tif (mDisposed)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tthrow new global::System.ObjectDisposedException(\"" + typeName + "ECSDictionary\");");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\tif (!mIndexMap.TryGetValue(key, out int index))");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tthrow new global::System.Collections.Generic.KeyNotFoundException();");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\treturn " + fieldExpression + ";");
+				builder.AppendLine("\t}");
+				appendAggressiveInlining(builder, 1);
+				builder.AppendLine("\tpublic " + unsafeModifier + "bool TryGetValueBy" + suffix + "(TKey key, out " + fieldType + " value)");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\tif (mDisposed)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tthrow new global::System.ObjectDisposedException(\"" + typeName + "ECSDictionary\");");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\tif (!mIndexMap.TryGetValue(key, out int index))");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tvalue = default(" + fieldType + ");");
+				builder.AppendLine("\t\t\treturn false;");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\tvalue = " + fieldExpression + ";");
+				builder.AppendLine("\t\treturn true;");
+				builder.AppendLine("\t}");
+				appendAggressiveInlining(builder, 1);
+				builder.AppendLine("\tpublic " + unsafeModifier + "void SetValueBy" + suffix + "(TKey key, " + fieldType + " value)");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\tif (mDisposed)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tthrow new global::System.ObjectDisposedException(\"" + typeName + "ECSDictionary\");");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\tif (!mIndexMap.TryGetValue(key, out int index))");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tthrow new global::System.Collections.Generic.KeyNotFoundException();");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\t" + fieldExpression + " = value;");
+				builder.AppendLine("\t}");
+				appendAggressiveInlining(builder, 1);
+				builder.AppendLine("\tpublic " + unsafeModifier + "bool TrySetValueBy" + suffix + "(TKey key, " + fieldType + " value)");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\tif (mDisposed)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tthrow new global::System.ObjectDisposedException(\"" + typeName + "ECSDictionary\");");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\tif (!mIndexMap.TryGetValue(key, out int index))");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\treturn false;");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\t" + fieldExpression + " = value;");
+				builder.AppendLine("\t\treturn true;");
+				builder.AppendLine("\t}");
+			}
+		}
+		private static void generateExtendedDictionaryMethods(StringBuilder builder, string typeName, string fullTypeName)
+		{
+			string source = @"
+	public void SetValue(TKey key, __ECS_TYPE__ value)
+	{
+		if (mDisposed)
+		{
+			throw new global::System.ObjectDisposedException(""__ECS_DICT__"");
+		}
+		if (!mIndexMap.TryGetValue(key, out int index))
+		{
+			throw new global::System.Collections.Generic.KeyNotFoundException();
+		}
+		mValues.Set(index, value);
+	}
+	public bool TrySetValue(TKey key, __ECS_TYPE__ value)
+	{
+		if (mDisposed)
+		{
+			throw new global::System.ObjectDisposedException(""__ECS_DICT__"");
+		}
+		if (!mIndexMap.TryGetValue(key, out int index))
+		{
+			return false;
+		}
+		mValues.Set(index, value);
+		return true;
+	}
+	public __ECS_REF__ SetOrAdd(TKey key, __ECS_TYPE__ value)
+	{
+		if (mDisposed)
+		{
+			throw new global::System.ObjectDisposedException(""__ECS_DICT__"");
+		}
+		if (mIndexMap.TryGetValue(key, out int index))
+		{
+			mValues.Set(index, value);
+			return mValues[index];
+		}
+		int addedIndex = addValue(key, value);
+		return mValues[addedIndex];
+	}
+	public __ECS_REF__ GetOrAdd(TKey key)
+	{
+		return GetOrAdd(key, default(__ECS_TYPE__));
+	}
+	public __ECS_REF__ GetOrAdd(TKey key, __ECS_TYPE__ value)
+	{
+		if (mDisposed)
+		{
+			throw new global::System.ObjectDisposedException(""__ECS_DICT__"");
+		}
+		if (mIndexMap.TryGetValue(key, out int index))
+		{
+			return mValues[index];
+		}
+		int addedIndex = addValue(key, value);
+		return mValues[addedIndex];
+	}
+	public int GetOrAddIndex(TKey key)
+	{
+		return GetOrAddIndex(key, default(__ECS_TYPE__));
+	}
+	public int GetOrAddIndex(TKey key, __ECS_TYPE__ value)
+	{
+		if (mDisposed)
+		{
+			throw new global::System.ObjectDisposedException(""__ECS_DICT__"");
+		}
+		if (mIndexMap.TryGetValue(key, out int index))
+		{
+			return index;
+		}
+		return addValue(key, value);
+	}
+	public int GetOrAddIndex(TKey key, __ECS_TYPE__ value, out bool added)
+	{
+		if (mDisposed)
+		{
+			throw new global::System.ObjectDisposedException(""__ECS_DICT__"");
+		}
+		if (mIndexMap.TryGetValue(key, out int index))
+		{
+			added = false;
+			return index;
+		}
+		added = true;
+		return addValue(key, value);
+	}
+	public bool ContainsValue(__ECS_TYPE__ value)
+	{
+		if (mDisposed)
+		{
+			throw new global::System.ObjectDisposedException(""__ECS_DICT__"");
+		}
+		global::System.Collections.Generic.EqualityComparer<__ECS_TYPE__> comparer = global::System.Collections.Generic.EqualityComparer<__ECS_TYPE__>.Default;
+		int count = mValues.Count;
+		for (int i = 0; i < count; ++i)
+		{
+			if (comparer.Equals(mValues.Get(i), value))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	public bool Remove(TKey key, out __ECS_TYPE__ value)
+	{
+		if (mDisposed)
+		{
+			throw new global::System.ObjectDisposedException(""__ECS_DICT__"");
+		}
+		if (!mIndexMap.Remove(key, out int removeIndex))
+		{
+			value = default(__ECS_TYPE__);
+			return false;
+		}
+		value = mValues.Get(removeIndex);
+		int lastIndex = mValues.Count - 1;
+		TKey lastKey = mKeys[lastIndex];
+		mValues.RemoveAtSwapBack(removeIndex);
+		if (removeIndex != lastIndex)
+		{
+			mKeys[removeIndex] = lastKey;
+			mIndexMap[lastKey] = removeIndex;
+		}
+		mKeys[lastIndex] = default(TKey);
+#if UNITY_EDITOR
+		++mVersion;
+#endif
+		return true;
+	}
+	public int EnsureCapacity(int capacity)
+	{
+		if (mDisposed)
+		{
+			throw new global::System.ObjectDisposedException(""__ECS_DICT__"");
+		}
+		if (capacity < 0)
+		{
+			throw new global::System.ArgumentOutOfRangeException(nameof(capacity));
+		}
+		int oldValueCapacity = mValues.Capacity;
+		int oldKeyCapacity = mKeys.Length;
+		mIndexMap.EnsureCapacity(capacity);
+		ensureKeyCapacity(capacity);
+		int result = mValues.EnsureCapacity(capacity);
+#if UNITY_EDITOR
+		if (result != oldValueCapacity || mKeys.Length != oldKeyCapacity)
+		{
+			++mVersion;
+		}
+#endif
+		return result;
+	}
+	public void TrimExcess()
+	{
+		if (mDisposed)
+		{
+			throw new global::System.ObjectDisposedException(""__ECS_DICT__"");
+		}
+		int oldValueCapacity = mValues.Capacity;
+		int oldKeyCapacity = mKeys.Length;
+		mIndexMap.TrimExcess();
+		mValues.TrimExcess();
+		int targetCapacity = mValues.Capacity;
+		if (mKeys.Length != targetCapacity)
+		{
+			global::System.Array.Resize(ref mKeys, targetCapacity);
+		}
+#if UNITY_EDITOR
+		if (mValues.Capacity != oldValueCapacity || mKeys.Length != oldKeyCapacity)
+		{
+			++mVersion;
+		}
+#endif
+	}
+";
+			builder.Append(source.TrimStart('\r', '\n').Replace("__ECS_TYPE__", fullTypeName).Replace("__ECS_REF__", typeName + "Ref").Replace("__ECS_DICT__", typeName + "ECSDictionary"));
 		}
 		private static void generateDictionaryEntry(StringBuilder builder, string typeName, Backend backend, bool unsafeHasManagedStorage)
 		{
@@ -1738,7 +2027,7 @@ namespace ECSSourceGenerator
 			builder.AppendLine("#endif");
 			return builder.ToString();
 		}
-		private static void generateUnsafeList(StringBuilder builder, string accessibility, string typeName, string fullTypeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields, string backendReason)
+		private static void generateUnsafeList(StringBuilder builder, string accessibility, string typeName, string fullTypeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields, string backendReason, bool hasSpan)
 		{
 			bool hasManagedStorage = ecsFields.Any(field => !field.Type.IsUnmanagedType) || aosFields.Any(field => !field.Type.IsUnmanagedType);
 			appendGeneratedFor(builder, typeName, fullTypeName, "List");
@@ -1774,6 +2063,8 @@ namespace ECSSourceGenerator
 			}
 			generateUnsafeConstructor(builder, typeName, ecsFields, aosFields);
 			generateUnsafeContainerMethods(builder, typeName, fullTypeName, ecsFields, aosFields);
+			generateExtendedListMethods(builder, typeName, fullTypeName, ecsFields, aosFields);
+			generateUnsafeExtendedListHelpers(builder, typeName, fullTypeName, ecsFields, aosFields, hasSpan);
 			generateUnsafeResize(builder, typeName, ecsFields, aosFields);
 			generateUnsafeAllocateColumns(builder, typeName, ecsFields, aosFields);
 			generateUnsafeDispose(builder, typeName, ecsFields, aosFields);
@@ -1783,6 +2074,7 @@ namespace ECSSourceGenerator
 		}
 		private static void generateSafeSpanList(StringBuilder builder, string accessibility, string typeName, string fullTypeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields, string backendReason)
 		{
+			bool usePermutationSort = ecsFields.Any(field => !field.Type.IsUnmanagedType) || aosFields.Any(field => !field.Type.IsUnmanagedType);
 			appendGeneratedFor(builder, typeName, fullTypeName, "List");
 			builder.AppendLine(accessibility + " sealed class " + typeName + "ECSList : global::System.IDisposable");
 			builder.AppendLine("{");
@@ -1802,6 +2094,8 @@ namespace ECSSourceGenerator
 			}
 			generateSafeSpanConstructor(builder, typeName, ecsFields, aosFields);
 			generateSafeContainerMethods(builder, typeName, fullTypeName, ecsFields, aosFields, true);
+			generateExtendedListMethods(builder, typeName, fullTypeName, ecsFields, aosFields);
+			generateSafeExtendedListHelpers(builder, typeName, fullTypeName, ecsFields, aosFields, true);
 			generateSafeSpanResize(builder, typeName, ecsFields, aosFields);
 			generateSafeSpanDispose(builder, typeName);
 			generateEditorValidationMethods(builder, typeName, false);
@@ -1809,6 +2103,7 @@ namespace ECSSourceGenerator
 		}
 		private static void generateSafeRegistryList(StringBuilder builder, string accessibility, string typeName, string fullTypeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields, string backendReason)
 		{
+			bool usePermutationSort = ecsFields.Any(field => !field.Type.IsUnmanagedType) || aosFields.Any(field => !field.Type.IsUnmanagedType);
 			appendGeneratedFor(builder, typeName, fullTypeName, "List");
 			builder.AppendLine(accessibility + " sealed class " + typeName + "ECSList : global::System.IDisposable");
 			builder.AppendLine("{");
@@ -1828,6 +2123,8 @@ namespace ECSSourceGenerator
 			}
 			generateSafeRegistryConstructor(builder, typeName);
 			generateSafeContainerMethods(builder, typeName, fullTypeName, ecsFields, aosFields, false);
+			generateExtendedListMethods(builder, typeName, fullTypeName, ecsFields, aosFields);
+			generateSafeExtendedListHelpers(builder, typeName, fullTypeName, ecsFields, aosFields, false);
 			generateSafeRegistryResize(builder, typeName, ecsFields, aosFields);
 			generateSafeRegistryDispose(builder, typeName);
 			generateEditorValidationMethods(builder, typeName, true);
@@ -1953,6 +2250,14 @@ namespace ECSSourceGenerator
 			builder.AppendLine("\tprivate void invalidateRefsFrom(int index)");
 			builder.AppendLine("\t{");
 			builder.AppendLine("\t\tfor (int i = index; i < mCount; ++i)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\t++mRefGeneration[i];");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tprivate void invalidateRefsRange(int index, int count)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tint end = index + count;");
+			builder.AppendLine("\t\tfor (int i = index; i < end; ++i)");
 			builder.AppendLine("\t\t{");
 			builder.AppendLine("\t\t\t++mRefGeneration[i];");
 			builder.AppendLine("\t\t}");
@@ -2817,6 +3122,2143 @@ namespace ECSSourceGenerator
 			}
 			builder.AppendLine("\t}");
 		}
+		private static void generateExtendedListMethods(StringBuilder builder, string typeName, string fullTypeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields)
+		{
+			bool usePermutationSort = ecsFields.Any(field => !field.Type.IsUnmanagedType) || aosFields.Any(field => !field.Type.IsUnmanagedType);
+			string source = @"
+	private interface IECSListSortComparer
+	{
+		int Compare(__ECS_TYPE__ left, __ECS_TYPE__ right);
+	}
+	private interface IECSListIndexSortComparer
+	{
+		int Compare(int leftIndex, int rightIndex);
+	}
+	private readonly struct ECSListComparerAdapter : IECSListSortComparer
+	{
+		private readonly global::System.Collections.Generic.IComparer<__ECS_TYPE__> mComparer;
+		public ECSListComparerAdapter(global::System.Collections.Generic.IComparer<__ECS_TYPE__> comparer)
+		{
+			mComparer = comparer;
+		}
+		[global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+		public int Compare(__ECS_TYPE__ left, __ECS_TYPE__ right)
+		{
+			return mComparer.Compare(left, right);
+		}
+	}
+	private readonly struct ECSListComparisonAdapter : IECSListSortComparer
+	{
+		private readonly global::System.Comparison<__ECS_TYPE__> mComparison;
+		public ECSListComparisonAdapter(global::System.Comparison<__ECS_TYPE__> comparison)
+		{
+			mComparison = comparison;
+		}
+		[global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+		public int Compare(__ECS_TYPE__ left, __ECS_TYPE__ right)
+		{
+			return mComparison(left, right);
+		}
+	}
+	public int EnsureCapacity(int capacity)
+	{
+		if (mDisposed)
+		{
+			throw new global::System.ObjectDisposedException(""__ECS_LIST__"");
+		}
+		if (capacity < 0)
+		{
+			throw new global::System.ArgumentOutOfRangeException(nameof(capacity));
+		}
+		if (capacity > mCapacity)
+		{
+			resize(capacity);
+#if UNITY_EDITOR
+			invalidateColumn();
+#endif
+		}
+		return mCapacity;
+	}
+	public void TrimExcess()
+	{
+		if (mDisposed)
+		{
+			throw new global::System.ObjectDisposedException(""__ECS_LIST__"");
+		}
+		int threshold = (int)((long)mCapacity * 9L / 10L);
+		if (mCount >= threshold)
+		{
+			return;
+		}
+		int targetCapacity = mCount > 0 ? mCount : 1;
+		resize(targetCapacity);
+#if UNITY_EDITOR
+		invalidateColumn();
+#endif
+	}
+	public void AddRange(__ECS_TYPE__[] values)
+	{
+		if (values == null)
+		{
+			throw new global::System.ArgumentNullException(nameof(values));
+		}
+		InsertRange(mCount, values, 0, values.Length);
+	}
+	public void AddRange(__ECS_TYPE__[] values, int sourceIndex, int count)
+	{
+		InsertRange(mCount, values, sourceIndex, count);
+	}
+	public void AddRange(__ECS_LIST__ values)
+	{
+		if (values == null)
+		{
+			throw new global::System.ArgumentNullException(nameof(values));
+		}
+		InsertRange(mCount, values);
+	}
+	public void InsertRange(int index, __ECS_TYPE__[] values)
+	{
+		if (values == null)
+		{
+			throw new global::System.ArgumentNullException(nameof(values));
+		}
+		InsertRange(index, values, 0, values.Length);
+	}
+	public void InsertRange(int index, __ECS_TYPE__[] values, int sourceIndex, int count)
+	{
+		if (mDisposed)
+		{
+			throw new global::System.ObjectDisposedException(""__ECS_LIST__"");
+		}
+		if (values == null)
+		{
+			throw new global::System.ArgumentNullException(nameof(values));
+		}
+		if ((uint)index > (uint)mCount)
+		{
+			throw new global::System.ArgumentOutOfRangeException(nameof(index));
+		}
+		if ((uint)sourceIndex > (uint)values.Length)
+		{
+			throw new global::System.ArgumentOutOfRangeException(nameof(sourceIndex));
+		}
+		if (count < 0 || sourceIndex > values.Length - count)
+		{
+			throw new global::System.ArgumentOutOfRangeException(nameof(count));
+		}
+		if (count == 0)
+		{
+			return;
+		}
+		if (count > global::System.Int32.MaxValue - mCount)
+		{
+			throw new global::System.OutOfMemoryException();
+		}
+		int oldCount = mCount;
+		ensureCapacityFor(oldCount + count);
+#if UNITY_EDITOR
+		invalidateRefsFrom(index);
+		invalidateColumn();
+#endif
+		int moveCount = oldCount - index;
+		if (moveCount > 0)
+		{
+			moveRange(index, index + count, moveCount);
+		}
+		copyFromArray(values, sourceIndex, index, count);
+		mCount = oldCount + count;
+	}
+	public void InsertRange(int index, __ECS_LIST__ values)
+	{
+		if (mDisposed)
+		{
+			throw new global::System.ObjectDisposedException(""__ECS_LIST__"");
+		}
+		if (values == null)
+		{
+			throw new global::System.ArgumentNullException(nameof(values));
+		}
+		if ((uint)index > (uint)mCount)
+		{
+			throw new global::System.ArgumentOutOfRangeException(nameof(index));
+		}
+#if UNITY_EDITOR
+		values.validateAlive();
+#endif
+		int insertCount = values.mCount;
+		if (insertCount == 0)
+		{
+			return;
+		}
+		if (insertCount > global::System.Int32.MaxValue - mCount)
+		{
+			throw new global::System.OutOfMemoryException();
+		}
+		int oldCount = mCount;
+		ensureCapacityFor(oldCount + insertCount);
+#if UNITY_EDITOR
+		invalidateRefsFrom(index);
+		invalidateColumn();
+#endif
+		if (global::System.Object.ReferenceEquals(this, values))
+		{
+			if (index < oldCount)
+			{
+				moveRange(index, index + oldCount, oldCount - index);
+			}
+			if (index > 0)
+			{
+				moveRange(0, index, index);
+			}
+			if (index < oldCount)
+			{
+				moveRange(index + oldCount, index + index, oldCount - index);
+			}
+			mCount = oldCount + oldCount;
+			return;
+		}
+		int moveCount = oldCount - index;
+		if (moveCount > 0)
+		{
+			moveRange(index, index + insertCount, moveCount);
+		}
+		copyRangeFrom(values, 0, index, insertCount);
+		mCount = oldCount + insertCount;
+	}
+	public void RemoveRange(int index, int count)
+	{
+		if (mDisposed)
+		{
+			throw new global::System.ObjectDisposedException(""__ECS_LIST__"");
+		}
+		if (index < 0)
+		{
+			throw new global::System.ArgumentOutOfRangeException(nameof(index));
+		}
+		if (count < 0)
+		{
+			throw new global::System.ArgumentOutOfRangeException(nameof(count));
+		}
+		if (index > mCount - count)
+		{
+			throw new global::System.ArgumentException(""index和count超出ECSList有效范围"");
+		}
+		if (count == 0)
+		{
+			return;
+		}
+#if UNITY_EDITOR
+		invalidateRefsFrom(index);
+		invalidateColumn();
+#endif
+		int newCount = mCount - count;
+		int moveCount = newCount - index;
+		if (moveCount > 0)
+		{
+			moveRange(index + count, index, moveCount);
+		}
+		clearRange(newCount, count);
+		mCount = newCount;
+	}
+	public bool Contains(__ECS_TYPE__ value)
+	{
+		return IndexOf(value) >= 0;
+	}
+	public int IndexOf(__ECS_TYPE__ value)
+	{
+		if (mDisposed)
+		{
+			throw new global::System.ObjectDisposedException(""__ECS_LIST__"");
+		}
+		global::System.Collections.Generic.EqualityComparer<__ECS_TYPE__> comparer = global::System.Collections.Generic.EqualityComparer<__ECS_TYPE__>.Default;
+		for (int i = 0; i < mCount; ++i)
+		{
+			if (comparer.Equals(Get(i), value))
+			{
+				return i;
+			}
+		}
+		return -1;
+	}
+	public int LastIndexOf(__ECS_TYPE__ value)
+	{
+		if (mDisposed)
+		{
+			throw new global::System.ObjectDisposedException(""__ECS_LIST__"");
+		}
+		global::System.Collections.Generic.EqualityComparer<__ECS_TYPE__> comparer = global::System.Collections.Generic.EqualityComparer<__ECS_TYPE__>.Default;
+		for (int i = mCount - 1; i >= 0; --i)
+		{
+			if (comparer.Equals(Get(i), value))
+			{
+				return i;
+			}
+		}
+		return -1;
+	}
+	public bool Remove(__ECS_TYPE__ value)
+	{
+		int index = IndexOf(value);
+		if (index < 0)
+		{
+			return false;
+		}
+		RemoveAt(index);
+		return true;
+	}
+	public int RemoveAll(global::System.Predicate<__ECS_TYPE__> match)
+	{
+		if (mDisposed)
+		{
+			throw new global::System.ObjectDisposedException(""__ECS_LIST__"");
+		}
+		if (match == null)
+		{
+			throw new global::System.ArgumentNullException(nameof(match));
+		}
+		int freeIndex = 0;
+		while (freeIndex < mCount && !match(Get(freeIndex)))
+		{
+			++freeIndex;
+		}
+		if (freeIndex >= mCount)
+		{
+			return 0;
+		}
+		int firstRemovedIndex = freeIndex;
+		int current = freeIndex + 1;
+		while (current < mCount)
+		{
+			while (current < mCount && match(Get(current)))
+			{
+				++current;
+			}
+			if (current >= mCount)
+			{
+				break;
+			}
+			int runStart = current;
+			++current;
+			while (current < mCount && !match(Get(current)))
+			{
+				++current;
+			}
+			int runCount = current - runStart;
+			if (runCount >= 8)
+			{
+				moveRange(runStart, freeIndex, runCount);
+			}
+			else
+			{
+				for (int i = 0; i < runCount; ++i)
+				{
+					copyValue(runStart + i, freeIndex + i);
+				}
+			}
+			freeIndex += runCount;
+			if (current < mCount)
+			{
+				++current;
+			}
+		}
+		int removedCount = mCount - freeIndex;
+#if UNITY_EDITOR
+		invalidateRefsFrom(firstRemovedIndex);
+		invalidateColumn();
+#endif
+		clearRange(freeIndex, removedCount);
+		mCount = freeIndex;
+		return removedCount;
+	}
+	public void Reverse()
+	{
+		Reverse(0, mCount);
+	}
+	public void Reverse(int index, int count)
+	{
+		if (mDisposed)
+		{
+			throw new global::System.ObjectDisposedException(""__ECS_LIST__"");
+		}
+		validateRange(index, count);
+		if (count <= 1)
+		{
+			return;
+		}
+#if UNITY_EDITOR
+		invalidateRefsRange(index, count);
+		invalidateColumn();
+#endif
+		reverseRange(index, count);
+	}
+	public void Sort()
+	{
+		Sort(0, mCount, null);
+	}
+	public void Sort(global::System.Collections.Generic.IComparer<__ECS_TYPE__> comparer)
+	{
+		Sort(0, mCount, comparer);
+	}
+	public void Sort(global::System.Comparison<__ECS_TYPE__> comparison)
+	{
+		if (mDisposed)
+		{
+			throw new global::System.ObjectDisposedException(""__ECS_LIST__"");
+		}
+		if (comparison == null)
+		{
+			throw new global::System.ArgumentNullException(nameof(comparison));
+		}
+		if (mCount <= 1)
+		{
+			return;
+		}
+#if UNITY_EDITOR
+		invalidateRefsRange(0, mCount);
+		invalidateColumn();
+#endif
+		sortCore(0, mCount, new ECSListComparisonAdapter(comparison));
+	}
+	public void Sort(int index, int count, global::System.Collections.Generic.IComparer<__ECS_TYPE__> comparer)
+	{
+		if (mDisposed)
+		{
+			throw new global::System.ObjectDisposedException(""__ECS_LIST__"");
+		}
+		validateRange(index, count);
+		if (count <= 1)
+		{
+			return;
+		}
+		if (comparer == null)
+		{
+			comparer = global::System.Collections.Generic.Comparer<__ECS_TYPE__>.Default;
+		}
+#if UNITY_EDITOR
+		invalidateRefsRange(index, count);
+		invalidateColumn();
+#endif
+		sortCore(index, count, new ECSListComparerAdapter(comparer));
+	}
+	public int BinarySearch(__ECS_TYPE__ value)
+	{
+		return BinarySearch(0, mCount, value, null);
+	}
+	public int BinarySearch(__ECS_TYPE__ value, global::System.Collections.Generic.IComparer<__ECS_TYPE__> comparer)
+	{
+		return BinarySearch(0, mCount, value, comparer);
+	}
+	public int BinarySearch(int index, int count, __ECS_TYPE__ value, global::System.Collections.Generic.IComparer<__ECS_TYPE__> comparer)
+	{
+		if (mDisposed)
+		{
+			throw new global::System.ObjectDisposedException(""__ECS_LIST__"");
+		}
+		validateRange(index, count);
+		if (comparer == null)
+		{
+			comparer = global::System.Collections.Generic.Comparer<__ECS_TYPE__>.Default;
+		}
+		int low = index;
+		int high = index + count - 1;
+		while (low <= high)
+		{
+			int middle = low + ((high - low) >> 1);
+			int compare = comparer.Compare(Get(middle), value);
+			if (compare == 0)
+			{
+				return middle;
+			}
+			if (compare < 0)
+			{
+				low = middle + 1;
+			}
+			else
+			{
+				high = middle - 1;
+			}
+		}
+		return ~low;
+	}
+	public __ECS_TYPE__[] ToArray()
+	{
+		if (mDisposed)
+		{
+			throw new global::System.ObjectDisposedException(""__ECS_LIST__"");
+		}
+		__ECS_TYPE__[] result = new __ECS_TYPE__[mCount];
+		CopyTo(0, result, 0, mCount);
+		return result;
+	}
+	public void CopyTo(__ECS_TYPE__[] array)
+	{
+		CopyTo(0, array, 0, mCount);
+	}
+	public void CopyTo(__ECS_TYPE__[] array, int arrayIndex)
+	{
+		CopyTo(0, array, arrayIndex, mCount);
+	}
+	public void CopyTo(int index, __ECS_TYPE__[] array, int arrayIndex, int count)
+	{
+		if (mDisposed)
+		{
+			throw new global::System.ObjectDisposedException(""__ECS_LIST__"");
+		}
+		if (array == null)
+		{
+			throw new global::System.ArgumentNullException(nameof(array));
+		}
+		validateRange(index, count);
+		if ((uint)arrayIndex > (uint)array.Length)
+		{
+			throw new global::System.ArgumentOutOfRangeException(nameof(arrayIndex));
+		}
+		if (count > array.Length - arrayIndex)
+		{
+			throw new global::System.ArgumentException(""目标数组空间不足"");
+		}
+		copyToArray(index, array, arrayIndex, count);
+	}
+	public bool Exists(global::System.Predicate<__ECS_TYPE__> match)
+	{
+		return FindIndex(match) >= 0;
+	}
+	public __ECS_TYPE__ Find(global::System.Predicate<__ECS_TYPE__> match)
+	{
+		int index = FindIndex(match);
+		return index >= 0 ? Get(index) : default(__ECS_TYPE__);
+	}
+	public int FindIndex(global::System.Predicate<__ECS_TYPE__> match)
+	{
+		if (mDisposed)
+		{
+			throw new global::System.ObjectDisposedException(""__ECS_LIST__"");
+		}
+		if (match == null)
+		{
+			throw new global::System.ArgumentNullException(nameof(match));
+		}
+		for (int i = 0; i < mCount; ++i)
+		{
+			if (match(Get(i)))
+			{
+				return i;
+			}
+		}
+		return -1;
+	}
+	public __ECS_TYPE__ FindLast(global::System.Predicate<__ECS_TYPE__> match)
+	{
+		int index = FindLastIndex(match);
+		return index >= 0 ? Get(index) : default(__ECS_TYPE__);
+	}
+	public int FindLastIndex(global::System.Predicate<__ECS_TYPE__> match)
+	{
+		if (mDisposed)
+		{
+			throw new global::System.ObjectDisposedException(""__ECS_LIST__"");
+		}
+		if (match == null)
+		{
+			throw new global::System.ArgumentNullException(nameof(match));
+		}
+		for (int i = mCount - 1; i >= 0; --i)
+		{
+			if (match(Get(i)))
+			{
+				return i;
+			}
+		}
+		return -1;
+	}
+	public bool TrueForAll(global::System.Predicate<__ECS_TYPE__> match)
+	{
+		if (mDisposed)
+		{
+			throw new global::System.ObjectDisposedException(""__ECS_LIST__"");
+		}
+		if (match == null)
+		{
+			throw new global::System.ArgumentNullException(nameof(match));
+		}
+		for (int i = 0; i < mCount; ++i)
+		{
+			if (!match(Get(i)))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+	private void ensureCapacityFor(int minimumCapacity)
+	{
+		if (minimumCapacity <= mCapacity)
+		{
+			return;
+		}
+		int newCapacity = mCapacity > 0 ? mCapacity : 1;
+		while (newCapacity < minimumCapacity)
+		{
+			if (newCapacity > global::System.Int32.MaxValue / 2)
+			{
+				newCapacity = minimumCapacity;
+				break;
+			}
+			newCapacity *= 2;
+		}
+		resize(newCapacity);
+	}
+	private void validateRange(int index, int count)
+	{
+		if (index < 0)
+		{
+			throw new global::System.ArgumentOutOfRangeException(nameof(index));
+		}
+		if (count < 0)
+		{
+			throw new global::System.ArgumentOutOfRangeException(nameof(count));
+		}
+		if (index > mCount - count)
+		{
+			throw new global::System.ArgumentException(""index和count超出ECSList有效范围"");
+		}
+	}
+	private void sortCore<TComparer>(int index, int count, TComparer comparer) where TComparer : struct, IECSListSortComparer
+	{
+		introSort(index, index + count - 1, 2 * floorLog2PlusOne(count), comparer);
+	}
+	private void introSort<TComparer>(int low, int high, int depthLimit, TComparer comparer) where TComparer : struct, IECSListSortComparer
+	{
+		while (high > low)
+		{
+			int partitionSize = high - low + 1;
+			if (partitionSize <= 16)
+			{
+				if (partitionSize == 2)
+				{
+					swapIfGreater(low, high, comparer);
+					return;
+				}
+				if (partitionSize == 3)
+				{
+					swapIfGreater(low, high - 1, comparer);
+					swapIfGreater(low, high, comparer);
+					swapIfGreater(high - 1, high, comparer);
+					return;
+				}
+				insertionSort(low, high, comparer);
+				return;
+			}
+			if (depthLimit == 0)
+			{
+				heapSort(low, high, comparer);
+				return;
+			}
+			--depthLimit;
+			int partition = pickPivotAndPartition(low, high, comparer);
+			introSort(partition + 1, high, depthLimit, comparer);
+			high = partition - 1;
+		}
+	}
+	private int pickPivotAndPartition<TComparer>(int low, int high, TComparer comparer) where TComparer : struct, IECSListSortComparer
+	{
+		int middle = low + ((high - low) >> 1);
+		swapIfGreater(low, middle, comparer);
+		swapIfGreater(low, high, comparer);
+		swapIfGreater(middle, high, comparer);
+		__ECS_TYPE__ pivot = Get(middle);
+		swapValue(middle, high - 1);
+		int left = low;
+		int right = high - 1;
+		while (true)
+		{
+			while (comparer.Compare(Get(++left), pivot) < 0)
+			{
+			}
+			while (comparer.Compare(pivot, Get(--right)) < 0)
+			{
+			}
+			if (left >= right)
+			{
+				break;
+			}
+			swapValue(left, right);
+		}
+		swapValue(left, high - 1);
+		return left;
+	}
+	private void insertionSort<TComparer>(int low, int high, TComparer comparer) where TComparer : struct, IECSListSortComparer
+	{
+		for (int i = low; i < high; ++i)
+		{
+			int current = i;
+			__ECS_TYPE__ value = Get(i + 1);
+			while (current >= low && comparer.Compare(value, Get(current)) < 0)
+			{
+				copyValue(current, current + 1);
+				--current;
+			}
+			setValue(current + 1, value);
+		}
+	}
+	private void heapSort<TComparer>(int low, int high, TComparer comparer) where TComparer : struct, IECSListSortComparer
+	{
+		int n = high - low + 1;
+		for (int i = n >> 1; i >= 1; --i)
+		{
+			downHeap(i, n, low, comparer);
+		}
+		for (int i = n; i > 1; --i)
+		{
+			swapValue(low, low + i - 1);
+			downHeap(1, i - 1, low, comparer);
+		}
+	}
+	private void downHeap<TComparer>(int index, int count, int low, TComparer comparer) where TComparer : struct, IECSListSortComparer
+	{
+		__ECS_TYPE__ value = Get(low + index - 1);
+		while (index <= count >> 1)
+		{
+			int child = index << 1;
+			if (child < count && comparer.Compare(Get(low + child - 1), Get(low + child)) < 0)
+			{
+				++child;
+			}
+			if (comparer.Compare(value, Get(low + child - 1)) >= 0)
+			{
+				break;
+			}
+			copyValue(low + child - 1, low + index - 1);
+			index = child;
+		}
+		setValue(low + index - 1, value);
+	}
+	private void swapIfGreater<TComparer>(int firstIndex, int secondIndex, TComparer comparer) where TComparer : struct, IECSListSortComparer
+	{
+		if (firstIndex != secondIndex && comparer.Compare(Get(firstIndex), Get(secondIndex)) > 0)
+		{
+			swapValue(firstIndex, secondIndex);
+		}
+	}
+		private static int floorLog2PlusOne(int value)
+	{
+		int result = 0;
+		while (value >= 1)
+		{
+			++result;
+			value >>= 1;
+		}
+		return result;
+	}
+";
+			builder.Append(source.TrimStart('\r', '\n').Replace("__ECS_TYPE__", fullTypeName).Replace("__ECS_LIST__", typeName + "ECSList"));
+			if (usePermutationSort)
+			{
+				builder.Append(@"	[global::System.ThreadStaticAttribute]
+	private static int[] sSortPermutationCache;
+	private void sortByCore<TComparer>(int index, int count, TComparer comparer) where TComparer : struct, IECSListIndexSortComparer
+	{
+		int[] permutation = rentSortPermutation(count);
+		try
+		{
+			for (int i = 0; i < count; ++i)
+			{
+				permutation[i] = index + i;
+			}
+			introSortPermutation(permutation, 0, count - 1, 2 * floorLog2PlusOne(count), comparer);
+			applySortPermutation(index, count, permutation);
+		}
+		finally
+		{
+			returnSortPermutation(permutation);
+		}
+	}
+	private static int[] rentSortPermutation(int count)
+	{
+		int[] permutation = sSortPermutationCache;
+		sSortPermutationCache = null;
+		if (permutation == null || permutation.Length < count)
+		{
+			int capacity = 16;
+			while (capacity < count)
+			{
+				if (capacity > global::System.Int32.MaxValue / 2)
+				{
+					capacity = count;
+					break;
+				}
+				capacity *= 2;
+			}
+			permutation = new int[capacity];
+		}
+		return permutation;
+	}
+	private static void returnSortPermutation(int[] permutation)
+	{
+		if (permutation == null)
+		{
+			return;
+		}
+		int[] cached = sSortPermutationCache;
+		if (cached == null || cached.Length < permutation.Length)
+		{
+			sSortPermutationCache = permutation;
+		}
+	}
+	private static void introSortPermutation<TComparer>(int[] permutation, int low, int high, int depthLimit, TComparer comparer) where TComparer : struct, IECSListIndexSortComparer
+	{
+		while (high > low)
+		{
+			int partitionSize = high - low + 1;
+			if (partitionSize <= 16)
+			{
+				insertionSortPermutation(permutation, low, high, comparer);
+				return;
+			}
+			if (depthLimit == 0)
+			{
+				heapSortPermutation(permutation, low, high, comparer);
+				return;
+			}
+			--depthLimit;
+			int partition = pickPivotAndPartitionPermutation(permutation, low, high, comparer);
+			if (partition - low < high - partition)
+			{
+				introSortPermutation(permutation, low, partition - 1, depthLimit, comparer);
+				low = partition + 1;
+			}
+			else
+			{
+				introSortPermutation(permutation, partition + 1, high, depthLimit, comparer);
+				high = partition - 1;
+			}
+		}
+	}
+	private static int pickPivotAndPartitionPermutation<TComparer>(int[] permutation, int low, int high, TComparer comparer) where TComparer : struct, IECSListIndexSortComparer
+	{
+		int middle = low + ((high - low) >> 1);
+		swapPermutationIfGreater(permutation, low, middle, comparer);
+		swapPermutationIfGreater(permutation, low, high, comparer);
+		swapPermutationIfGreater(permutation, middle, high, comparer);
+		int pivot = permutation[middle];
+		permutation[middle] = permutation[high - 1];
+		permutation[high - 1] = pivot;
+		int left = low;
+		int right = high - 1;
+		while (true)
+		{
+			while (comparer.Compare(permutation[++left], pivot) < 0)
+			{
+			}
+			while (comparer.Compare(pivot, permutation[--right]) < 0)
+			{
+			}
+			if (left >= right)
+			{
+				break;
+			}
+			int temp = permutation[left];
+			permutation[left] = permutation[right];
+			permutation[right] = temp;
+		}
+		permutation[high - 1] = permutation[left];
+		permutation[left] = pivot;
+		return left;
+	}
+	private static void insertionSortPermutation<TComparer>(int[] permutation, int low, int high, TComparer comparer) where TComparer : struct, IECSListIndexSortComparer
+	{
+		for (int i = low + 1; i <= high; ++i)
+		{
+			int value = permutation[i];
+			int current = i - 1;
+			while (current >= low && comparer.Compare(value, permutation[current]) < 0)
+			{
+				permutation[current + 1] = permutation[current];
+				--current;
+			}
+			permutation[current + 1] = value;
+		}
+	}
+	private static void heapSortPermutation<TComparer>(int[] permutation, int low, int high, TComparer comparer) where TComparer : struct, IECSListIndexSortComparer
+	{
+		int count = high - low + 1;
+		for (int i = count >> 1; i >= 1; --i)
+		{
+			downHeapPermutation(permutation, i, count, low, comparer);
+		}
+		for (int i = count; i > 1; --i)
+		{
+			int temp = permutation[low];
+			permutation[low] = permutation[low + i - 1];
+			permutation[low + i - 1] = temp;
+			downHeapPermutation(permutation, 1, i - 1, low, comparer);
+		}
+	}
+	private static void downHeapPermutation<TComparer>(int[] permutation, int index, int count, int low, TComparer comparer) where TComparer : struct, IECSListIndexSortComparer
+	{
+		int value = permutation[low + index - 1];
+		while (index <= count >> 1)
+		{
+			int child = index << 1;
+			if (child < count && comparer.Compare(permutation[low + child - 1], permutation[low + child]) < 0)
+			{
+				++child;
+			}
+			if (comparer.Compare(value, permutation[low + child - 1]) >= 0)
+			{
+				break;
+			}
+			permutation[low + index - 1] = permutation[low + child - 1];
+			index = child;
+		}
+		permutation[low + index - 1] = value;
+	}
+	private static void swapPermutationIfGreater<TComparer>(int[] permutation, int firstIndex, int secondIndex, TComparer comparer) where TComparer : struct, IECSListIndexSortComparer
+	{
+		if (firstIndex != secondIndex && comparer.Compare(permutation[firstIndex], permutation[secondIndex]) > 0)
+		{
+			int temp = permutation[firstIndex];
+			permutation[firstIndex] = permutation[secondIndex];
+			permutation[secondIndex] = temp;
+		}
+	}
+");
+			}
+			else
+			{
+				builder.Append(@"private void sortByCore<TComparer>(int index, int count, TComparer comparer) where TComparer : struct, IECSListIndexSortComparer
+	{
+		introSortBy(index, index + count - 1, 2 * floorLog2PlusOne(count), comparer);
+	}
+	private void introSortBy<TComparer>(int low, int high, int depthLimit, TComparer comparer) where TComparer : struct, IECSListIndexSortComparer
+	{
+		while (high > low)
+		{
+			int partitionSize = high - low + 1;
+			if (partitionSize <= 16)
+			{
+				insertionSortBy(low, high, comparer);
+				return;
+			}
+			if (depthLimit == 0)
+			{
+				heapSortBy(low, high, comparer);
+				return;
+			}
+			--depthLimit;
+			int partition = pickPivotAndPartitionBy(low, high, comparer);
+			if (partition - low < high - partition)
+			{
+				introSortBy(low, partition - 1, depthLimit, comparer);
+				low = partition + 1;
+			}
+			else
+			{
+				introSortBy(partition + 1, high, depthLimit, comparer);
+				high = partition - 1;
+			}
+		}
+	}
+	private int pickPivotAndPartitionBy<TComparer>(int low, int high, TComparer comparer) where TComparer : struct, IECSListIndexSortComparer
+	{
+		int middle = low + ((high - low) >> 1);
+		swapIfGreaterBy(low, middle, comparer);
+		swapIfGreaterBy(low, high, comparer);
+		swapIfGreaterBy(middle, high, comparer);
+		swapValue(middle, high - 1);
+		int pivotIndex = high - 1;
+		int left = low;
+		int right = high - 1;
+		while (true)
+		{
+			while (comparer.Compare(++left, pivotIndex) < 0)
+			{
+			}
+			while (comparer.Compare(pivotIndex, --right) < 0)
+			{
+			}
+			if (left >= right)
+			{
+				break;
+			}
+			swapValue(left, right);
+		}
+		swapValue(left, pivotIndex);
+		return left;
+	}
+	private void insertionSortBy<TComparer>(int low, int high, TComparer comparer) where TComparer : struct, IECSListIndexSortComparer
+	{
+		for (int i = low + 1; i <= high; ++i)
+		{
+			int current = i;
+			while (current > low && comparer.Compare(current, current - 1) < 0)
+			{
+				swapValue(current, current - 1);
+				--current;
+			}
+		}
+	}
+	private void heapSortBy<TComparer>(int low, int high, TComparer comparer) where TComparer : struct, IECSListIndexSortComparer
+	{
+		int count = high - low + 1;
+		for (int i = (count >> 1) - 1; i >= 0; --i)
+		{
+			downHeapBy(i, count, low, comparer);
+		}
+		for (int end = count - 1; end > 0; --end)
+		{
+			swapValue(low, low + end);
+			downHeapBy(0, end, low, comparer);
+		}
+	}
+	private void downHeapBy<TComparer>(int root, int count, int low, TComparer comparer) where TComparer : struct, IECSListIndexSortComparer
+	{
+		while (true)
+		{
+			int child = (root << 1) + 1;
+			if (child >= count)
+			{
+				return;
+			}
+			if (child + 1 < count && comparer.Compare(low + child, low + child + 1) < 0)
+			{
+				++child;
+			}
+			if (comparer.Compare(low + root, low + child) >= 0)
+			{
+				return;
+			}
+			swapValue(low + root, low + child);
+			root = child;
+		}
+	}
+	private void swapIfGreaterBy<TComparer>(int firstIndex, int secondIndex, TComparer comparer) where TComparer : struct, IECSListIndexSortComparer
+	{
+		if (firstIndex != secondIndex && comparer.Compare(firstIndex, secondIndex) > 0)
+		{
+			swapValue(firstIndex, secondIndex);
+		}
+	}
+");
+			}
+			generateFieldSortMethods(builder, typeName, ecsFields);
+			generateFieldSearchMethods(builder, typeName, ecsFields);
+		}
+		private static void generateFieldSortMethods(StringBuilder builder, string typeName, List<IFieldSymbol> ecsFields)
+		{
+			foreach (IFieldSymbol field in ecsFields)
+			{
+				string fieldType = getTypeName(field.Type);
+				string fieldName = field.Name;
+				string suffix = getSortMethodSuffix(fieldName);
+				string comparerType = "__ECSFieldSortComparer_" + fieldName;
+				string sortMethod = "SortBy" + suffix;
+				string binarySearchMethod = "BinarySearchBy" + suffix;
+				string getMethod = "getSortField_" + fieldName;
+				builder.AppendLine("\tprivate readonly struct " + comparerType + " : IECSListIndexSortComparer");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\tprivate readonly " + typeName + "ECSList mOwner;");
+				builder.AppendLine("\t\tprivate readonly global::System.Collections.Generic.IComparer<" + fieldType + "> mComparer;");
+				builder.AppendLine("\t\tpublic " + comparerType + "(" + typeName + "ECSList owner, global::System.Collections.Generic.IComparer<" + fieldType + "> comparer)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tmOwner = owner;");
+				builder.AppendLine("\t\t\tmComparer = comparer;");
+				builder.AppendLine("\t\t}");
+				appendAggressiveInlining(builder, 2);
+				builder.AppendLine("\t\tpublic int Compare(int leftIndex, int rightIndex)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\treturn mComparer.Compare(mOwner." + getMethod + "(leftIndex), mOwner." + getMethod + "(rightIndex));");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t}");
+				builder.AppendLine("\tpublic void " + sortMethod + "()");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\t" + sortMethod + "(0, mCount, null);");
+				builder.AppendLine("\t}");
+				builder.AppendLine("\tpublic void " + sortMethod + "(global::System.Collections.Generic.IComparer<" + fieldType + "> comparer)");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\t" + sortMethod + "(0, mCount, comparer);");
+				builder.AppendLine("\t}");
+				builder.AppendLine("\tpublic void " + sortMethod + "(int index, int count, global::System.Collections.Generic.IComparer<" + fieldType + "> comparer)");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\tif (mDisposed)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tthrow new global::System.ObjectDisposedException(\"" + typeName + "ECSList\");");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\tvalidateRange(index, count);");
+				builder.AppendLine("\t\tif (count <= 1)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\treturn;");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\tif (comparer == null)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tcomparer = global::System.Collections.Generic.Comparer<" + fieldType + ">.Default;");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("#if UNITY_EDITOR");
+				builder.AppendLine("\t\tinvalidateRefsRange(index, count);");
+				builder.AppendLine("\t\tinvalidateColumn();");
+				builder.AppendLine("#endif");
+				builder.AppendLine("\t\tsortByCore(index, count, new " + comparerType + "(this, comparer));");
+				builder.AppendLine("\t}");
+				builder.AppendLine("\tpublic int " + binarySearchMethod + "(" + fieldType + " value)");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\treturn " + binarySearchMethod + "(0, mCount, value, null);");
+				builder.AppendLine("\t}");
+				builder.AppendLine("\tpublic int " + binarySearchMethod + "(" + fieldType + " value, global::System.Collections.Generic.IComparer<" + fieldType + "> comparer)");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\treturn " + binarySearchMethod + "(0, mCount, value, comparer);");
+				builder.AppendLine("\t}");
+				builder.AppendLine("\tpublic int " + binarySearchMethod + "(int index, int count, " + fieldType + " value, global::System.Collections.Generic.IComparer<" + fieldType + "> comparer)");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\tif (mDisposed)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tthrow new global::System.ObjectDisposedException(\"" + typeName + "ECSList\");");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\tvalidateRange(index, count);");
+				builder.AppendLine("\t\tif (comparer == null)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tcomparer = global::System.Collections.Generic.Comparer<" + fieldType + ">.Default;");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\tint low = index;");
+				builder.AppendLine("\t\tint high = index + count - 1;");
+				builder.AppendLine("\t\twhile (low <= high)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tint middle = low + ((high - low) >> 1);");
+				builder.AppendLine("\t\t\tint compare = comparer.Compare(" + getMethod + "(middle), value);");
+				builder.AppendLine("\t\t\tif (compare == 0)");
+				builder.AppendLine("\t\t\t{");
+				builder.AppendLine("\t\t\t\treturn middle;");
+				builder.AppendLine("\t\t\t}");
+				builder.AppendLine("\t\t\tif (compare < 0)");
+				builder.AppendLine("\t\t\t{");
+				builder.AppendLine("\t\t\t\tlow = middle + 1;");
+				builder.AppendLine("\t\t\t}");
+				builder.AppendLine("\t\t\telse");
+				builder.AppendLine("\t\t\t{");
+				builder.AppendLine("\t\t\t\thigh = middle - 1;");
+				builder.AppendLine("\t\t\t}");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\treturn ~low;");
+				builder.AppendLine("\t}");
+			}
+		}
+		private static void generateFieldSearchMethods(StringBuilder builder, string typeName, List<IFieldSymbol> ecsFields)
+		{
+			foreach (IFieldSymbol field in ecsFields)
+			{
+				string fieldType = getTypeName(field.Type);
+				string fieldName = field.Name;
+				string suffix = getSortMethodSuffix(fieldName);
+				string getMethod = "getSortField_" + fieldName;
+				string containsMethod = "ContainsBy" + suffix;
+				string indexOfMethod = "IndexOfBy" + suffix;
+				string lastIndexOfMethod = "LastIndexOfBy" + suffix;
+				string existsMethod = "ExistsBy" + suffix;
+				string findIndexMethod = "FindIndexBy" + suffix;
+				string removeAllMethod = "RemoveAllBy" + suffix;
+				builder.AppendLine("\tpublic bool " + containsMethod + "(" + fieldType + " value)");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\treturn " + indexOfMethod + "(value) >= 0;");
+				builder.AppendLine("\t}");
+				builder.AppendLine("\tpublic int " + indexOfMethod + "(" + fieldType + " value)");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\tif (mDisposed)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tthrow new global::System.ObjectDisposedException(\"" + typeName + "ECSList\");");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\tglobal::System.Collections.Generic.EqualityComparer<" + fieldType + "> comparer = global::System.Collections.Generic.EqualityComparer<" + fieldType + ">.Default;");
+				builder.AppendLine("\t\tfor (int i = 0; i < mCount; ++i)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tif (comparer.Equals(" + getMethod + "(i), value))");
+				builder.AppendLine("\t\t\t{");
+				builder.AppendLine("\t\t\t\treturn i;");
+				builder.AppendLine("\t\t\t}");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\treturn -1;");
+				builder.AppendLine("\t}");
+				builder.AppendLine("\tpublic int " + lastIndexOfMethod + "(" + fieldType + " value)");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\tif (mDisposed)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tthrow new global::System.ObjectDisposedException(\"" + typeName + "ECSList\");");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\tglobal::System.Collections.Generic.EqualityComparer<" + fieldType + "> comparer = global::System.Collections.Generic.EqualityComparer<" + fieldType + ">.Default;");
+				builder.AppendLine("\t\tfor (int i = mCount - 1; i >= 0; --i)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tif (comparer.Equals(" + getMethod + "(i), value))");
+				builder.AppendLine("\t\t\t{");
+				builder.AppendLine("\t\t\t\treturn i;");
+				builder.AppendLine("\t\t\t}");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\treturn -1;");
+				builder.AppendLine("\t}");
+				builder.AppendLine("\tpublic bool " + existsMethod + "(global::System.Predicate<" + fieldType + "> match)");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\treturn " + findIndexMethod + "(match) >= 0;");
+				builder.AppendLine("\t}");
+				builder.AppendLine("\tpublic int " + findIndexMethod + "(global::System.Predicate<" + fieldType + "> match)");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\treturn " + findIndexMethod + "(0, mCount, match);");
+				builder.AppendLine("\t}");
+				builder.AppendLine("\tpublic int " + findIndexMethod + "(int startIndex, global::System.Predicate<" + fieldType + "> match)");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\tif (startIndex < 0 || startIndex > mCount)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tthrow new global::System.ArgumentOutOfRangeException(nameof(startIndex));");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\treturn " + findIndexMethod + "(startIndex, mCount - startIndex, match);");
+				builder.AppendLine("\t}");
+				builder.AppendLine("\tpublic int " + findIndexMethod + "(int startIndex, int count, global::System.Predicate<" + fieldType + "> match)");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\tif (mDisposed)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tthrow new global::System.ObjectDisposedException(\"" + typeName + "ECSList\");");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\tif (match == null)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tthrow new global::System.ArgumentNullException(nameof(match));");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\tvalidateRange(startIndex, count);");
+				builder.AppendLine("\t\tint endIndex = startIndex + count;");
+				builder.AppendLine("\t\tfor (int i = startIndex; i < endIndex; ++i)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tif (match(" + getMethod + "(i)))");
+				builder.AppendLine("\t\t\t{");
+				builder.AppendLine("\t\t\t\treturn i;");
+				builder.AppendLine("\t\t\t}");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\treturn -1;");
+				builder.AppendLine("\t}");
+				builder.AppendLine("\tpublic int " + removeAllMethod + "(global::System.Predicate<" + fieldType + "> match)");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\tif (mDisposed)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tthrow new global::System.ObjectDisposedException(\"" + typeName + "ECSList\");");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\tif (match == null)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tthrow new global::System.ArgumentNullException(nameof(match));");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\tint freeIndex = 0;");
+				builder.AppendLine("\t\twhile (freeIndex < mCount && !match(" + getMethod + "(freeIndex)))");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\t++freeIndex;");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\tif (freeIndex >= mCount)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\treturn 0;");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\tint firstRemovedIndex = freeIndex;");
+				builder.AppendLine("\t\tint current = freeIndex + 1;");
+				builder.AppendLine("\t\twhile (current < mCount)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\twhile (current < mCount && match(" + getMethod + "(current)))");
+				builder.AppendLine("\t\t\t{");
+				builder.AppendLine("\t\t\t\t++current;");
+				builder.AppendLine("\t\t\t}");
+				builder.AppendLine("\t\t\tif (current >= mCount)");
+				builder.AppendLine("\t\t\t{");
+				builder.AppendLine("\t\t\t\tbreak;");
+				builder.AppendLine("\t\t\t}");
+				builder.AppendLine("\t\t\tint runStart = current;");
+				builder.AppendLine("\t\t\t++current;");
+				builder.AppendLine("\t\t\twhile (current < mCount && !match(" + getMethod + "(current)))");
+				builder.AppendLine("\t\t\t{");
+				builder.AppendLine("\t\t\t\t++current;");
+				builder.AppendLine("\t\t\t}");
+				builder.AppendLine("\t\t\tint runCount = current - runStart;");
+				builder.AppendLine("\t\t\tif (runCount >= 8)");
+				builder.AppendLine("\t\t\t{");
+				builder.AppendLine("\t\t\t\tmoveRange(runStart, freeIndex, runCount);");
+				builder.AppendLine("\t\t\t}");
+				builder.AppendLine("\t\t\telse");
+				builder.AppendLine("\t\t\t{");
+				builder.AppendLine("\t\t\t\tfor (int i = 0; i < runCount; ++i)");
+				builder.AppendLine("\t\t\t\t{");
+				builder.AppendLine("\t\t\t\t\tcopyValue(runStart + i, freeIndex + i);");
+				builder.AppendLine("\t\t\t\t}");
+				builder.AppendLine("\t\t\t}");
+				builder.AppendLine("\t\t\tfreeIndex += runCount;");
+				builder.AppendLine("\t\t\tif (current < mCount)");
+				builder.AppendLine("\t\t\t{");
+				builder.AppendLine("\t\t\t\t++current;");
+				builder.AppendLine("\t\t\t}");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\tint removedCount = mCount - freeIndex;");
+				builder.AppendLine("#if UNITY_EDITOR");
+				builder.AppendLine("\t\tinvalidateRefsFrom(firstRemovedIndex);");
+				builder.AppendLine("\t\tinvalidateColumn();");
+				builder.AppendLine("#endif");
+				builder.AppendLine("\t\tclearRange(freeIndex, removedCount);");
+				builder.AppendLine("\t\tmCount = freeIndex;");
+				builder.AppendLine("\t\treturn removedCount;");
+				builder.AppendLine("\t}");
+			}
+		}
+		private static void generateUnsafeExtendedListHelpers(StringBuilder builder, string typeName, string fullTypeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields, bool hasSpan)
+		{
+			bool hasManagedECS = ecsFields.Any(field => !field.Type.IsUnmanagedType);
+			bool hasManagedAoS = aosFields.Any(field => !field.Type.IsUnmanagedType);
+			bool usePermutationSort = hasManagedECS || hasManagedAoS;
+			builder.AppendLine("\tprivate void moveRange(int sourceIndex, int destinationIndex, int count)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tif (count <= 0 || sourceIndex == destinationIndex)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\treturn;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tbool overlap = sourceIndex < destinationIndex + count && destinationIndex < sourceIndex + count;");
+			if (hasSpan)
+			{
+				foreach (IFieldSymbol field in ecsFields)
+				{
+					if (field.Type.IsUnmanagedType)
+					{
+						string fieldType = getTypeName(field.Type);
+						builder.AppendLine("\t\tif (overlap)");
+						builder.AppendLine("\t\t{");
+						builder.AppendLine("\t\t\tnew global::System.Span<" + fieldType + ">(mStorage->" + fieldAccess(field) + " + sourceIndex, count).CopyTo(new global::System.Span<" + fieldType + ">(mStorage->" + fieldAccess(field) + " + destinationIndex, count));");
+						builder.AppendLine("\t\t}");
+						builder.AppendLine("\t\telse");
+						builder.AppendLine("\t\t{");
+						builder.AppendLine("\t\t\tcopyMemory(mStorage->" + fieldAccess(field) + " + destinationIndex, mStorage->" + fieldAccess(field) + " + sourceIndex, (long)count * sizeof(" + fieldType + "));");
+						builder.AppendLine("\t\t}");
+					}
+				}
+				if (aosFields.Count > 0 && !hasManagedAoS)
+				{
+					builder.AppendLine("\t\tif (overlap)");
+					builder.AppendLine("\t\t{");
+					builder.AppendLine("\t\t\tnew global::System.Span<" + typeName + "AoSBlock>(mStorage->mAoS + sourceIndex, count).CopyTo(new global::System.Span<" + typeName + "AoSBlock>(mStorage->mAoS + destinationIndex, count));");
+					builder.AppendLine("\t\t}");
+					builder.AppendLine("\t\telse");
+					builder.AppendLine("\t\t{");
+					builder.AppendLine("\t\t\tcopyMemory(mStorage->mAoS + destinationIndex, mStorage->mAoS + sourceIndex, (long)count * sizeof(" + typeName + "AoSBlock));");
+					builder.AppendLine("\t\t}");
+				}
+			}
+			else
+			{
+				builder.AppendLine("\t\tif (!overlap)");
+				builder.AppendLine("\t\t{");
+				foreach (IFieldSymbol field in ecsFields)
+				{
+					if (field.Type.IsUnmanagedType)
+					{
+						string fieldType = getTypeName(field.Type);
+						builder.AppendLine("\t\t\tcopyMemory(mStorage->" + fieldAccess(field) + " + destinationIndex, mStorage->" + fieldAccess(field) + " + sourceIndex, (long)count * sizeof(" + fieldType + "));");
+					}
+				}
+				if (aosFields.Count > 0 && !hasManagedAoS)
+				{
+					builder.AppendLine("\t\t\tcopyMemory(mStorage->mAoS + destinationIndex, mStorage->mAoS + sourceIndex, (long)count * sizeof(" + typeName + "AoSBlock));");
+				}
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\telse if (destinationIndex > sourceIndex)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tfor (int i = count - 1; i >= 0; --i)");
+				builder.AppendLine("\t\t\t{");
+				foreach (IFieldSymbol field in ecsFields)
+				{
+					if (field.Type.IsUnmanagedType)
+					{
+						builder.AppendLine("\t\t\t\tmStorage->" + fieldAccess(field) + "[destinationIndex + i] = mStorage->" + fieldAccess(field) + "[sourceIndex + i];");
+					}
+				}
+				if (aosFields.Count > 0 && !hasManagedAoS)
+				{
+					builder.AppendLine("\t\t\t\tmStorage->mAoS[destinationIndex + i] = mStorage->mAoS[sourceIndex + i];");
+				}
+				builder.AppendLine("\t\t\t}");
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t\telse");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tfor (int i = 0; i < count; ++i)");
+				builder.AppendLine("\t\t\t{");
+				foreach (IFieldSymbol field in ecsFields)
+				{
+					if (field.Type.IsUnmanagedType)
+					{
+						builder.AppendLine("\t\t\t\tmStorage->" + fieldAccess(field) + "[destinationIndex + i] = mStorage->" + fieldAccess(field) + "[sourceIndex + i];");
+					}
+				}
+				if (aosFields.Count > 0 && !hasManagedAoS)
+				{
+					builder.AppendLine("\t\t\t\tmStorage->mAoS[destinationIndex + i] = mStorage->mAoS[sourceIndex + i];");
+				}
+				builder.AppendLine("\t\t\t}");
+				builder.AppendLine("\t\t}");
+			}
+			foreach (IFieldSymbol field in ecsFields)
+			{
+				if (!field.Type.IsUnmanagedType)
+				{
+					builder.AppendLine("\t\tglobal::System.Array.Copy(mManagedStorage." + fieldAccess(field) + ", sourceIndex, mManagedStorage." + fieldAccess(field) + ", destinationIndex, count);");
+				}
+			}
+			if (hasManagedAoS)
+			{
+				builder.AppendLine("\t\tglobal::System.Array.Copy(mManagedStorage.mAoS, sourceIndex, mManagedStorage.mAoS, destinationIndex, count);");
+			}
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tprivate void copyRangeFrom(" + typeName + "ECSList source, int sourceIndex, int destinationIndex, int count)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tif (count <= 0)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\treturn;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\tif (global::System.Object.ReferenceEquals(this, source))");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tmoveRange(sourceIndex, destinationIndex, count);");
+			builder.AppendLine("\t\t\treturn;");
+			builder.AppendLine("\t\t}");
+			foreach (IFieldSymbol field in ecsFields)
+			{
+				if (field.Type.IsUnmanagedType)
+				{
+					string fieldType = getTypeName(field.Type);
+					builder.AppendLine("\t\tcopyMemory(mStorage->" + fieldAccess(field) + " + destinationIndex, source.mStorage->" + fieldAccess(field) + " + sourceIndex, (long)count * sizeof(" + fieldType + "));");
+				}
+				else
+				{
+					builder.AppendLine("\t\tglobal::System.Array.Copy(source.mManagedStorage." + fieldAccess(field) + ", sourceIndex, mManagedStorage." + fieldAccess(field) + ", destinationIndex, count);");
+				}
+			}
+			if (aosFields.Count > 0)
+			{
+				if (hasManagedAoS)
+				{
+					builder.AppendLine("\t\tglobal::System.Array.Copy(source.mManagedStorage.mAoS, sourceIndex, mManagedStorage.mAoS, destinationIndex, count);");
+				}
+				else
+				{
+					builder.AppendLine("\t\tcopyMemory(mStorage->mAoS + destinationIndex, source.mStorage->mAoS + sourceIndex, (long)count * sizeof(" + typeName + "AoSBlock));");
+				}
+			}
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tprivate void copyFromArray(" + fullTypeName + "[] source, int sourceIndex, int destinationIndex, int count)");
+			builder.AppendLine("\t{");
+			if (hasManagedECS || hasManagedAoS)
+			{
+				for (int fieldIndex = 0; fieldIndex < ecsFields.Count; ++fieldIndex)
+				{
+					IFieldSymbol field = ecsFields[fieldIndex];
+					string fieldType = getTypeName(field.Type);
+					if (field.Type.IsUnmanagedType)
+					{
+						builder.AppendLine("\t\t" + fieldType + "* column" + fieldIndex + " = mStorage->" + fieldAccess(field) + ";");
+					}
+					else
+					{
+						builder.AppendLine("\t\t" + fieldType + "[] column" + fieldIndex + " = mManagedStorage." + fieldAccess(field) + ";");
+					}
+				}
+				if (aosFields.Count > 0)
+				{
+					if (hasManagedAoS)
+					{
+						builder.AppendLine("\t\t" + typeName + "AoSBlock[] aosColumn = mManagedStorage.mAoS;");
+					}
+					else
+					{
+						builder.AppendLine("\t\t" + typeName + "AoSBlock* aosColumn = mStorage->mAoS;");
+					}
+				}
+				builder.AppendLine("\t\tint sourceCursor = sourceIndex;");
+				builder.AppendLine("\t\tint destinationCursor = destinationIndex;");
+				builder.AppendLine("\t\tint sourceEnd = sourceIndex + count;");
+				builder.AppendLine("\t\tfor (; sourceCursor < sourceEnd; ++sourceCursor, ++destinationCursor)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tref " + fullTypeName + " sourceValue = ref source[sourceCursor];");
+				for (int fieldIndex = 0; fieldIndex < ecsFields.Count; ++fieldIndex)
+				{
+					IFieldSymbol field = ecsFields[fieldIndex];
+					builder.AppendLine("\t\t\tcolumn" + fieldIndex + "[destinationCursor] = sourceValue." + fieldAccess(field) + ";");
+				}
+				if (aosFields.Count > 0)
+				{
+					builder.AppendLine("\t\t\t" + typeName + "AoSBlock aosValue = default(" + typeName + "AoSBlock);");
+					foreach (IFieldSymbol field in aosFields)
+					{
+						builder.AppendLine("\t\t\taosValue." + fieldAccess(field) + " = sourceValue." + fieldAccess(field) + ";");
+					}
+					builder.AppendLine("\t\t\taosColumn[destinationCursor] = aosValue;");
+				}
+				builder.AppendLine("\t\t}");
+			}
+			else
+			{
+				foreach (IFieldSymbol field in ecsFields)
+				{
+					builder.AppendLine("\t\tfor (int i = 0; i < count; ++i)");
+					builder.AppendLine("\t\t{");
+					builder.AppendLine("\t\t\tmStorage->" + fieldAccess(field) + "[destinationIndex + i] = source[sourceIndex + i]." + fieldAccess(field) + ";");
+					builder.AppendLine("\t\t}");
+				}
+				if (aosFields.Count > 0)
+				{
+					builder.AppendLine("\t\tfor (int i = 0; i < count; ++i)");
+					builder.AppendLine("\t\t{");
+					foreach (IFieldSymbol field in aosFields)
+					{
+						builder.AppendLine("\t\t\tmStorage->mAoS[destinationIndex + i]." + fieldAccess(field) + " = source[sourceIndex + i]." + fieldAccess(field) + ";");
+					}
+					builder.AppendLine("\t\t}");
+				}
+			}
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tprivate void copyToArray(int sourceIndex, " + fullTypeName + "[] destination, int destinationIndex, int count)");
+			builder.AppendLine("\t{");
+			if (hasManagedECS || hasManagedAoS)
+			{
+				for (int fieldIndex = 0; fieldIndex < ecsFields.Count; ++fieldIndex)
+				{
+					IFieldSymbol field = ecsFields[fieldIndex];
+					string fieldType = getTypeName(field.Type);
+					if (field.Type.IsUnmanagedType)
+					{
+						builder.AppendLine("\t\t" + fieldType + "* column" + fieldIndex + " = mStorage->" + fieldAccess(field) + ";");
+					}
+					else
+					{
+						builder.AppendLine("\t\t" + fieldType + "[] column" + fieldIndex + " = mManagedStorage." + fieldAccess(field) + ";");
+					}
+				}
+				if (aosFields.Count > 0)
+				{
+					if (hasManagedAoS)
+					{
+						builder.AppendLine("\t\t" + typeName + "AoSBlock[] aosColumn = mManagedStorage.mAoS;");
+					}
+					else
+					{
+						builder.AppendLine("\t\t" + typeName + "AoSBlock* aosColumn = mStorage->mAoS;");
+					}
+				}
+				builder.AppendLine("\t\tint sourceCursor = sourceIndex;");
+				builder.AppendLine("\t\tint destinationCursor = destinationIndex;");
+				builder.AppendLine("\t\tint sourceEnd = sourceIndex + count;");
+				builder.AppendLine("\t\tfor (; sourceCursor < sourceEnd; ++sourceCursor, ++destinationCursor)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tref " + fullTypeName + " destinationValue = ref destination[destinationCursor];");
+				for (int fieldIndex = 0; fieldIndex < ecsFields.Count; ++fieldIndex)
+				{
+					IFieldSymbol field = ecsFields[fieldIndex];
+					builder.AppendLine("\t\t\tdestinationValue." + fieldAccess(field) + " = column" + fieldIndex + "[sourceCursor];");
+				}
+				if (aosFields.Count > 0)
+				{
+					foreach (IFieldSymbol field in aosFields)
+					{
+						builder.AppendLine("\t\t\tdestinationValue." + fieldAccess(field) + " = aosColumn[sourceCursor]." + fieldAccess(field) + ";");
+					}
+				}
+				builder.AppendLine("\t\t}");
+			}
+			else
+			{
+				builder.AppendLine("\t\tfor (int i = 0; i < count; ++i)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tref " + fullTypeName + " value = ref destination[destinationIndex + i];");
+				foreach (IFieldSymbol field in ecsFields)
+				{
+					builder.AppendLine("\t\t\tvalue." + fieldAccess(field) + " = mStorage->" + fieldAccess(field) + "[sourceIndex + i];");
+				}
+				foreach (IFieldSymbol field in aosFields)
+				{
+					builder.AppendLine("\t\t\tvalue." + fieldAccess(field) + " = mStorage->mAoS[sourceIndex + i]." + fieldAccess(field) + ";");
+				}
+				builder.AppendLine("\t\t}");
+			}
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tprivate void clearRange(int index, int count)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tif (count <= 0)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\treturn;");
+			builder.AppendLine("\t\t}");
+			foreach (IFieldSymbol field in ecsFields)
+			{
+				if (!field.Type.IsUnmanagedType)
+				{
+					builder.AppendLine("\t\tglobal::System.Array.Clear(mManagedStorage." + fieldAccess(field) + ", index, count);");
+				}
+			}
+			if (hasManagedAoS)
+			{
+				builder.AppendLine("\t\tglobal::System.Array.Clear(mManagedStorage.mAoS, index, count);");
+			}
+			builder.AppendLine("\t}");
+			appendAggressiveInlining(builder, 1);
+			builder.AppendLine("\tprivate void copyValue(int sourceIndex, int destinationIndex)");
+			builder.AppendLine("\t{");
+			foreach (IFieldSymbol field in ecsFields)
+			{
+				if (field.Type.IsUnmanagedType)
+				{
+					builder.AppendLine("\t\tmStorage->" + fieldAccess(field) + "[destinationIndex] = mStorage->" + fieldAccess(field) + "[sourceIndex];");
+				}
+				else
+				{
+					builder.AppendLine("\t\tmManagedStorage." + fieldAccess(field) + "[destinationIndex] = mManagedStorage." + fieldAccess(field) + "[sourceIndex];");
+				}
+			}
+			if (aosFields.Count > 0)
+			{
+				if (hasManagedAoS)
+				{
+					builder.AppendLine("\t\tmManagedStorage.mAoS[destinationIndex] = mManagedStorage.mAoS[sourceIndex];");
+				}
+				else
+				{
+					builder.AppendLine("\t\tmStorage->mAoS[destinationIndex] = mStorage->mAoS[sourceIndex];");
+				}
+			}
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tprivate void reverseRange(int index, int count)");
+			builder.AppendLine("\t{");
+			int reverseIndex = 0;
+			foreach (IFieldSymbol field in ecsFields)
+			{
+				string fieldType = getTypeName(field.Type);
+				string leftName = "left" + reverseIndex;
+				string rightName = "right" + reverseIndex;
+				string tempName = "tempReverse" + reverseIndex++;
+				builder.AppendLine("\t\tint " + leftName + " = index;");
+				builder.AppendLine("\t\tint " + rightName + " = index + count - 1;");
+				builder.AppendLine("\t\twhile (" + leftName + " < " + rightName + ")");
+				builder.AppendLine("\t\t{");
+				if (field.Type.IsUnmanagedType)
+				{
+					builder.AppendLine("\t\t\t" + fieldType + " " + tempName + " = mStorage->" + fieldAccess(field) + "[" + leftName + "];");
+					builder.AppendLine("\t\t\tmStorage->" + fieldAccess(field) + "[" + leftName + "] = mStorage->" + fieldAccess(field) + "[" + rightName + "];");
+					builder.AppendLine("\t\t\tmStorage->" + fieldAccess(field) + "[" + rightName + "] = " + tempName + ";");
+				}
+				else
+				{
+					builder.AppendLine("\t\t\t" + fieldType + " " + tempName + " = mManagedStorage." + fieldAccess(field) + "[" + leftName + "];");
+					builder.AppendLine("\t\t\tmManagedStorage." + fieldAccess(field) + "[" + leftName + "] = mManagedStorage." + fieldAccess(field) + "[" + rightName + "];");
+					builder.AppendLine("\t\t\tmManagedStorage." + fieldAccess(field) + "[" + rightName + "] = " + tempName + ";");
+				}
+				builder.AppendLine("\t\t\t++" + leftName + ";");
+				builder.AppendLine("\t\t\t--" + rightName + ";");
+				builder.AppendLine("\t\t}");
+			}
+			if (aosFields.Count > 0)
+			{
+				string leftName = "left" + reverseIndex;
+				string rightName = "right" + reverseIndex;
+				string tempName = "tempReverse" + reverseIndex;
+				builder.AppendLine("\t\tint " + leftName + " = index;");
+				builder.AppendLine("\t\tint " + rightName + " = index + count - 1;");
+				builder.AppendLine("\t\twhile (" + leftName + " < " + rightName + ")");
+				builder.AppendLine("\t\t{");
+				if (hasManagedAoS)
+				{
+					builder.AppendLine("\t\t\t" + typeName + "AoSBlock " + tempName + " = mManagedStorage.mAoS[" + leftName + "];");
+					builder.AppendLine("\t\t\tmManagedStorage.mAoS[" + leftName + "] = mManagedStorage.mAoS[" + rightName + "];");
+					builder.AppendLine("\t\t\tmManagedStorage.mAoS[" + rightName + "] = " + tempName + ";");
+				}
+				else
+				{
+					builder.AppendLine("\t\t\t" + typeName + "AoSBlock " + tempName + " = mStorage->mAoS[" + leftName + "];");
+					builder.AppendLine("\t\t\tmStorage->mAoS[" + leftName + "] = mStorage->mAoS[" + rightName + "];");
+					builder.AppendLine("\t\t\tmStorage->mAoS[" + rightName + "] = " + tempName + ";");
+				}
+				builder.AppendLine("\t\t\t++" + leftName + ";");
+				builder.AppendLine("\t\t\t--" + rightName + ";");
+				builder.AppendLine("\t\t}");
+			}
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tprivate void swapValue(int firstIndex, int secondIndex)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tif (firstIndex == secondIndex)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\treturn;");
+			builder.AppendLine("\t\t}");
+			int tempIndex = 0;
+			foreach (IFieldSymbol field in ecsFields)
+			{
+				string fieldType = getTypeName(field.Type);
+				string tempName = "temp" + tempIndex++;
+				if (field.Type.IsUnmanagedType)
+				{
+					builder.AppendLine("\t\t" + fieldType + " " + tempName + " = mStorage->" + fieldAccess(field) + "[firstIndex];");
+					builder.AppendLine("\t\tmStorage->" + fieldAccess(field) + "[firstIndex] = mStorage->" + fieldAccess(field) + "[secondIndex];");
+					builder.AppendLine("\t\tmStorage->" + fieldAccess(field) + "[secondIndex] = " + tempName + ";");
+				}
+				else
+				{
+					builder.AppendLine("\t\t" + fieldType + " " + tempName + " = mManagedStorage." + fieldAccess(field) + "[firstIndex];");
+					builder.AppendLine("\t\tmManagedStorage." + fieldAccess(field) + "[firstIndex] = mManagedStorage." + fieldAccess(field) + "[secondIndex];");
+					builder.AppendLine("\t\tmManagedStorage." + fieldAccess(field) + "[secondIndex] = " + tempName + ";");
+				}
+			}
+			if (aosFields.Count > 0)
+			{
+				string tempName = "temp" + tempIndex;
+				if (hasManagedAoS)
+				{
+					builder.AppendLine("\t\t" + typeName + "AoSBlock " + tempName + " = mManagedStorage.mAoS[firstIndex];");
+					builder.AppendLine("\t\tmManagedStorage.mAoS[firstIndex] = mManagedStorage.mAoS[secondIndex];");
+					builder.AppendLine("\t\tmManagedStorage.mAoS[secondIndex] = " + tempName + ";");
+				}
+				else
+				{
+					builder.AppendLine("\t\t" + typeName + "AoSBlock " + tempName + " = mStorage->mAoS[firstIndex];");
+					builder.AppendLine("\t\tmStorage->mAoS[firstIndex] = mStorage->mAoS[secondIndex];");
+					builder.AppendLine("\t\tmStorage->mAoS[secondIndex] = " + tempName + ";");
+				}
+			}
+			builder.AppendLine("\t}");
+			if (usePermutationSort)
+			{
+				builder.AppendLine("\tprivate void applySortPermutation(int index, int count, int[] permutation)");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\tfor (int start = 0; start < count; ++start)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tint firstSource = permutation[start];");
+				builder.AppendLine("\t\t\tif (firstSource < 0)");
+				builder.AppendLine("\t\t\t{");
+				builder.AppendLine("\t\t\t\tcontinue;");
+				builder.AppendLine("\t\t\t}");
+				builder.AppendLine("\t\t\tif (firstSource == index + start)");
+				builder.AppendLine("\t\t\t{");
+				builder.AppendLine("\t\t\t\tpermutation[start] = ~firstSource;");
+				builder.AppendLine("\t\t\t\tcontinue;");
+				builder.AppendLine("\t\t\t}");
+				int permutationTempIndex = 0;
+				foreach (IFieldSymbol field in ecsFields)
+				{
+					string fieldType = getTypeName(field.Type);
+					string tempName = "sortTemp" + permutationTempIndex++;
+					if (field.Type.IsUnmanagedType)
+					{
+						builder.AppendLine("\t\t\t" + fieldType + " " + tempName + " = mStorage->" + fieldAccess(field) + "[index + start];");
+					}
+					else
+					{
+						builder.AppendLine("\t\t\t" + fieldType + " " + tempName + " = mManagedStorage." + fieldAccess(field) + "[index + start];");
+					}
+				}
+				string aosPermutationTempName = null;
+				if (aosFields.Count > 0)
+				{
+					aosPermutationTempName = "sortTemp" + permutationTempIndex;
+					if (hasManagedAoS)
+					{
+						builder.AppendLine("\t\t\t" + typeName + "AoSBlock " + aosPermutationTempName + " = mManagedStorage.mAoS[index + start];");
+					}
+					else
+					{
+						builder.AppendLine("\t\t\t" + typeName + "AoSBlock " + aosPermutationTempName + " = mStorage->mAoS[index + start];");
+					}
+				}
+				builder.AppendLine("\t\t\tint current = start;");
+				builder.AppendLine("\t\t\twhile (true)");
+				builder.AppendLine("\t\t\t{");
+				builder.AppendLine("\t\t\t\tint sourceAbsolute = permutation[current];");
+				builder.AppendLine("\t\t\t\tint sourceOffset = sourceAbsolute - index;");
+				builder.AppendLine("\t\t\t\tpermutation[current] = ~sourceAbsolute;");
+				builder.AppendLine("\t\t\t\tif (sourceOffset == start)");
+				builder.AppendLine("\t\t\t\t{");
+				builder.AppendLine("\t\t\t\t\tbreak;");
+				builder.AppendLine("\t\t\t\t}");
+				builder.AppendLine("\t\t\t\tint destinationIndex = index + current;");
+				builder.AppendLine("\t\t\t\tint sourceIndex = index + sourceOffset;");
+				foreach (IFieldSymbol field in ecsFields)
+				{
+					if (field.Type.IsUnmanagedType)
+					{
+						builder.AppendLine("\t\t\t\tmStorage->" + fieldAccess(field) + "[destinationIndex] = mStorage->" + fieldAccess(field) + "[sourceIndex];");
+					}
+					else
+					{
+						builder.AppendLine("\t\t\t\tmManagedStorage." + fieldAccess(field) + "[destinationIndex] = mManagedStorage." + fieldAccess(field) + "[sourceIndex];");
+					}
+				}
+				if (aosFields.Count > 0)
+				{
+					if (hasManagedAoS)
+					{
+						builder.AppendLine("\t\t\t\tmManagedStorage.mAoS[destinationIndex] = mManagedStorage.mAoS[sourceIndex];");
+					}
+					else
+					{
+						builder.AppendLine("\t\t\t\tmStorage->mAoS[destinationIndex] = mStorage->mAoS[sourceIndex];");
+					}
+				}
+				builder.AppendLine("\t\t\t\tcurrent = sourceOffset;");
+				builder.AppendLine("\t\t\t}");
+				builder.AppendLine("\t\t\tint finalIndex = index + current;");
+				permutationTempIndex = 0;
+				foreach (IFieldSymbol field in ecsFields)
+				{
+					string tempName = "sortTemp" + permutationTempIndex++;
+					if (field.Type.IsUnmanagedType)
+					{
+						builder.AppendLine("\t\t\tmStorage->" + fieldAccess(field) + "[finalIndex] = " + tempName + ";");
+					}
+					else
+					{
+						builder.AppendLine("\t\t\tmManagedStorage." + fieldAccess(field) + "[finalIndex] = " + tempName + ";");
+					}
+				}
+				if (aosFields.Count > 0)
+				{
+					if (hasManagedAoS)
+					{
+						builder.AppendLine("\t\t\tmManagedStorage.mAoS[finalIndex] = " + aosPermutationTempName + ";");
+					}
+					else
+					{
+						builder.AppendLine("\t\t\tmStorage->mAoS[finalIndex] = " + aosPermutationTempName + ";");
+					}
+				}
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t}");
+			}
+			foreach (IFieldSymbol field in ecsFields)
+			{
+				appendAggressiveInlining(builder, 1);
+				builder.AppendLine("\tprivate " + getTypeName(field.Type) + " getSortField_" + field.Name + "(int index)");
+				builder.AppendLine("\t{");
+				if (field.Type.IsUnmanagedType)
+				{
+					builder.AppendLine("\t\treturn mStorage->" + fieldAccess(field) + "[index];");
+				}
+				else
+				{
+					builder.AppendLine("\t\treturn mManagedStorage." + fieldAccess(field) + "[index];");
+				}
+				builder.AppendLine("\t}");
+			}
+		}
+		private static void generateSafeExtendedListHelpers(StringBuilder builder, string typeName, string fullTypeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields, bool spanBackend)
+		{
+			bool hasManagedECS = ecsFields.Any(field => !field.Type.IsUnmanagedType);
+			bool hasManagedAoS = aosFields.Any(field => !field.Type.IsUnmanagedType);
+			bool usePermutationSort = hasManagedECS || hasManagedAoS;
+			string storageDeclaration = spanBackend ? "ref " + typeName + "Storage storage = ref mStorage[0];" : typeName + "Storage storage = " + typeName + "StorageRegistry.getStorage(mStorageID);";
+			string sourceStorageDeclaration = spanBackend ? "ref " + typeName + "Storage sourceStorage = ref source.mStorage[0];" : typeName + "Storage sourceStorage = " + typeName + "StorageRegistry.getStorage(source.mStorageID);";
+			builder.AppendLine("\tprivate void moveRange(int sourceIndex, int destinationIndex, int count)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tif (count <= 0 || sourceIndex == destinationIndex)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\treturn;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\t" + storageDeclaration);
+			foreach (IFieldSymbol field in ecsFields)
+			{
+				builder.AppendLine("\t\tglobal::System.Array.Copy(storage." + fieldAccess(field) + ", sourceIndex, storage." + fieldAccess(field) + ", destinationIndex, count);");
+			}
+			if (aosFields.Count > 0)
+			{
+				builder.AppendLine("\t\tglobal::System.Array.Copy(storage.mAoS, sourceIndex, storage.mAoS, destinationIndex, count);");
+			}
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tprivate void copyRangeFrom(" + typeName + "ECSList source, int sourceIndex, int destinationIndex, int count)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tif (count <= 0)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\treturn;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\t" + storageDeclaration);
+			builder.AppendLine("\t\t" + sourceStorageDeclaration);
+			foreach (IFieldSymbol field in ecsFields)
+			{
+				builder.AppendLine("\t\tglobal::System.Array.Copy(sourceStorage." + fieldAccess(field) + ", sourceIndex, storage." + fieldAccess(field) + ", destinationIndex, count);");
+			}
+			if (aosFields.Count > 0)
+			{
+				builder.AppendLine("\t\tglobal::System.Array.Copy(sourceStorage.mAoS, sourceIndex, storage.mAoS, destinationIndex, count);");
+			}
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tprivate void copyFromArray(" + fullTypeName + "[] source, int sourceIndex, int destinationIndex, int count)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\t" + storageDeclaration);
+			if (hasManagedECS || hasManagedAoS)
+			{
+				for (int fieldIndex = 0; fieldIndex < ecsFields.Count; ++fieldIndex)
+				{
+					IFieldSymbol field = ecsFields[fieldIndex];
+					builder.AppendLine("\t\t" + getTypeName(field.Type) + "[] column" + fieldIndex + " = storage." + fieldAccess(field) + ";");
+				}
+				if (aosFields.Count > 0)
+				{
+					builder.AppendLine("\t\t" + typeName + "AoSBlock[] aosColumn = storage.mAoS;");
+				}
+				builder.AppendLine("\t\tint sourceCursor = sourceIndex;");
+				builder.AppendLine("\t\tint destinationCursor = destinationIndex;");
+				builder.AppendLine("\t\tint sourceEnd = sourceIndex + count;");
+				builder.AppendLine("\t\tfor (; sourceCursor < sourceEnd; ++sourceCursor, ++destinationCursor)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tref " + fullTypeName + " sourceValue = ref source[sourceCursor];");
+				for (int fieldIndex = 0; fieldIndex < ecsFields.Count; ++fieldIndex)
+				{
+					IFieldSymbol field = ecsFields[fieldIndex];
+					builder.AppendLine("\t\t\tcolumn" + fieldIndex + "[destinationCursor] = sourceValue." + fieldAccess(field) + ";");
+				}
+				if (aosFields.Count > 0)
+				{
+					builder.AppendLine("\t\t\t" + typeName + "AoSBlock aosValue = default(" + typeName + "AoSBlock);");
+					foreach (IFieldSymbol field in aosFields)
+					{
+						builder.AppendLine("\t\t\taosValue." + fieldAccess(field) + " = sourceValue." + fieldAccess(field) + ";");
+					}
+					builder.AppendLine("\t\t\taosColumn[destinationCursor] = aosValue;");
+				}
+				builder.AppendLine("\t\t}");
+			}
+			else
+			{
+				foreach (IFieldSymbol field in ecsFields)
+				{
+					builder.AppendLine("\t\tfor (int i = 0; i < count; ++i)");
+					builder.AppendLine("\t\t{");
+					builder.AppendLine("\t\t\tstorage." + fieldAccess(field) + "[destinationIndex + i] = source[sourceIndex + i]." + fieldAccess(field) + ";");
+					builder.AppendLine("\t\t}");
+				}
+				if (aosFields.Count > 0)
+				{
+					builder.AppendLine("\t\tfor (int i = 0; i < count; ++i)");
+					builder.AppendLine("\t\t{");
+					foreach (IFieldSymbol field in aosFields)
+					{
+						builder.AppendLine("\t\t\tstorage.mAoS[destinationIndex + i]." + fieldAccess(field) + " = source[sourceIndex + i]." + fieldAccess(field) + ";");
+					}
+					builder.AppendLine("\t\t}");
+				}
+			}
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tprivate void copyToArray(int sourceIndex, " + fullTypeName + "[] destination, int destinationIndex, int count)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\t" + storageDeclaration);
+			if (hasManagedECS || hasManagedAoS)
+			{
+				for (int fieldIndex = 0; fieldIndex < ecsFields.Count; ++fieldIndex)
+				{
+					IFieldSymbol field = ecsFields[fieldIndex];
+					builder.AppendLine("\t\t" + getTypeName(field.Type) + "[] column" + fieldIndex + " = storage." + fieldAccess(field) + ";");
+				}
+				if (aosFields.Count > 0)
+				{
+					builder.AppendLine("\t\t" + typeName + "AoSBlock[] aosColumn = storage.mAoS;");
+				}
+				builder.AppendLine("\t\tint sourceCursor = sourceIndex;");
+				builder.AppendLine("\t\tint destinationCursor = destinationIndex;");
+				builder.AppendLine("\t\tint sourceEnd = sourceIndex + count;");
+				builder.AppendLine("\t\tfor (; sourceCursor < sourceEnd; ++sourceCursor, ++destinationCursor)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tref " + fullTypeName + " destinationValue = ref destination[destinationCursor];");
+				for (int fieldIndex = 0; fieldIndex < ecsFields.Count; ++fieldIndex)
+				{
+					IFieldSymbol field = ecsFields[fieldIndex];
+					builder.AppendLine("\t\t\tdestinationValue." + fieldAccess(field) + " = column" + fieldIndex + "[sourceCursor];");
+				}
+				if (aosFields.Count > 0)
+				{
+					foreach (IFieldSymbol field in aosFields)
+					{
+						builder.AppendLine("\t\t\tdestinationValue." + fieldAccess(field) + " = aosColumn[sourceCursor]." + fieldAccess(field) + ";");
+					}
+				}
+				builder.AppendLine("\t\t}");
+			}
+			else
+			{
+				builder.AppendLine("\t\tfor (int i = 0; i < count; ++i)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tref " + fullTypeName + " value = ref destination[destinationIndex + i];");
+				foreach (IFieldSymbol field in ecsFields)
+				{
+					builder.AppendLine("\t\t\tvalue." + fieldAccess(field) + " = storage." + fieldAccess(field) + "[sourceIndex + i];");
+				}
+				foreach (IFieldSymbol field in aosFields)
+				{
+					builder.AppendLine("\t\t\tvalue." + fieldAccess(field) + " = storage.mAoS[sourceIndex + i]." + fieldAccess(field) + ";");
+				}
+				builder.AppendLine("\t\t}");
+			}
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tprivate void clearRange(int index, int count)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tif (count <= 0)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\treturn;");
+			builder.AppendLine("\t\t}");
+			if (hasManagedECS || hasManagedAoS)
+			{
+				builder.AppendLine("\t\t" + storageDeclaration);
+				foreach (IFieldSymbol field in ecsFields)
+				{
+					if (!field.Type.IsUnmanagedType)
+					{
+						builder.AppendLine("\t\tglobal::System.Array.Clear(storage." + fieldAccess(field) + ", index, count);");
+					}
+				}
+				if (hasManagedAoS)
+				{
+					builder.AppendLine("\t\tglobal::System.Array.Clear(storage.mAoS, index, count);");
+				}
+			}
+			builder.AppendLine("\t}");
+			appendAggressiveInlining(builder, 1);
+			builder.AppendLine("\tprivate void copyValue(int sourceIndex, int destinationIndex)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\t" + storageDeclaration);
+			foreach (IFieldSymbol field in ecsFields)
+			{
+				builder.AppendLine("\t\tstorage." + fieldAccess(field) + "[destinationIndex] = storage." + fieldAccess(field) + "[sourceIndex];");
+			}
+			if (aosFields.Count > 0)
+			{
+				builder.AppendLine("\t\tstorage.mAoS[destinationIndex] = storage.mAoS[sourceIndex];");
+			}
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tprivate void reverseRange(int index, int count)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\t" + storageDeclaration);
+			int reverseIndex = 0;
+			foreach (IFieldSymbol field in ecsFields)
+			{
+				string fieldType = getTypeName(field.Type);
+				string leftName = "left" + reverseIndex;
+				string rightName = "right" + reverseIndex;
+				string tempName = "tempReverse" + reverseIndex++;
+				builder.AppendLine("\t\tint " + leftName + " = index;");
+				builder.AppendLine("\t\tint " + rightName + " = index + count - 1;");
+				builder.AppendLine("\t\twhile (" + leftName + " < " + rightName + ")");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\t" + fieldType + " " + tempName + " = storage." + fieldAccess(field) + "[" + leftName + "];");
+				builder.AppendLine("\t\t\tstorage." + fieldAccess(field) + "[" + leftName + "] = storage." + fieldAccess(field) + "[" + rightName + "];");
+				builder.AppendLine("\t\t\tstorage." + fieldAccess(field) + "[" + rightName + "] = " + tempName + ";");
+				builder.AppendLine("\t\t\t++" + leftName + ";");
+				builder.AppendLine("\t\t\t--" + rightName + ";");
+				builder.AppendLine("\t\t}");
+			}
+			if (aosFields.Count > 0)
+			{
+				string leftName = "left" + reverseIndex;
+				string rightName = "right" + reverseIndex;
+				string tempName = "tempReverse" + reverseIndex;
+				builder.AppendLine("\t\tint " + leftName + " = index;");
+				builder.AppendLine("\t\tint " + rightName + " = index + count - 1;");
+				builder.AppendLine("\t\twhile (" + leftName + " < " + rightName + ")");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\t" + typeName + "AoSBlock " + tempName + " = storage.mAoS[" + leftName + "];");
+				builder.AppendLine("\t\t\tstorage.mAoS[" + leftName + "] = storage.mAoS[" + rightName + "];");
+				builder.AppendLine("\t\t\tstorage.mAoS[" + rightName + "] = " + tempName + ";");
+				builder.AppendLine("\t\t\t++" + leftName + ";");
+				builder.AppendLine("\t\t\t--" + rightName + ";");
+				builder.AppendLine("\t\t}");
+			}
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tprivate void swapValue(int firstIndex, int secondIndex)");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\tif (firstIndex == secondIndex)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\treturn;");
+			builder.AppendLine("\t\t}");
+			builder.AppendLine("\t\t" + storageDeclaration);
+			int tempIndex = 0;
+			foreach (IFieldSymbol field in ecsFields)
+			{
+				string fieldType = getTypeName(field.Type);
+				string tempName = "temp" + tempIndex++;
+				builder.AppendLine("\t\t" + fieldType + " " + tempName + " = storage." + fieldAccess(field) + "[firstIndex];");
+				builder.AppendLine("\t\tstorage." + fieldAccess(field) + "[firstIndex] = storage." + fieldAccess(field) + "[secondIndex];");
+				builder.AppendLine("\t\tstorage." + fieldAccess(field) + "[secondIndex] = " + tempName + ";");
+			}
+			if (aosFields.Count > 0)
+			{
+				string tempName = "temp" + tempIndex;
+				builder.AppendLine("\t\t" + typeName + "AoSBlock " + tempName + " = storage.mAoS[firstIndex];");
+				builder.AppendLine("\t\tstorage.mAoS[firstIndex] = storage.mAoS[secondIndex];");
+				builder.AppendLine("\t\tstorage.mAoS[secondIndex] = " + tempName + ";");
+			}
+			builder.AppendLine("\t}");
+			if (usePermutationSort)
+			{
+				builder.AppendLine("\tprivate void applySortPermutation(int index, int count, int[] permutation)");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\t" + storageDeclaration);
+				builder.AppendLine("\t\tfor (int start = 0; start < count; ++start)");
+				builder.AppendLine("\t\t{");
+				builder.AppendLine("\t\t\tint firstSource = permutation[start];");
+				builder.AppendLine("\t\t\tif (firstSource < 0)");
+				builder.AppendLine("\t\t\t{");
+				builder.AppendLine("\t\t\t\tcontinue;");
+				builder.AppendLine("\t\t\t}");
+				builder.AppendLine("\t\t\tif (firstSource == index + start)");
+				builder.AppendLine("\t\t\t{");
+				builder.AppendLine("\t\t\t\tpermutation[start] = ~firstSource;");
+				builder.AppendLine("\t\t\t\tcontinue;");
+				builder.AppendLine("\t\t\t}");
+				int permutationTempIndex = 0;
+				foreach (IFieldSymbol field in ecsFields)
+				{
+					string fieldType = getTypeName(field.Type);
+					string tempName = "sortTemp" + permutationTempIndex++;
+					builder.AppendLine("\t\t\t" + fieldType + " " + tempName + " = storage." + fieldAccess(field) + "[index + start];");
+				}
+				string aosPermutationTempName = null;
+				if (aosFields.Count > 0)
+				{
+					aosPermutationTempName = "sortTemp" + permutationTempIndex;
+					builder.AppendLine("\t\t\t" + typeName + "AoSBlock " + aosPermutationTempName + " = storage.mAoS[index + start];");
+				}
+				builder.AppendLine("\t\t\tint current = start;");
+				builder.AppendLine("\t\t\twhile (true)");
+				builder.AppendLine("\t\t\t{");
+				builder.AppendLine("\t\t\t\tint sourceAbsolute = permutation[current];");
+				builder.AppendLine("\t\t\t\tint sourceOffset = sourceAbsolute - index;");
+				builder.AppendLine("\t\t\t\tpermutation[current] = ~sourceAbsolute;");
+				builder.AppendLine("\t\t\t\tif (sourceOffset == start)");
+				builder.AppendLine("\t\t\t\t{");
+				builder.AppendLine("\t\t\t\t\tbreak;");
+				builder.AppendLine("\t\t\t\t}");
+				builder.AppendLine("\t\t\t\tint destinationIndex = index + current;");
+				builder.AppendLine("\t\t\t\tint sourceIndex = index + sourceOffset;");
+				foreach (IFieldSymbol field in ecsFields)
+				{
+					builder.AppendLine("\t\t\t\tstorage." + fieldAccess(field) + "[destinationIndex] = storage." + fieldAccess(field) + "[sourceIndex];");
+				}
+				if (aosFields.Count > 0)
+				{
+					builder.AppendLine("\t\t\t\tstorage.mAoS[destinationIndex] = storage.mAoS[sourceIndex];");
+				}
+				builder.AppendLine("\t\t\t\tcurrent = sourceOffset;");
+				builder.AppendLine("\t\t\t}");
+				builder.AppendLine("\t\t\tint finalIndex = index + current;");
+				permutationTempIndex = 0;
+				foreach (IFieldSymbol field in ecsFields)
+				{
+					string tempName = "sortTemp" + permutationTempIndex++;
+					builder.AppendLine("\t\t\tstorage." + fieldAccess(field) + "[finalIndex] = " + tempName + ";");
+				}
+				if (aosFields.Count > 0)
+				{
+					builder.AppendLine("\t\t\tstorage.mAoS[finalIndex] = " + aosPermutationTempName + ";");
+				}
+				builder.AppendLine("\t\t}");
+				builder.AppendLine("\t}");
+			}
+			foreach (IFieldSymbol field in ecsFields)
+			{
+				appendAggressiveInlining(builder, 1);
+				builder.AppendLine("\tprivate " + getTypeName(field.Type) + " getSortField_" + field.Name + "(int index)");
+				builder.AppendLine("\t{");
+				if (spanBackend)
+				{
+					builder.AppendLine("\t\treturn mStorage[0]." + fieldAccess(field) + "[index];");
+				}
+				else
+				{
+					builder.AppendLine("\t\t" + typeName + "Storage storage = " + typeName + "StorageRegistry.getStorage(mStorageID);");
+					builder.AppendLine("\t\treturn storage." + fieldAccess(field) + "[index];");
+				}
+				builder.AppendLine("\t}");
+			}
+		}
 		private static void generateUnsafeResize(StringBuilder builder, string typeName, List<IFieldSymbol> ecsFields, List<IFieldSymbol> aosFields)
 		{
 			bool hasManagedAoS = aosFields.Any(field => !field.Type.IsUnmanagedType);
@@ -3138,6 +5580,11 @@ namespace ECSSourceGenerator
 		private static string getColumnTypeName(string fieldName)
 		{
 			return "__ECSColumn_" + fieldName;
+		}
+		private static string getSortMethodSuffix(string fieldName)
+		{
+			string columnMethodName = getColumnMethodName(fieldName);
+			return columnMethodName.Substring(3, columnMethodName.Length - 3 - "Column".Length);
 		}
 		private static string getColumnMethodName(string fieldName)
 		{

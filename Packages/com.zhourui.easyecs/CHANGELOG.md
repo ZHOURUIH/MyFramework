@@ -1,5 +1,55 @@
 # Changelog
 
+## 1.2.0 - 2026-08-18
+
+### Added
+- 为 `ECSList` 补齐常用 List 风格扩展 API，包括容量管理、批量添加/插入/删除、查找、排序、二分查找、复制与数组转换等。
+- 为真实 ECS 字段生成字段级高速 API：`ContainsByXXX`、`IndexOfByXXX`、`LastIndexOfByXXX`、`ExistsByXXX`、`FindIndexByXXX`、`RemoveAllByXXX`、`SortByXXX`、`BinarySearchByXXX`。
+- 为 `ECSDictionary<TKey>` 增加字段级直接访问 API：`GetValueByXXX`、`TryGetValueByXXX`、`SetValueByXXX`、`TrySetValueByXXX`。
+- 为 `ECSDictionary<TKey>` 增加 DenseIndex API：`GetIndex`、`TryGetIndex`、`GetOrAddIndex`，用于一次 Key 查找后通过 Direct Column 连续访问多个字段。
+- 为 `ECSDictionary<TKey>` 补充 `SetValue`、`TrySetValue`、`SetOrAdd`、`GetOrAdd`、`ContainsValue`、`Remove(key,out value)`、`EnsureCapacity`、`TrimExcess` 等接口。
+- 增加 Dictionary Keys/Values/KeyValue 枚举支持及对应运行时回归测试。
+- 增加 Managed Hybrid、数组批量转换、字段级 Dictionary 快路径、DenseIndex + Direct Column 等回归测试与 Benchmark。
+
+### Changed
+- `SortByXXX` 根据数据布局自适应选择排序实现：纯 unmanaged 数据使用 DirectSwap；包含 managed ECS/NotECS 字段时使用 permutation 排序，减少整行反复搬移。
+- `BinarySearchByXXX`、字段级查找 API 直接读取目标 Column，避免构造完整结构体。
+- `RemoveAllByXXX` 使用字段 Column 判断并同步压缩整行数据。
+- `InsertRange`、`RemoveRange` 等结构移动改为 overlap-safe 批量移动路径。
+- `T[] -> ECSList`：Managed Hybrid 使用 RowMajor 导入，减少重复读取源结构体。
+- `ECSList -> T[]`：Managed Hybrid 使用 CachedDirectDestination，缓存 Column 后直接写目标数组元素，避免先组装局部完整 struct 再复制。
+- `ECSDictionary.TryAdd` 改为单次 `Dictionary.TryAdd` 路径，消除 `ContainsKey + Add` 的重复哈希。
+- `ECSDictionary.Remove` / `Remove(key,out value)` 使用 `Dictionary.Remove(key,out index)`，消除删除前后的重复 Key 查找。
+- Dictionary 单字段热点访问优先走字段级 Direct Column API；多字段热点访问可先取得 DenseIndex，再连续访问多个 Column。
+- 保留 Unsafe、SafeSpan、SafeRegistry 三套后端的对应实现，并保持 Editor 生命周期/引用失效检查。
+
+### Performance
+- Managed Hybrid `CopyTo` 恢复并略优于优化前基线；局部和全量导出保持稳定线性成本。
+- 单独导出 unmanaged/managed Column 已接近或优于普通 `List<T>` 对应字段读取，剩余完整 `CopyTo/ToArray` 差距主要来自 SoA -> AoS 重组成本。
+- `ECSDictionary.SetValueByXXX` / `TrySetValueByXXX` 在单字段随机写入场景显著快于普通 `Dictionary<TKey,T>` 的完整 struct 读改写。
+- `GetIndex + Direct Column` 在一次 Key 查找后修改多个字段的场景明显优于连续多次 `ByXXX` 调用，并可快于普通 Dictionary 的多字段修改。
+- `GetOrAddIndex` 已有 Key 路径接近普通 Dictionary 查询成本；新增 Key 的剩余差距主要属于 IndexMap + Keys + SoA 行创建的结构性成本，不再继续增加复杂实现换取小幅收益。
+
+### Fixed
+- 修复 Unsafe 后端 Dictionary 字段级 Direct Column API 缺少 `unsafe` 上下文导致的 `CS0214` 编译错误。
+- 修复 Managed Hybrid 数组转换 Generator Test 对 C# 基元类型名称格式的错误断言。
+- 修复批量移动在源/目标区间重叠时可能出现的数据覆盖问题。
+- 保证 Sort、RemoveAll、Range 操作、Dictionary SwapBack 删除后各 ECS/NotECS 字段始终保持行同步。
+
+### Cleanup
+- 移除优化阶段仅用于识别具体实现策略的公开 `*Strategy` 字符串常量，避免把 Benchmark/诊断信息暴露为正式生成 API。
+- Generator Test 改为直接验证生成代码结构与行为路径，而不是依赖诊断字符串。
+- Runtime Test 保留行为正确性验证，移除对内部策略名称的耦合。
+- Benchmark 移除阶段性策略名称日志，保留最终性能回归用例。
+
+### Final usage guidance
+- 普通业务代码：使用 List/Dictionary 风格兼容 API。
+- 单字段热点访问：优先使用 `ByXXX` 字段级 API。
+- 多字段随机热点访问：优先 `GetIndex` / `TryGetIndex` / `GetOrAddIndex` + Direct Column。
+- 连续遍历热点：优先 Direct Column。
+- `CopyTo` / `ToArray` 作为兼容 API 使用；完整 SoA -> AoS 转换存在不可避免的重组成本。
+- DenseIndex 只应短期使用；Dictionary 发生 SwapBack 删除后，其他元素的 DenseIndex 可能变化。
+
 ## [1.1.1] - 2026-08-17
 ### Added
 生成的ECSList类名上方添加记录原结构体类型,方便跳转
