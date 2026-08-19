@@ -298,7 +298,7 @@ public class PlatformUtility
         }
         // 混淆完以后,将Symbol-mapping.xml备份一下,文件名加上版本号,方便后面还原堆栈
         // 因为Symbol-mapping.xml会在混淆的时候读取,所以尽量不去动这个文件
-        string originMappingFile = F_PROJECT_PATH + ObfuzSettings.Instance.symbolObfusSettings.symbolMappingFile;
+        string originMappingFile = F_PROJECT_PATH + ObfuzSettings.Instance.symbolObfusSettings.GetSymbolMappingFile();
         copyFile(originMappingFile, replaceSuffix(originMappingFile, version + ".xml"));
     }
 #endif
