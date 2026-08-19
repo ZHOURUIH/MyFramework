@@ -40,21 +40,21 @@ public static class EasyECSExtendedAPIBenchmark
 	private static readonly Predicate<int> mHPFindPredicate = value => value == 100 + LIST_ENTITY_COUNT - 1;
 	private static RoleData[] mRoleRangeArray;
 	private static List<RoleData> mRoleRangeList;
-	private static RoleDataECSList mRoleRangeECSList;
+	private static RoleData_ECSList mRoleRangeECSList;
 	private static ManagedRoleDataStructuralBenchmarkData[] mManagedRangeArray;
 	private static List<ManagedRoleDataStructuralBenchmarkData> mManagedRangeList;
-	private static ManagedRoleDataStructuralBenchmarkDataECSList mManagedRangeECSList;
+	private static ManagedRoleDataStructuralBenchmarkData_ECSList mManagedRangeECSList;
 	private static List<RoleData> mRoleList;
-	private static RoleDataECSList mRoleECSList;
+	private static RoleData_ECSList mRoleECSList;
 	private static List<ManagedRoleDataStructuralBenchmarkData> mManagedList;
-	private static ManagedRoleDataStructuralBenchmarkDataECSList mManagedECSList;
+	private static ManagedRoleDataStructuralBenchmarkData_ECSList mManagedECSList;
 	private static RoleData[] mRoleCopyArray;
 	private static ManagedRoleDataStructuralBenchmarkData[] mManagedCopyArray;
 	private static int[] mManagedHPExportArray;
 	private static string[] mManagedNameExportArray;
 	private static object[] mManagedPayloadExportArray;
 	private static Dictionary<int, RoleData> mDictionary;
-	private static RoleDataECSDictionary<int> mECSDictionary;
+	private static RoleData_ECSDictionary<int> mECSDictionary;
 	private static int[] mDictionaryKeys;
 	private static readonly RoleData mDictionaryWriteValue = createRoleData(-1000000);
 	private struct BenchmarkResult
@@ -356,9 +356,9 @@ public static class EasyECSExtendedAPIBenchmark
 		}
 		mRoleRangeList = new List<RoleData>(mRoleRangeArray);
 		mManagedRangeList = new List<ManagedRoleDataStructuralBenchmarkData>(mManagedRangeArray);
-		mRoleRangeECSList = new RoleDataECSList(RANGE_COUNT);
+		mRoleRangeECSList = new RoleData_ECSList(RANGE_COUNT);
 		mRoleRangeECSList.AddRange(mRoleRangeArray);
-		mManagedRangeECSList = new ManagedRoleDataStructuralBenchmarkDataECSList(RANGE_COUNT);
+		mManagedRangeECSList = new ManagedRoleDataStructuralBenchmarkData_ECSList(RANGE_COUNT);
 		mManagedRangeECSList.AddRange(mManagedRangeArray);
 	}
 	private static void cleanupListSources()
@@ -397,7 +397,7 @@ public static class EasyECSExtendedAPIBenchmark
 	}
 	private static void setupRoleECSList(int count, int extraCapacity)
 	{
-		mRoleECSList = new RoleDataECSList(count + extraCapacity + 4);
+		mRoleECSList = new RoleData_ECSList(count + extraCapacity + 4);
 		for (int i = 0; i < count; ++i)
 		{
 			mRoleECSList.Add(createRoleData(i));
@@ -413,7 +413,7 @@ public static class EasyECSExtendedAPIBenchmark
 	}
 	private static void setupManagedECSList(int count, int extraCapacity)
 	{
-		mManagedECSList = new ManagedRoleDataStructuralBenchmarkDataECSList(count + extraCapacity + 4);
+		mManagedECSList = new ManagedRoleDataStructuralBenchmarkData_ECSList(count + extraCapacity + 4);
 		for (int i = 0; i < count; ++i)
 		{
 			mManagedECSList.Add(createManagedData(i));
@@ -429,7 +429,7 @@ public static class EasyECSExtendedAPIBenchmark
 	}
 	private static void setupRoleECSListDescending(int count)
 	{
-		mRoleECSList = new RoleDataECSList(count);
+		mRoleECSList = new RoleData_ECSList(count);
 		for (int i = count - 1; i >= 0; --i)
 		{
 			mRoleECSList.Add(createRoleData(i));
@@ -445,7 +445,7 @@ public static class EasyECSExtendedAPIBenchmark
 	}
 	private static void setupManagedECSListDescending(int count)
 	{
-		mManagedECSList = new ManagedRoleDataStructuralBenchmarkDataECSList(count);
+		mManagedECSList = new ManagedRoleDataStructuralBenchmarkData_ECSList(count);
 		for (int i = count - 1; i >= 0; --i)
 		{
 			mManagedECSList.Add(createManagedData(i));
@@ -463,7 +463,7 @@ public static class EasyECSExtendedAPIBenchmark
 	}
 	private static void setupRoleECSListDuplicateSort(int count)
 	{
-		mRoleECSList = new RoleDataECSList(count);
+		mRoleECSList = new RoleData_ECSList(count);
 		for (int i = count - 1; i >= 0; --i)
 		{
 			RoleData value = createRoleData(i);
@@ -483,7 +483,7 @@ public static class EasyECSExtendedAPIBenchmark
 	}
 	private static void setupManagedECSListDuplicateSort(int count)
 	{
-		mManagedECSList = new ManagedRoleDataStructuralBenchmarkDataECSList(count);
+		mManagedECSList = new ManagedRoleDataStructuralBenchmarkData_ECSList(count);
 		for (int i = count - 1; i >= 0; --i)
 		{
 			ManagedRoleDataStructuralBenchmarkData value = createManagedData(i);
@@ -501,7 +501,7 @@ public static class EasyECSExtendedAPIBenchmark
 	}
 	private static void setupRoleECSForCapacity()
 	{
-		mRoleECSList = new RoleDataECSList(LIST_CAPACITY_BASE_COUNT);
+		mRoleECSList = new RoleData_ECSList(LIST_CAPACITY_BASE_COUNT);
 		for (int i = 0; i < LIST_CAPACITY_BASE_COUNT; ++i)
 		{
 			mRoleECSList.Add(createRoleData(i));
@@ -517,7 +517,7 @@ public static class EasyECSExtendedAPIBenchmark
 	}
 	private static void setupManagedECSForCapacity()
 	{
-		mManagedECSList = new ManagedRoleDataStructuralBenchmarkDataECSList(LIST_CAPACITY_BASE_COUNT);
+		mManagedECSList = new ManagedRoleDataStructuralBenchmarkData_ECSList(LIST_CAPACITY_BASE_COUNT);
 		for (int i = 0; i < LIST_CAPACITY_BASE_COUNT; ++i)
 		{
 			mManagedECSList.Add(createManagedData(i));
@@ -533,7 +533,7 @@ public static class EasyECSExtendedAPIBenchmark
 	}
 	private static void setupRoleECSForTrim()
 	{
-		mRoleECSList = new RoleDataECSList(LIST_CAPACITY_TARGET);
+		mRoleECSList = new RoleData_ECSList(LIST_CAPACITY_TARGET);
 		for (int i = 0; i < LIST_CAPACITY_BASE_COUNT; ++i)
 		{
 			mRoleECSList.Add(createRoleData(i));
@@ -549,7 +549,7 @@ public static class EasyECSExtendedAPIBenchmark
 	}
 	private static void setupManagedECSForTrim()
 	{
-		mManagedECSList = new ManagedRoleDataStructuralBenchmarkDataECSList(LIST_CAPACITY_TARGET);
+		mManagedECSList = new ManagedRoleDataStructuralBenchmarkData_ECSList(LIST_CAPACITY_TARGET);
 		for (int i = 0; i < LIST_CAPACITY_BASE_COUNT; ++i)
 		{
 			mManagedECSList.Add(createManagedData(i));
@@ -1318,7 +1318,7 @@ public static class EasyECSExtendedAPIBenchmark
 	}
 	private static void setupECSDictionary()
 	{
-		mECSDictionary = new RoleDataECSDictionary<int>(DICTIONARY_ENTITY_COUNT);
+		mECSDictionary = new RoleData_ECSDictionary<int>(DICTIONARY_ENTITY_COUNT);
 		for (int i = 0; i < DICTIONARY_ENTITY_COUNT; ++i)
 		{
 			mECSDictionary.Add(i, createRoleData(i));
@@ -1334,7 +1334,7 @@ public static class EasyECSExtendedAPIBenchmark
 	}
 	private static void setupECSDictionaryForStructuralAdd()
 	{
-		mECSDictionary = new RoleDataECSDictionary<int>(DICTIONARY_ENTITY_COUNT + DICTIONARY_STRUCTURAL_COUNT);
+		mECSDictionary = new RoleData_ECSDictionary<int>(DICTIONARY_ENTITY_COUNT + DICTIONARY_STRUCTURAL_COUNT);
 		for (int i = 0; i < DICTIONARY_ENTITY_COUNT; ++i)
 		{
 			mECSDictionary.Add(i, createRoleData(i));
@@ -1350,7 +1350,7 @@ public static class EasyECSExtendedAPIBenchmark
 	}
 	private static void setupECSDictionaryForRemove()
 	{
-		mECSDictionary = new RoleDataECSDictionary<int>(DICTIONARY_STRUCTURAL_COUNT + 4);
+		mECSDictionary = new RoleData_ECSDictionary<int>(DICTIONARY_STRUCTURAL_COUNT + 4);
 		for (int i = 0; i < DICTIONARY_STRUCTURAL_COUNT; ++i)
 		{
 			mECSDictionary.Add(i, createRoleData(i));
@@ -1366,7 +1366,7 @@ public static class EasyECSExtendedAPIBenchmark
 	}
 	private static void setupECSDictionaryForCapacity()
 	{
-		mECSDictionary = new RoleDataECSDictionary<int>(DICTIONARY_STRUCTURAL_COUNT);
+		mECSDictionary = new RoleData_ECSDictionary<int>(DICTIONARY_STRUCTURAL_COUNT);
 		for (int i = 0; i < DICTIONARY_STRUCTURAL_COUNT; ++i)
 		{
 			mECSDictionary.Add(i, createRoleData(i));
@@ -1382,7 +1382,7 @@ public static class EasyECSExtendedAPIBenchmark
 	}
 	private static void setupECSDictionaryForTrim()
 	{
-		mECSDictionary = new RoleDataECSDictionary<int>(DICTIONARY_CAPACITY_TARGET);
+		mECSDictionary = new RoleData_ECSDictionary<int>(DICTIONARY_CAPACITY_TARGET);
 		for (int i = 0; i < DICTIONARY_STRUCTURAL_COUNT; ++i)
 		{
 			mECSDictionary.Add(i, createRoleData(i));

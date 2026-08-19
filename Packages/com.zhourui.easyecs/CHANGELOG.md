@@ -2,6 +2,68 @@
 
 本文档记录 EasyECS 的主要版本变化。
 
+## 1.4.0 - 2026-08-19
+
+### Added
+- 增加 BuiltIn 基础类型 ECS 容器，不再要求用户为了常用值类型额外声明简单包装 `[ECS] struct`。
+- 增加 `<TypeName>_ECSList` 命名的 BuiltIn List，例如 `Int_ECSList`、`Vector2_ECSList`、`Vector2Int_ECSList`、`Color32_ECSList`。
+- 增加 `<TypeName>_ECSDictionary<TKey>` 命名的 BuiltIn Dictionary，例如 `Int_ECSDictionary<TKey>`、`Vector2_ECSDictionary<TKey>`。
+- BuiltIn 类型由 Source Generator 的内置元数据直接生成，不引入 `ECSBuiltinXXX` 隐藏包装 struct，也不增加 Runtime 泛型容器基类。
+- 当前 BuiltIn 覆盖：`Byte`、`SByte`、`Short`、`UShort`、`Int`、`UInt`、`Long`、`ULong`、`Float`、`Double`、`Bool`、`Char`、`Decimal`、`Vector2`、`Vector2Int`、`Vector3`、`Vector3Int`、`Vector4`、`Quaternion`、`Color`、`Color32`、`Rect`、`RectInt`、`Bounds`、`BoundsInt`、`Matrix4x4`。
+- BuiltIn ECSList 提供接近 `List<T>` 的普通使用方式，并复用 EasyECS 已有的 Add / AddRange / Insert / Remove / Range / Sort / BinarySearch / CopyTo / ToArray / Capacity 等能力。
+- BuiltIn Dictionary 采用 Key -> DenseIndex -> BuiltIn ECSList 的连续存储结构，并提供 `GetIndex` / `TryGetIndex` / `GetOrAddIndex`、Direct Column 以及可用时的 Burst API。
+- 为 BuiltIn 增加专门的 Runtime correctness、普通 parity、Burst parity 与 Generator Test 覆盖。
+
+### SoA Layout
+- `Vector2` 拆分为 `float x[] + float y[]`。
+- `Vector2Int` 拆分为 `int x[] + int y[]`。
+- `Vector3` / `Vector3Int` 分别拆分为 3 个 float / int Column。
+- `Vector4` / `Quaternion` 拆分为 `x/y/z/w` 四个 float Column。
+- `Color` 拆分为 `r/g/b/a` 四个 float Column，`Color32` 拆分为四个 byte Column。
+- `Rect` / `RectInt` 拆分为 `x/y/width/height` 标量 Column。
+- `Bounds` 拆分为 `centerX/centerY/centerZ + sizeX/sizeY/sizeZ` 六个 float Column。
+- `BoundsInt` 拆分为 `positionX/positionY/positionZ + sizeX/sizeY/sizeZ` 六个 int Column。
+- `Matrix4x4` 拆分为 `m00 ... m33` 共 16 个 float Column。
+- 普通 API 仍然以原始 Unity 类型读写，Direct / BurstView 则直接访问拆分后的标量 Column。
+
+### Performance
+- 单标量 BuiltIn 增加直接底层 Column 快路径，避免不必要的完整 value 重建和通用字段访问链。
+- 单标量 BuiltIn indexer 可直接引用底层连续存储，普通赋值/读取语法保持自然，同时减少 compound read/write 开销。
+- `Contains` / `IndexOf` / `LastIndexOf` 对单标量 BuiltIn 直接扫描底层 Column；可使用强类型 `Equals(T)` 时避免通用比较器额外分发。
+- `BinarySearch` 对单标量 BuiltIn 使用直接 Column 二分路径。
+- 单标量 `AddRange(T[])` / `CopyTo` 保留整段 MemoryCopy / Array.Copy 快路径。
+- 复合 BuiltIn 的 `AddRange(T[])` 使用一次源数组扫描同时写入全部标量 Column，避免按字段多次重复扫描 AoS 源数组。
+- `Vector2`、`Vector2Int`、`Color32` 的 Direct SoA 路径已与等价手写拆字段 `[ECS] struct` 进行 parity 验证；批量导入与部分搜索路径在当前 Benchmark 中优于通用手写基线。
+- 对微秒级 Insert / Resize 等低频结构操作保留简单、统一的生成结构，不为了少量绝对时间差继续增加 BuiltIn 特殊分支；已知规模仍建议优先预留 Capacity。
+
+### Burst / Jobs
+- BuiltIn 在 Unsafe Backend 下复用 EasyECS 原有零拷贝 `BurstView` / `ScheduleBurst` / Job dependency 跟踪机制。
+- 复合 BuiltIn 的 BurstView 直接暴露标量指针，例如 `Vector2_ECSList.BurstView` 为独立 `float* x` / `float* y`，可只处理实际需要的 Column。
+- BuiltIn Dictionary 在可用环境下将 Burst API 转发到内部 Dense BuiltIn ECSList。
+- Jobs 能力检测不再错误依赖可选的 `NativeDisableUnsafePtrRestrictionAttribute`；该属性不可见时仍可生成可用的 Jobs/Burst 集成，只是不输出对应可选属性。
+
+### Compatibility
+- `EasyECS.Runtime` 保持 `allowUnsafeCode: true`，使 Package 内 BuiltIn 默认获得 Unsafe native SoA / Direct pointer / BurstView 等最高性能能力。
+- 业务程序集不需要开启 `allowUnsafeCode` 即可正常使用 `Int_ECSList`、`Vector2_ECSList` 等 BuiltIn 容器。
+- 用户自己声明的 `[ECS] struct` 仍按所在程序集能力自动选择 Unsafe / SafeSpan / SafeRegistry，不改变 EasyECS 原有 fallback 原则。
+- Burst / Jobs 继续是可选能力；缺少 Burst 不影响 BuiltIn 和普通 EasyECS API 的使用。
+- 修改 Source Generator 后仍需重新编译并替换 `Analyzers/ECSGenerator.dll`。
+
+### Fixed
+- 修复 BuiltIn Burst API 在 Runtime assembly 未开启 Unsafe 时被降级、无法生成期望 BurstView 的集成问题；正式 Runtime asmdef 明确开启 Unsafe。
+- 修复 Jobs 检测把可选 pointer attribute 当成必需条件，导致部分环境错误抑制 Burst/Jobs API 的问题。
+- 修复 BuiltIn 单标量 value indexer 在 compound read/write 中存在不必要 get + set 路径的问题。
+- 优化 BuiltIn `SetValue` / `TrySetValue` 等 Dictionary 写路径，避免不必要的完整 value 中转。
+- Runtime Unit Test 在 1.4.0 封版验证中保持 `77/77` 通过。
+
+### Recommended usage
+- 普通基础类型集合：优先直接使用 `<Type>_ECSList` / `<Type>_ECSDictionary<TKey>`，不再创建只有一个简单字段的包装 struct。
+- `Vector2` / `Vector3` / `Color32` 等连续热点：优先获取拆分后的 Direct Column，只访问实际需要的字段。
+- 普通、偶发访问继续使用 List / Dictionary 风格 API。
+- 单字段随机热点：自定义 `[ECS] struct` 继续优先 `ByXXX`；BuiltIn 直接使用其原生 value API / Direct Column。
+- 多字段随机热点：优先 DenseIndex + Direct Column。
+- 大规模可并行纯数据计算：优先 BuiltIn 或普通 ECS 的 `BurstView + IJobParallelFor`。
+
 ## 1.3.0 - 2026-08-18
 
 ### Added

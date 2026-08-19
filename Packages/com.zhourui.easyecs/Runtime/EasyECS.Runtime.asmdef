@@ -1,3 +1,4 @@
 {
-	"name": "EasyECS.Runtime"
+	"name": "EasyECS.Runtime",
+	"allowUnsafeCode": true
 }

@@ -60,7 +60,7 @@ public class RoleDataDictionaryEnumeratorBenchmark : MonoBehaviour
 	private int[] mKeys;
 	private RoleData[] mValues;
 	private Dictionary<int, RoleData> mDictionary;
-	private RoleDataECSDictionary<int> mECS;
+	private RoleData_ECSDictionary<int> mECS;
 	private struct BenchmarkResult
 	{
 		public double mMedian;
@@ -90,8 +90,8 @@ public class RoleDataDictionaryEnumeratorBenchmark : MonoBehaviour
 		try
 		{
 			Debug.Log("================ ECSDictionary Enumerator Benchmark Start ================");
-			Debug.Log("ECS Backend:" + RoleDataECSList.BackendName);
-			Debug.Log("Backend Reason:" + RoleDataECSList.BackendReason);
+			Debug.Log("ECS Backend:" + RoleData_ECSList.BackendName);
+			Debug.Log("Backend Reason:" + RoleData_ECSList.BackendReason);
 			Debug.Log("EntityCount:" + ENTITY_COUNT);
 			Debug.Log("SampleCount:" + SAMPLE_COUNT);
 			Debug.Log("WarmupCount:" + WARMUP_COUNT);
@@ -114,7 +114,7 @@ public class RoleDataDictionaryEnumeratorBenchmark : MonoBehaviour
 		mKeys = new int[ENTITY_COUNT];
 		mValues = new RoleData[ENTITY_COUNT];
 		mDictionary = new Dictionary<int, RoleData>(ENTITY_COUNT);
-		mECS = new RoleDataECSDictionary<int>(ENTITY_COUNT);
+		mECS = new RoleData_ECSDictionary<int>(ENTITY_COUNT);
 		for (int i = 0; i < ENTITY_COUNT; ++i)
 		{
 			int key = i + 1000000;

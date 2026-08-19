@@ -32,9 +32,9 @@ public sealed class RoleDataListStructuralBenchmark : MonoBehaviour
 	private const double TINY_OPERATION_US = 0.05;
 	private static double mResultSink;
 	private List<RoleData> mList;
-	private RoleDataECSList mECSList;
+	private RoleData_ECSList mECSList;
 	private List<ManagedRoleDataStructuralBenchmarkData> mManagedList;
-	private ManagedRoleDataStructuralBenchmarkDataECSList mManagedECSList;
+	private ManagedRoleDataStructuralBenchmarkData_ECSList mManagedECSList;
 	private readonly object mSharedPayload = new object();
 	private static readonly int[] mResizeCapacities = { 1024, 8192, 32768, 49152, 57344, 61440, 65536, 69632, 73728, 81920, 98304, 131072, 262144 };
 	private static readonly int[] mHybridResizeCapacities = { 1024, 8192, 32768, 49152, 65536, 81920, 98304, 131072 };
@@ -71,8 +71,8 @@ public sealed class RoleDataListStructuralBenchmark : MonoBehaviour
 	private void runBenchmark()
 	{
 		Debug.Log("================ ECSList Structural Benchmark Start ================");
-		Debug.Log("RoleData Backend:" + RoleDataECSList.BackendName + ",Reason:" + RoleDataECSList.BackendReason);
-		Debug.Log("Managed Backend:" + ManagedRoleDataStructuralBenchmarkDataECSList.BackendName + ",Reason:" + ManagedRoleDataStructuralBenchmarkDataECSList.BackendReason);
+		Debug.Log("RoleData Backend:" + RoleData_ECSList.BackendName + ",Reason:" + RoleData_ECSList.BackendReason);
+		Debug.Log("Managed Backend:" + ManagedRoleDataStructuralBenchmarkData_ECSList.BackendName + ",Reason:" + ManagedRoleDataStructuralBenchmarkData_ECSList.BackendReason);
 		Debug.Log("BaseEntityCount:" + BASE_ENTITY_COUNT);
 		Debug.Log("OperationCount:" + OPERATION_COUNT);
 		Debug.Log("SampleCount:" + SAMPLE_COUNT);
@@ -86,7 +86,6 @@ public sealed class RoleDataListStructuralBenchmark : MonoBehaviour
 		runRemoveAtBenchmark("RemoveAt尾部", 2);
 		runSwapBackBenchmark();
 		runManagedHybridBenchmark();
-		EasyECSExtendedAPIBenchmark.runListBenchmark();
 		runCapacityGrowthBenchmark();
 		runProfilerGCRegression();
 		Debug.Log("ResultSink:" + mResultSink);
@@ -248,7 +247,7 @@ public sealed class RoleDataListStructuralBenchmark : MonoBehaviour
 			GC.Collect();
 			GC.WaitForPendingFinalizers();
 			GC.Collect();
-			RoleDataECSList list = new RoleDataECSList(capacity);
+			RoleData_ECSList list = new RoleData_ECSList(capacity);
 			try
 			{
 				for (int i = 0; i < capacity; ++i)
@@ -325,7 +324,7 @@ public sealed class RoleDataListStructuralBenchmark : MonoBehaviour
 			GC.Collect();
 			GC.WaitForPendingFinalizers();
 			GC.Collect();
-			ManagedRoleDataStructuralBenchmarkDataECSList list = new ManagedRoleDataStructuralBenchmarkDataECSList(capacity);
+			ManagedRoleDataStructuralBenchmarkData_ECSList list = new ManagedRoleDataStructuralBenchmarkData_ECSList(capacity);
 			try
 			{
 				for (int i = 0; i < capacity; ++i)
@@ -369,7 +368,7 @@ public sealed class RoleDataListStructuralBenchmark : MonoBehaviour
 		}
 		GCAllocResult listResult = measureGCAlloc(() => list.Add(value), 1);
 		printGCAlloc("List<RoleData> resize", listResult, false);
-		RoleDataECSList ecs = new RoleDataECSList(RESIZE_GC_CAPACITY);
+		RoleData_ECSList ecs = new RoleData_ECSList(RESIZE_GC_CAPACITY);
 		try
 		{
 			for (int i = 0; i < RESIZE_GC_CAPACITY; ++i)
@@ -391,7 +390,7 @@ public sealed class RoleDataListStructuralBenchmark : MonoBehaviour
 		}
 		GCAllocResult managedListResult = measureGCAlloc(() => managedList.Add(managedValue), 1);
 		printGCAlloc("Managed List resize", managedListResult, false);
-		ManagedRoleDataStructuralBenchmarkDataECSList managedECS = new ManagedRoleDataStructuralBenchmarkDataECSList(RESIZE_GC_CAPACITY);
+		ManagedRoleDataStructuralBenchmarkData_ECSList managedECS = new ManagedRoleDataStructuralBenchmarkData_ECSList(RESIZE_GC_CAPACITY);
 		try
 		{
 			for (int i = 0; i < RESIZE_GC_CAPACITY; ++i)
@@ -437,7 +436,7 @@ public sealed class RoleDataListStructuralBenchmark : MonoBehaviour
 			}
 		}, GC_OPERATION_COUNT);
 		printGCAlloc("List<T> Add无Resize", listAddResult, true);
-		RoleDataECSList ecsAdd = new RoleDataECSList(GC_OPERATION_COUNT * 2);
+		RoleData_ECSList ecsAdd = new RoleData_ECSList(GC_OPERATION_COUNT * 2);
 		try
 		{
 			GCAllocResult result = measureGCAlloc(() =>
@@ -453,7 +452,7 @@ public sealed class RoleDataListStructuralBenchmark : MonoBehaviour
 		{
 			ecsAdd.Dispose();
 		}
-		RoleDataECSList ecsInsert = new RoleDataECSList(GC_OPERATION_COUNT * 4);
+		RoleData_ECSList ecsInsert = new RoleData_ECSList(GC_OPERATION_COUNT * 4);
 		try
 		{
 			for (int i = 0; i < GC_OPERATION_COUNT * 2; ++i)
@@ -473,7 +472,7 @@ public sealed class RoleDataListStructuralBenchmark : MonoBehaviour
 		{
 			ecsInsert.Dispose();
 		}
-		RoleDataECSList ecsRemove = new RoleDataECSList(GC_OPERATION_COUNT * 4);
+		RoleData_ECSList ecsRemove = new RoleData_ECSList(GC_OPERATION_COUNT * 4);
 		try
 		{
 			for (int i = 0; i < GC_OPERATION_COUNT * 3; ++i)
@@ -493,7 +492,7 @@ public sealed class RoleDataListStructuralBenchmark : MonoBehaviour
 		{
 			ecsRemove.Dispose();
 		}
-		RoleDataECSList ecsSwapBack = new RoleDataECSList(GC_OPERATION_COUNT * 4);
+		RoleData_ECSList ecsSwapBack = new RoleData_ECSList(GC_OPERATION_COUNT * 4);
 		try
 		{
 			for (int i = 0; i < GC_OPERATION_COUNT * 3; ++i)
@@ -513,7 +512,7 @@ public sealed class RoleDataListStructuralBenchmark : MonoBehaviour
 		{
 			ecsSwapBack.Dispose();
 		}
-		RoleDataECSList ecsClear = new RoleDataECSList(4096);
+		RoleData_ECSList ecsClear = new RoleData_ECSList(4096);
 		try
 		{
 			for (int i = 0; i < 4096; ++i)
@@ -527,7 +526,7 @@ public sealed class RoleDataListStructuralBenchmark : MonoBehaviour
 			ecsClear.Dispose();
 		}
 		ManagedRoleDataStructuralBenchmarkData managedValue = createManagedData(-1);
-		ManagedRoleDataStructuralBenchmarkDataECSList hybrid = new ManagedRoleDataStructuralBenchmarkDataECSList(GC_OPERATION_COUNT * 4);
+		ManagedRoleDataStructuralBenchmarkData_ECSList hybrid = new ManagedRoleDataStructuralBenchmarkData_ECSList(GC_OPERATION_COUNT * 4);
 		try
 		{
 			for (int i = 0; i < GC_OPERATION_COUNT; ++i)
@@ -555,7 +554,7 @@ public sealed class RoleDataListStructuralBenchmark : MonoBehaviour
 		{
 			hybrid.Dispose();
 		}
-		RoleDataECSDictionary<int> dictLookup = new RoleDataECSDictionary<int>(4096);
+		RoleData_ECSDictionary<int> dictLookup = new RoleData_ECSDictionary<int>(4096);
 		try
 		{
 			for (int i = 0; i < 2048; ++i)
@@ -580,7 +579,7 @@ public sealed class RoleDataListStructuralBenchmark : MonoBehaviour
 		{
 			dictLookup.Dispose();
 		}
-		RoleDataECSDictionary<int> dictAdd = new RoleDataECSDictionary<int>(4096);
+		RoleData_ECSDictionary<int> dictAdd = new RoleData_ECSDictionary<int>(4096);
 		try
 		{
 			for (int i = 0; i < 1024; ++i)
@@ -600,7 +599,7 @@ public sealed class RoleDataListStructuralBenchmark : MonoBehaviour
 		{
 			dictAdd.Dispose();
 		}
-		RoleDataECSDictionary<int> dictRemove = new RoleDataECSDictionary<int>(4096);
+		RoleData_ECSDictionary<int> dictRemove = new RoleData_ECSDictionary<int>(4096);
 		try
 		{
 			for (int i = 0; i < 2048; ++i)
@@ -620,7 +619,7 @@ public sealed class RoleDataListStructuralBenchmark : MonoBehaviour
 		{
 			dictRemove.Dispose();
 		}
-		RoleDataECSDictionary<int> dictClear = new RoleDataECSDictionary<int>(4096);
+		RoleData_ECSDictionary<int> dictClear = new RoleData_ECSDictionary<int>(4096);
 		try
 		{
 			for (int i = 0; i < 2048; ++i)
@@ -642,7 +641,7 @@ public sealed class RoleDataListStructuralBenchmark : MonoBehaviour
 			}
 		}, 4096);
 		printGCAlloc("Dictionary Growth workload", standardGrowthResult, false);
-		RoleDataECSDictionary<int> ecsGrowth = new RoleDataECSDictionary<int>(1);
+		RoleData_ECSDictionary<int> ecsGrowth = new RoleData_ECSDictionary<int>(1);
 		try
 		{
 			GCAllocResult result = measureGCAlloc(() =>
@@ -728,7 +727,7 @@ public sealed class RoleDataListStructuralBenchmark : MonoBehaviour
 	}
 	private void setupECSList(int count, int extraCapacity)
 	{
-		mECSList = new RoleDataECSList(count + extraCapacity + 4);
+		mECSList = new RoleData_ECSList(count + extraCapacity + 4);
 		for (int i = 0; i < count; ++i)
 		{
 			mECSList.Add(createData(i));
@@ -756,7 +755,7 @@ public sealed class RoleDataListStructuralBenchmark : MonoBehaviour
 	}
 	private void setupManagedECSList(int count, int extraCapacity)
 	{
-		mManagedECSList = new ManagedRoleDataStructuralBenchmarkDataECSList(count + extraCapacity + 4);
+		mManagedECSList = new ManagedRoleDataStructuralBenchmarkData_ECSList(count + extraCapacity + 4);
 		for (int i = 0; i < count; ++i)
 		{
 			mManagedECSList.Add(createManagedData(i));

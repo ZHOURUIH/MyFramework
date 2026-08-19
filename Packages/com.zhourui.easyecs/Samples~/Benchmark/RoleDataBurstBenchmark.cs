@@ -14,7 +14,7 @@ public sealed class RoleDataBurstBenchmark : MonoBehaviour
 	private const int INNER_LOOP_BATCH_COUNT = 256;
 	private const float DELTA_TIME = 1.0f / 60.0f;
 	private static double mResultSink;
-	private RoleDataECSList mECSList;
+	private RoleData_ECSList mECSList;
 	private struct BenchmarkResult
 	{
 		public double mMedian;
@@ -25,7 +25,7 @@ public sealed class RoleDataBurstBenchmark : MonoBehaviour
 	[BurstCompile]
 	private unsafe struct UpdateSingleJob : IJob
 	{
-		[NativeDisableUnsafePtrRestriction] public RoleDataECSList.BurstView mData;
+		[NativeDisableUnsafePtrRestriction] public RoleData_ECSList.BurstView mData;
 		public float mDeltaTime;
 		public void Execute()
 		{
@@ -48,7 +48,7 @@ public sealed class RoleDataBurstBenchmark : MonoBehaviour
 	[BurstCompile]
 	private unsafe struct UpdateParallelJob : IJobParallelFor
 	{
-		[NativeDisableUnsafePtrRestriction] public RoleDataECSList.BurstView mData;
+		[NativeDisableUnsafePtrRestriction] public RoleData_ECSList.BurstView mData;
 		public float mDeltaTime;
 		public void Execute(int index)
 		{
@@ -71,17 +71,18 @@ public sealed class RoleDataBurstBenchmark : MonoBehaviour
 		Debug.Log("Unity Editor环境跳过RoleDataBurstBenchmark,请使用Development Player测试Burst性能");
 #else
 		runBenchmark();
+		EasyECSBuiltInBurstParityBenchmark.runBenchmark();
 #endif
 	}
 	private void runBenchmark()
 	{
-		mECSList = new RoleDataECSList(ENTITY_COUNT);
+		mECSList = new RoleData_ECSList(ENTITY_COUNT);
 		try
 		{
 			initializeData();
 			validateBurstCorrectness();
 			Debug.Log("================ EasyECS Burst Benchmark Start ================");
-			Debug.Log("Backend:" + RoleDataECSList.BackendName + ",Reason:" + RoleDataECSList.BackendReason);
+			Debug.Log("Backend:" + RoleData_ECSList.BackendName + ",Reason:" + RoleData_ECSList.BackendReason);
 			Debug.Log("BurstEnabled:" + BurstCompiler.IsEnabled);
 			Debug.Log("EntityCount:" + ENTITY_COUNT + ",SampleCount:" + SAMPLE_COUNT + ",WarmupCount:" + WARMUP_COUNT + ",BatchCount:" + INNER_LOOP_BATCH_COUNT);
 			BenchmarkResult direct = measure(runDirect);
@@ -135,7 +136,7 @@ public sealed class RoleDataBurstBenchmark : MonoBehaviour
 		var positionY = mECSList.getPositionYColumn();
 		float oldX = positionX[0];
 		float oldY = positionY[0];
-		RoleDataECSList.BurstView view = mECSList.GetBurstView();
+		RoleData_ECSList.BurstView view = mECSList.GetBurstView();
 		mECSList.ScheduleBurst(new UpdateParallelJob { mData = view, mDeltaTime = DELTA_TIME }, INNER_LOOP_BATCH_COUNT);
 		mECSList.CompleteBurstJobs();
 		if (positionX[0] == oldX || positionY[0] == oldY)
@@ -175,14 +176,14 @@ public sealed class RoleDataBurstBenchmark : MonoBehaviour
 	}
 	private void runBurstSingle()
 	{
-		RoleDataECSList.BurstView view = mECSList.GetBurstView();
+		RoleData_ECSList.BurstView view = mECSList.GetBurstView();
 		JobHandle handle = new UpdateSingleJob { mData = view, mDeltaTime = DELTA_TIME }.Schedule(mECSList.GetBurstDependency());
 		mECSList.RegisterBurstJob(handle);
 		mECSList.CompleteBurstJobs();
 	}
 	private void runBurstParallel()
 	{
-		RoleDataECSList.BurstView view = mECSList.GetBurstView();
+		RoleData_ECSList.BurstView view = mECSList.GetBurstView();
 		mECSList.ScheduleBurst(new UpdateParallelJob { mData = view, mDeltaTime = DELTA_TIME }, INNER_LOOP_BATCH_COUNT);
 		mECSList.CompleteBurstJobs();
 	}

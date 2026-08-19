@@ -16,7 +16,7 @@ public class RoleDataBenchmark : MonoBehaviour
 	private float[] mSoASpeed;
 	private float[] mSoAPositionX;
 	private float[] mSoAPositionY;
-	private RoleDataECSList mECSList;
+	private RoleData_ECSList mECSList;
 	private struct BenchmarkResult
 	{
 		public double mMedian;
@@ -41,8 +41,8 @@ public class RoleDataBenchmark : MonoBehaviour
 		try
 		{
 			Debug.Log("================ RoleData Benchmark Start ================");
-			Debug.Log("ECS Backend:" + RoleDataECSList.BackendName);
-			Debug.Log("Backend Reason:" + RoleDataECSList.BackendReason);
+			Debug.Log("ECS Backend:" + RoleData_ECSList.BackendName);
+			Debug.Log("Backend Reason:" + RoleData_ECSList.BackendReason);
 			Debug.Log("EntityCount:" + ENTITY_COUNT);
 			Debug.Log("SampleCount:" + SAMPLE_COUNT);
 			Debug.Log("WarmupCount:" + WARMUP_COUNT);
@@ -81,7 +81,7 @@ public class RoleDataBenchmark : MonoBehaviour
 	}
 	private void testAddGetResize()
 	{
-		RoleDataECSList list = new RoleDataECSList(1);
+		RoleData_ECSList list = new RoleData_ECSList(1);
 		try
 		{
 			for (int i = 0; i < 32; ++i)
@@ -108,7 +108,7 @@ public class RoleDataBenchmark : MonoBehaviour
 	}
 	private void testSet()
 	{
-		RoleDataECSList list = new RoleDataECSList();
+		RoleData_ECSList list = new RoleData_ECSList();
 		try
 		{
 			list.Add(createData(1));
@@ -126,7 +126,7 @@ public class RoleDataBenchmark : MonoBehaviour
 	}
 	private void testIndexerModify()
 	{
-		RoleDataECSList list = new RoleDataECSList();
+		RoleData_ECSList list = new RoleData_ECSList();
 		try
 		{
 			list.Add(createData(1));
@@ -144,7 +144,7 @@ public class RoleDataBenchmark : MonoBehaviour
 	}
 	private void testRoleDataRef()
 	{
-		RoleDataECSList list = new RoleDataECSList();
+		RoleData_ECSList list = new RoleData_ECSList();
 		try
 		{
 			list.Add(createData(1));
@@ -163,7 +163,7 @@ public class RoleDataBenchmark : MonoBehaviour
 	}
 	private void testResizeAfterRoleDataRef()
 	{
-		RoleDataECSList list = new RoleDataECSList(1);
+		RoleData_ECSList list = new RoleData_ECSList(1);
 		try
 		{
 			list.Add(createData(1));
@@ -186,7 +186,7 @@ public class RoleDataBenchmark : MonoBehaviour
 	}
 	private void testDirectColumn()
 	{
-		RoleDataECSList list = new RoleDataECSList();
+		RoleData_ECSList list = new RoleData_ECSList();
 		try
 		{
 			list.Add(createData(1));
@@ -210,7 +210,7 @@ public class RoleDataBenchmark : MonoBehaviour
 	}
 	private void testInsert()
 	{
-		RoleDataECSList list = new RoleDataECSList(1);
+		RoleData_ECSList list = new RoleData_ECSList(1);
 		try
 		{
 			list.Add(createData(1));
@@ -235,7 +235,7 @@ public class RoleDataBenchmark : MonoBehaviour
 	}
 	private void testRemoveAt()
 	{
-		RoleDataECSList list = new RoleDataECSList();
+		RoleData_ECSList list = new RoleData_ECSList();
 		try
 		{
 			for (int i = 1; i <= 5; ++i)
@@ -261,7 +261,7 @@ public class RoleDataBenchmark : MonoBehaviour
 	}
 	private void testClearReuse()
 	{
-		RoleDataECSList list = new RoleDataECSList(2);
+		RoleData_ECSList list = new RoleData_ECSList(2);
 		try
 		{
 			list.Add(createData(1));
@@ -280,7 +280,7 @@ public class RoleDataBenchmark : MonoBehaviour
 	}
 	private void testRemoveAtSwapBack()
 	{
-		RoleDataECSList list = new RoleDataECSList();
+		RoleData_ECSList list = new RoleData_ECSList();
 		try
 		{
 			list.Add(createData(1));
@@ -298,7 +298,7 @@ public class RoleDataBenchmark : MonoBehaviour
 	}
 	private void testDoubleDispose()
 	{
-		RoleDataECSList list = new RoleDataECSList();
+		RoleData_ECSList list = new RoleData_ECSList();
 		list.Add(createData(1));
 		list.Dispose();
 		list.Dispose();
@@ -311,7 +311,7 @@ public class RoleDataBenchmark : MonoBehaviour
 		mSoASpeed = new float[ENTITY_COUNT];
 		mSoAPositionX = new float[ENTITY_COUNT];
 		mSoAPositionY = new float[ENTITY_COUNT];
-		mECSList = new RoleDataECSList(ENTITY_COUNT);
+		mECSList = new RoleData_ECSList(ENTITY_COUNT);
 		for (int i = 0; i < ENTITY_COUNT; ++i)
 		{
 			RoleData value = createData(i);

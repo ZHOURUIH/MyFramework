@@ -15,7 +15,7 @@ public class RoleDataDictionaryBenchmark : MonoBehaviour
 	private Dictionary<int, int> mIndexMap;
 	private RoleData[] mDenseAoS;
 	private int[] mDenseHP;
-	private RoleDataECSDictionary<int> mECS;
+	private RoleData_ECSDictionary<int> mECS;
 	private int[] mRandomKeys;
 	private struct BenchmarkResult
 	{
@@ -57,7 +57,7 @@ public class RoleDataDictionaryBenchmark : MonoBehaviour
 	}
 	private void testAddIndexerResize()
 	{
-		RoleDataECSDictionary<int> dict = new RoleDataECSDictionary<int>(1);
+		RoleData_ECSDictionary<int> dict = new RoleData_ECSDictionary<int>(1);
 		try
 		{
 			for (int i = 0; i < 32; ++i)
@@ -82,7 +82,7 @@ public class RoleDataDictionaryBenchmark : MonoBehaviour
 	}
 	private void testTryAddDuplicate()
 	{
-		RoleDataECSDictionary<int> dict = new RoleDataECSDictionary<int>();
+		RoleData_ECSDictionary<int> dict = new RoleData_ECSDictionary<int>();
 		try
 		{
 			check(dict.TryAdd(1, createData(1)), "第一次TryAdd失败");
@@ -106,7 +106,7 @@ public class RoleDataDictionaryBenchmark : MonoBehaviour
 	}
 	private void testTryGetValueModify()
 	{
-		RoleDataECSDictionary<int> dict = new RoleDataECSDictionary<int>();
+		RoleData_ECSDictionary<int> dict = new RoleData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(10, createData(1));
@@ -124,7 +124,7 @@ public class RoleDataDictionaryBenchmark : MonoBehaviour
 	}
 	private void testTryGetIndex()
 	{
-		RoleDataECSDictionary<int> dict = new RoleDataECSDictionary<int>();
+		RoleData_ECSDictionary<int> dict = new RoleData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(10, createData(1));
@@ -140,7 +140,7 @@ public class RoleDataDictionaryBenchmark : MonoBehaviour
 	}
 	private void testRemoveSwapBack()
 	{
-		RoleDataECSDictionary<int> dict = new RoleDataECSDictionary<int>();
+		RoleData_ECSDictionary<int> dict = new RoleData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(10, createData(1));
@@ -163,7 +163,7 @@ public class RoleDataDictionaryBenchmark : MonoBehaviour
 	}
 	private void testDenseIndexDirectColumn()
 	{
-		RoleDataECSDictionary<int> dict = new RoleDataECSDictionary<int>();
+		RoleData_ECSDictionary<int> dict = new RoleData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(10, createData(1));
@@ -183,7 +183,7 @@ public class RoleDataDictionaryBenchmark : MonoBehaviour
 	}
 	private void testForeachKeyValue()
 	{
-		RoleDataECSDictionary<int> dict = new RoleDataECSDictionary<int>();
+		RoleData_ECSDictionary<int> dict = new RoleData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(10, createData(1));
@@ -211,7 +211,7 @@ public class RoleDataDictionaryBenchmark : MonoBehaviour
 	}
 	private void testForeachKeys()
 	{
-		RoleDataECSDictionary<int> dict = new RoleDataECSDictionary<int>();
+		RoleData_ECSDictionary<int> dict = new RoleData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(10, createData(1));
@@ -230,7 +230,7 @@ public class RoleDataDictionaryBenchmark : MonoBehaviour
 	}
 	private void testForeachValues()
 	{
-		RoleDataECSDictionary<int> dict = new RoleDataECSDictionary<int>();
+		RoleData_ECSDictionary<int> dict = new RoleData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(10, createData(1));
@@ -252,7 +252,7 @@ public class RoleDataDictionaryBenchmark : MonoBehaviour
 	}
 	private void testClearReuse()
 	{
-		RoleDataECSDictionary<int> dict = new RoleDataECSDictionary<int>(2);
+		RoleData_ECSDictionary<int> dict = new RoleData_ECSDictionary<int>(2);
 		try
 		{
 			dict.Add(1, createData(1));
@@ -272,7 +272,7 @@ public class RoleDataDictionaryBenchmark : MonoBehaviour
 	}
 	private void testComparer()
 	{
-		RoleDataECSDictionary<string> dict = new RoleDataECSDictionary<string>(4, StringComparer.OrdinalIgnoreCase);
+		RoleData_ECSDictionary<string> dict = new RoleData_ECSDictionary<string>(4, StringComparer.OrdinalIgnoreCase);
 		try
 		{
 			dict.Add("Role", createData(1));
@@ -287,7 +287,7 @@ public class RoleDataDictionaryBenchmark : MonoBehaviour
 	}
 	private void testDoubleDispose()
 	{
-		RoleDataECSDictionary<int> dict = new RoleDataECSDictionary<int>();
+		RoleData_ECSDictionary<int> dict = new RoleData_ECSDictionary<int>();
 		dict.Add(1, createData(1));
 		dict.Dispose();
 		dict.Dispose();
@@ -298,8 +298,8 @@ public class RoleDataDictionaryBenchmark : MonoBehaviour
 		try
 		{
 			Debug.Log("================ RoleData ECSDictionary Benchmark Start ================");
-			Debug.Log("ECS Backend:" + RoleDataECSList.BackendName);
-			Debug.Log("Backend Reason:" + RoleDataECSList.BackendReason);
+			Debug.Log("ECS Backend:" + RoleData_ECSList.BackendName);
+			Debug.Log("Backend Reason:" + RoleData_ECSList.BackendReason);
 			Debug.Log("EntityCount:" + ENTITY_COUNT);
 			Debug.Log("RandomWriteCount:" + RANDOM_WRITE_COUNT);
 			Debug.Log("SampleCount:" + SAMPLE_COUNT);
@@ -310,7 +310,6 @@ public class RoleDataDictionaryBenchmark : MonoBehaviour
 			runDenseFourFieldBenchmark();
 			runMixedBenchmark();
 			runEnumeratorBenchmark();
-			EasyECSExtendedAPIBenchmark.runDictionaryBenchmark();
 			Debug.Log("ResultSink:" + mResultSink);
 			Debug.Log("================ RoleData ECSDictionary Benchmark End ================");
 		}
@@ -326,7 +325,7 @@ public class RoleDataDictionaryBenchmark : MonoBehaviour
 		mIndexMap = new Dictionary<int, int>(ENTITY_COUNT);
 		mDenseAoS = new RoleData[ENTITY_COUNT];
 		mDenseHP = new int[ENTITY_COUNT];
-		mECS = new RoleDataECSDictionary<int>(ENTITY_COUNT);
+		mECS = new RoleData_ECSDictionary<int>(ENTITY_COUNT);
 		for (int i = 0; i < ENTITY_COUNT; ++i)
 		{
 			RoleData value = createData(i);

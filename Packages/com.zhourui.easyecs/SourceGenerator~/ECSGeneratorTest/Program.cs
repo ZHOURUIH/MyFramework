@@ -37,14 +37,7 @@ namespace EasyECS
 }
 ";
 
-		private const string BURST_STUB_SOURCE = @"
-namespace Unity.Burst
-{
-	[global::System.AttributeUsage(global::System.AttributeTargets.Struct | global::System.AttributeTargets.Class | global::System.AttributeTargets.Method)]
-	public sealed class BurstCompileAttribute : global::System.Attribute
-	{
-	}
-}
+		private const string JOB_SYSTEM_STUB_SOURCE = @"
 namespace Unity.Collections.LowLevel.Unsafe
 {
 	[global::System.AttributeUsage(global::System.AttributeTargets.Field)]
@@ -77,6 +70,80 @@ namespace Unity.Jobs
 	}
 }
 ";
+		private const string JOB_SYSTEM_WITHOUT_NATIVE_PTR_ATTRIBUTE_STUB_SOURCE = @"
+namespace Unity.Jobs
+{
+	public struct JobHandle
+	{
+		public void Complete()
+		{
+		}
+		public static JobHandle CombineDependencies(JobHandle left, JobHandle right)
+		{
+			return default(JobHandle);
+		}
+	}
+	public interface IJobParallelFor
+	{
+		void Execute(int index);
+	}
+	public static class IJobParallelForExtensions
+	{
+		public static JobHandle Schedule<TJob>(TJob jobData, int arrayLength, int innerloopBatchCount, JobHandle dependsOn) where TJob : struct, IJobParallelFor
+		{
+			return default(JobHandle);
+		}
+	}
+}
+";
+		private const string BURST_STUB_SOURCE = @"
+namespace Unity.Burst
+{
+	[global::System.AttributeUsage(global::System.AttributeTargets.Struct | global::System.AttributeTargets.Class | global::System.AttributeTargets.Method)]
+	public sealed class BurstCompileAttribute : global::System.Attribute
+	{
+	}
+}
+" + JOB_SYSTEM_STUB_SOURCE;
+		private const string BUILTIN_UNITY_VALUE_STUB_SOURCE = @"
+namespace UnityEngine
+{
+	public struct Vector2 { public float x; public float y; public Vector2(float x, float y) { this.x = x; this.y = y; } }
+	public struct Vector2Int { public int x; public int y; public Vector2Int(int x, int y) { this.x = x; this.y = y; } }
+	public struct Vector3 { public float x; public float y; public float z; public Vector3(float x, float y, float z) { this.x = x; this.y = y; this.z = z; } }
+	public struct Vector3Int { public int x; public int y; public int z; public Vector3Int(int x, int y, int z) { this.x = x; this.y = y; this.z = z; } }
+	public struct Vector4 { public float x; public float y; public float z; public float w; public Vector4(float x, float y, float z, float w) { this.x = x; this.y = y; this.z = z; this.w = w; } }
+	public struct Quaternion { public float x; public float y; public float z; public float w; public Quaternion(float x, float y, float z, float w) { this.x = x; this.y = y; this.z = z; this.w = w; } }
+	public struct Color { public float r; public float g; public float b; public float a; public Color(float r, float g, float b, float a) { this.r = r; this.g = g; this.b = b; this.a = a; } }
+	public struct Color32 { public byte r; public byte g; public byte b; public byte a; public Color32(byte r, byte g, byte b, byte a) { this.r = r; this.g = g; this.b = b; this.a = a; } }
+	public struct Rect { public float x; public float y; public float width; public float height; public Rect(float x, float y, float width, float height) { this.x = x; this.y = y; this.width = width; this.height = height; } }
+	public struct RectInt { public int x; public int y; public int width; public int height; public RectInt(int x, int y, int width, int height) { this.x = x; this.y = y; this.width = width; this.height = height; } }
+	public struct Bounds
+	{
+		public Vector3 center; public Vector3 size;
+		public Bounds(Vector3 center, Vector3 size) { this.center = center; this.size = size; }
+	}
+	public struct BoundsInt
+	{
+		public Vector3Int position; public Vector3Int size;
+		public BoundsInt(Vector3Int position, Vector3Int size) { this.position = position; this.size = size; }
+	}
+	public struct Matrix4x4
+	{
+		public float m00; public float m01; public float m02; public float m03;
+		public float m10; public float m11; public float m12; public float m13;
+		public float m20; public float m21; public float m22; public float m23;
+		public float m30; public float m31; public float m32; public float m33;
+		public Matrix4x4(Vector4 c0, Vector4 c1, Vector4 c2, Vector4 c3)
+		{
+			m00 = c0.x; m10 = c0.y; m20 = c0.z; m30 = c0.w;
+			m01 = c1.x; m11 = c1.y; m21 = c1.z; m31 = c1.w;
+			m02 = c2.x; m12 = c2.y; m22 = c2.z; m32 = c2.w;
+			m03 = c3.x; m13 = c3.y; m23 = c3.z; m33 = c3.w;
+		}
+	}
+}
+";
 		private const string DICTIONARY_DATA_SOURCE = @"
 [ECS]
 public struct RoleData
@@ -100,7 +167,7 @@ public static class ListExtendedUsage
 {
 	public static int Run()
 	{
-		RangeDataECSList list = new RangeDataECSList(1);
+		RangeData_ECSList list = new RangeData_ECSList(1);
 		RangeData[] source = new RangeData[]
 		{
 			new RangeData { mValue = 3, mID = 3 },
@@ -109,7 +176,7 @@ public static class ListExtendedUsage
 		};
 		list.AddRange(source);
 		list.InsertRange(1, source, 1, 2);
-		RangeDataECSList other = new RangeDataECSList();
+		RangeData_ECSList other = new RangeData_ECSList();
 		other.AddRange(source);
 		list.AddRange(other);
 		list.InsertRange(0, other);
@@ -166,7 +233,7 @@ public static class DictionaryUsage
 {
 	public static int Run()
 	{
-		RoleDataECSDictionary<int> dict = new RoleDataECSDictionary<int>(4);
+		RoleData_ECSDictionary<int> dict = new RoleData_ECSDictionary<int>(4);
 		dict.Add(1, new RoleData { mHP = 10, mSpeed = 1.0f, mPositionX = 2.0f, mPositionY = 3.0f, mID = 1, mCamp = 2 });
 		dict.TryAdd(2, new RoleData { mHP = 20, mSpeed = 2.0f, mPositionX = 4.0f, mPositionY = 6.0f, mID = 2, mCamp = 3 });
 		int sum = 0;
@@ -279,11 +346,21 @@ public static class DictionaryUsage
 				new TestCase("Fixed字段报ECS003", testFixedFieldDiagnostic),
 				new TestCase("Private字段报ECS003", testPrivateFieldDiagnostic),
 				new TestCase("Column名称冲突报ECS004", testColumnNameConflictDiagnostic),
-				new TestCase("Burst不存在不生成Burst接口", testBurstUnavailableDoesNotGenerate),
+				new TestCase("Job系统不存在不生成Job接口", testJobSystemUnavailableDoesNotGenerate),
+				new TestCase("Job系统存在无需Burst也生成零复制Job接口", testJobSystemWithoutBurstGeneration),
+				new TestCase("Job系统存在但NativePtr属性不可见仍生成Job接口", testJobSystemWithoutNativePtrAttributeGeneration),
 				new TestCase("Burst存在Unsafe生成BurstView", testBurstUnsafeGeneration),
 				new TestCase("Burst Managed Hybrid过滤Managed字段", testBurstHybridFieldFiltering),
 				new TestCase("Burst Safe后端不生成Burst接口", testBurstSafeBackendDoesNotGenerate),
 				new TestCase("Burst接口编译", testBurstUsageCompile),
+				new TestCase("内置类型Burst接口生成", testBuiltInBurstGeneration),
+				new TestCase("内置基础类型名称生成", testBuiltInPrimitiveNames),
+				new TestCase("内置类型Native List API编译", testBuiltInNativeListApiCompile),
+				new TestCase("内置类型Unsafe布局", testBuiltInUnsafeLayout),
+				new TestCase("内置类型SafeSpan后端", testBuiltInSafeSpanGeneration),
+				new TestCase("内置类型SafeRegistry后端", testBuiltInSafeRegistryGeneration),
+				new TestCase("内置基础结构体标量SoA布局", testBuiltInScalarStructLayout),
+				new TestCase("内置Dictionary TryAdd单次查找", testBuiltInDictionaryTryAddSingleLookup),
 				new TestCase("ECSDictionary生成", testDictionaryGeneration),
 				new TestCase("ECSDictionary TryGetIndex生成", testDictionaryTryGetIndexGeneration),
 				new TestCase("ECSDictionary DenseIndex/GetOrAddIndex生成", testDictionaryDenseIndexGeneration),
@@ -598,7 +675,7 @@ public static class Usage
 {
 	public static int Run()
 	{
-		RoleDataECSList list = new RoleDataECSList(1);
+		RoleData_ECSList list = new RoleData_ECSList(1);
 		list.Add(new RoleData { mHP = 1, mSpeed = 1.0f, mID = 1 });
 		list.Insert(0, new RoleData { mHP = 2, mSpeed = 2.0f, mID = 2 });
 		list.Insert(list.Count, new RoleData { mHP = 3, mSpeed = 3.0f, mID = 3 });
@@ -678,7 +755,7 @@ public static class Usage
 {
 	public static void Run()
 	{
-		RoleDataECSList list = new RoleDataECSList();
+		RoleData_ECSList list = new RoleData_ECSList();
 		list.Add(new RoleData { mHP = 1, mID = 1 });
 		list.Insert(0, new RoleData { mHP = 2, mID = 2 });
 		list.RemoveAt(1);
@@ -705,7 +782,7 @@ public static class Usage
 {
 	public static void Run()
 	{
-		RoleDataECSList list = new RoleDataECSList();
+		RoleData_ECSList list = new RoleData_ECSList();
 		list.Add(new RoleData { mHP = 1, mID = 1 });
 		list.Insert(0, new RoleData { mHP = 2, mID = 2 });
 		list.RemoveAt(1);
@@ -735,7 +812,7 @@ public static class Usage
 {
 	public static void Run()
 	{
-		RoleDataECSList list = new RoleDataECSList(1);
+		RoleData_ECSList list = new RoleData_ECSList(1);
 		object payload = new object();
 		list.Add(new RoleData { mHP = 1, mName = ""A"", mPayload = payload, mID = 1, mPath = ""P1"" });
 		list.Insert(0, new RoleData { mHP = 2, mName = ""B"", mPayload = payload, mID = 2, mPath = ""P2"" });
@@ -802,9 +879,9 @@ public struct RoleData
 			assertContains(result.mGeneratedSource, "public int EnsureCapacity(int capacity)");
 			assertContains(result.mGeneratedSource, "public void TrimExcess()");
 			assertContains(result.mGeneratedSource, "public void AddRange(global::RoleData[] values)");
-			assertContains(result.mGeneratedSource, "public void AddRange(RoleDataECSList values)");
+			assertContains(result.mGeneratedSource, "public void AddRange(RoleData_ECSList values)");
 			assertContains(result.mGeneratedSource, "public void InsertRange(int index, global::RoleData[] values");
-			assertContains(result.mGeneratedSource, "public void InsertRange(int index, RoleDataECSList values)");
+			assertContains(result.mGeneratedSource, "public void InsertRange(int index, RoleData_ECSList values)");
 			assertContains(result.mGeneratedSource, "public void RemoveRange(int index, int count)");
 			assertContains(result.mGeneratedSource, "public int RemoveAll(global::System.Predicate<global::RoleData> match)");
 			assertContains(result.mGeneratedSource, "public void Reverse(int index, int count)");
@@ -949,7 +1026,7 @@ public struct ManagedBulkData
 			GeneratorTestResult result = runGenerator(LIST_EXTENDED_USAGE_SOURCE, true);
 			assertNoErrors(result);
 			assertContains(result.mGeneratedSource, "public const string BackendName = \"Unsafe\";");
-			assertContains(result.mGeneratedSource, "copyRangeFrom(RangeDataECSList source");
+			assertContains(result.mGeneratedSource, "copyRangeFrom(RangeData_ECSList source");
 			assertContains(result.mGeneratedSource, "mStorage->mValue + sourceIndex, count).CopyTo");
 			assertContains(result.mGeneratedSource, "getSortField_mValue");
 			assertContains(result.mGeneratedSource, "private void introSortBy");
@@ -1041,9 +1118,9 @@ public struct RoleData
 			assertNoErrors(result);
 			assertContains(result.mGeneratedSource, "/// <see cref=\"RoleData\"/>的EasyECS List.");
 			assertContains(result.mGeneratedSource, "[global::EasyECS.ECSGeneratedFor(typeof(global::RoleData))]");
-			assertContains(result.mGeneratedSource, "public sealed class RoleDataECSList");
+			assertContains(result.mGeneratedSource, "public sealed class RoleData_ECSList");
 			assertContains(result.mGeneratedSource, "/// <see cref=\"RoleData\"/>的EasyECS Dictionary&lt;TKey&gt;.");
-			assertContains(result.mGeneratedSource, "public sealed class RoleDataECSDictionary<TKey>");
+			assertContains(result.mGeneratedSource, "public sealed class RoleData_ECSDictionary<TKey>");
 		}
 		private static void testStructAttributeConflict()
 		{
@@ -1163,7 +1240,7 @@ public struct RoleData
 }
 ", false, "ECS004");
 		}
-		private static void testBurstUnavailableDoesNotGenerate()
+		private static void testJobSystemUnavailableDoesNotGenerate()
 		{
 			GeneratorTestResult result = runGenerator(DICTIONARY_DATA_SOURCE, true);
 			assertNoErrors(result);
@@ -1171,6 +1248,31 @@ public struct RoleData
 			assertDoesNotContain(result.mGeneratedSource, "ScheduleBurst<TJob>");
 			assertDoesNotContain(result.mGeneratedSource, "CompleteBurstJobs()");
 			assertDoesNotContain(result.mGeneratedSource, "global::Unity.Jobs");
+		}
+		private static void testJobSystemWithoutBurstGeneration()
+		{
+			GeneratorTestResult result = runGenerator(JOB_SYSTEM_STUB_SOURCE + DICTIONARY_DATA_SOURCE, true);
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "public readonly unsafe struct BurstView");
+			assertContains(result.mGeneratedSource, "public BurstView GetBurstView()");
+			assertContains(result.mGeneratedSource, "public global::Unity.Jobs.JobHandle ScheduleBurst<TJob>");
+			assertContains(result.mGeneratedSource, "public void RegisterBurstJob(global::Unity.Jobs.JobHandle handle)");
+			assertDoesNotContain(result.mGeneratedSource, "global::Unity.Burst");
+		}
+		private static void testJobSystemWithoutNativePtrAttributeGeneration()
+		{
+			GeneratorTestResult normalResult = runGenerator(JOB_SYSTEM_WITHOUT_NATIVE_PTR_ATTRIBUTE_STUB_SOURCE + DICTIONARY_DATA_SOURCE, true);
+			assertNoErrors(normalResult);
+			assertContains(normalResult.mGeneratedSource, "public readonly unsafe struct BurstView");
+			assertContains(normalResult.mGeneratedSource, "public global::Unity.Jobs.JobHandle ScheduleBurst<TJob>");
+			assertDoesNotContain(normalResult.mGeneratedSource, "global::Unity.Collections.LowLevel.Unsafe.NativeDisableUnsafePtrRestriction");
+			GeneratorTestResult builtInResult = runGeneratorForAssembly(JOB_SYSTEM_WITHOUT_NATIVE_PTR_ATTRIBUTE_STUB_SOURCE, true, "EasyECS.Runtime");
+			assertNoErrors(builtInResult);
+			assertContains(builtInResult.mGeneratedSource, "public unsafe sealed class Int_ECSList");
+			assertContains(builtInResult.mGeneratedSource, "public readonly unsafe struct BurstView");
+			assertContains(builtInResult.mGeneratedSource, "public readonly int* mValue;");
+			assertContains(builtInResult.mGeneratedSource, "public global::Unity.Jobs.JobHandle ScheduleBurst<TJob>");
+			assertDoesNotContain(builtInResult.mGeneratedSource, "global::Unity.Collections.LowLevel.Unsafe.NativeDisableUnsafePtrRestriction");
 		}
 		private static void testBurstUnsafeGeneration()
 		{
@@ -1191,9 +1293,9 @@ public struct RoleData
 			assertContains(result.mGeneratedSource, "global::Unity.Jobs.JobHandle.CombineDependencies(mBurstJobHandle, dependsOn)");
 			assertContains(result.mGeneratedSource, "global::Unity.Jobs.IJobParallelForExtensions.Schedule(job, mCount, innerloopBatchCount, dependsOn)");
 			assertContains(result.mGeneratedSource, "completeBurstJobs();");
-			assertContains(result.mGeneratedSource, "~RoleDataECSList()");
+			assertContains(result.mGeneratedSource, "~RoleData_ECSList()");
 			assertContains(result.mGeneratedSource, "if (mHasPendingBurstJob)");
-			assertContains(result.mGeneratedSource, "public RoleDataECSList.BurstView GetBurstView()");
+			assertContains(result.mGeneratedSource, "public RoleData_ECSList.BurstView GetBurstView()");
 		}
 		private static void testBurstHybridFieldFiltering()
 		{
@@ -1233,7 +1335,7 @@ public struct BurstHybridData
 			GeneratorTestResult result = runGenerator(BURST_STUB_SOURCE + DICTIONARY_DATA_SOURCE + @"
 public unsafe struct RoleBurstTestJob : Unity.Jobs.IJobParallelFor
 {
-	public RoleDataECSList.BurstView mData;
+	public RoleData_ECSList.BurstView mData;
 	public void Execute(int index)
 	{
 		mData.mHP[index] += 1;
@@ -1244,9 +1346,9 @@ public static class RoleBurstUsage
 {
 	public static int Run()
 	{
-		RoleDataECSList list = new RoleDataECSList(8);
+		RoleData_ECSList list = new RoleData_ECSList(8);
 		list.Add(new RoleData { mHP = 10, mSpeed = 2.0f, mPositionX = 1.0f });
-		RoleDataECSList.BurstView view = list.GetBurstView();
+		RoleData_ECSList.BurstView view = list.GetBurstView();
 		Unity.Jobs.JobHandle handle = list.ScheduleBurst(new RoleBurstTestJob { mData = view }, 64);
 		list.CompleteBurstJobs();
 		int value = list[0].mHP;
@@ -1257,13 +1359,209 @@ public static class RoleBurstUsage
 ", true);
 			assertNoErrors(result);
 		}
+		private static void testBuiltInBurstGeneration()
+		{
+			GeneratorTestResult result = runGeneratorForAssembly(JOB_SYSTEM_STUB_SOURCE + BUILTIN_UNITY_VALUE_STUB_SOURCE, true, "EasyECS.Runtime");
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "public unsafe sealed class Int_ECSList");
+			assertContains(result.mGeneratedSource, "public readonly unsafe struct BurstView");
+			assertContains(result.mGeneratedSource, "public readonly int* mValue;");
+			assertContains(result.mGeneratedSource, "public global::Unity.Jobs.JobHandle ScheduleBurst<TJob>");
+			assertContains(result.mGeneratedSource, "public sealed class Int_ECSDictionary<TKey>");
+			assertContains(result.mGeneratedSource, "mValues.ScheduleBurst(job, innerloopBatchCount)");
+			assertContains(result.mGeneratedSource, "public unsafe sealed class Vector2_ECSList");
+			assertContains(result.mGeneratedSource, "public readonly float* x;");
+			assertContains(result.mGeneratedSource, "public readonly float* y;");
+			assertDoesNotContain(result.mGeneratedSource, "public readonly global::UnityEngine.Vector2* mValue;");
+			assertContains(result.mGeneratedSource, "public unsafe sealed class Vector2Int_ECSList");
+			assertContains(result.mGeneratedSource, "public readonly int* x;");
+			assertContains(result.mGeneratedSource, "public readonly int* y;");
+			assertDoesNotContain(result.mGeneratedSource, "public readonly global::UnityEngine.Vector2Int* mValue;");
+			assertDoesNotContain(result.mGeneratedSource, "ECSValueListBase");
+			assertDoesNotContain(result.mGeneratedSource, "ECSBuiltinInt");
+		}
+		private static void testBuiltInPrimitiveNames()
+		{
+			GeneratorTestResult result = runGeneratorForAssembly(string.Empty, true, "EasyECS.Runtime");
+			assertNoErrors(result);
+			string[] names = { "Byte", "SByte", "Short", "UShort", "Int", "UInt", "Long", "ULong", "Float", "Double", "Bool", "Char", "Decimal" };
+			for (int i = 0; i < names.Length; ++i)
+			{
+				assertContains(result.mGeneratedSource, "public unsafe sealed class " + names[i] + "_ECSList");
+				assertContains(result.mGeneratedSource, "public sealed class " + names[i] + "_ECSDictionary<TKey>");
+			}
+		}
+		private static void testBuiltInNativeListApiCompile()
+		{
+			GeneratorTestResult result = runGeneratorForAssembly(BUILTIN_UNITY_VALUE_STUB_SOURCE + @"
+public static class BuiltInUsage
+{
+	public static int Run()
+	{
+		EasyECS.Int_ECSList ints = new EasyECS.Int_ECSList(2);
+		ints.Add(10);
+		ints.Add(20);
+		ints[0] = 15;
+		int sum = ints[0];
+		ref int intRef = ref ints[0];
+		intRef += 1;
+		sum += intRef;
+		foreach (int value in ints)
+		{
+			sum += value;
+		}
+		int[] array = ints.ToArray();
+		EasyECS.Int_ECSDictionary<int> dict = new EasyECS.Int_ECSDictionary<int>();
+		dict.Add(1, 100);
+		dict[1] = 200;
+		if (dict.TryGetValue(1, out int value2)) sum += value2;
+		EasyECS.Vector2_ECSList uvs = new EasyECS.Vector2_ECSList();
+		uvs.Add(new UnityEngine.Vector2(1.0f, 2.0f));
+		UnityEngine.Vector2 uv = uvs[0];
+		uvs[0] = uv;
+		var xColumn = uvs.getXColumn();
+		xColumn[0] += 1.0f;
+		uvs.Dispose();
+		dict.Dispose();
+		ints.Dispose();
+		return sum + array.Length;
+	}
+}
+", true, "EasyECS.Runtime");
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "public ref int this[int index]");
+			assertContains(result.mGeneratedSource, "return ref mStorage->mValue[index];");
+			assertContains(result.mGeneratedSource, "int* values = mStorage->mValue;");
+			assertContains(result.mGeneratedSource, "if (values[i].Equals(value)) return true;");
+			assertContains(result.mGeneratedSource, "public int IndexOf(int value)");
+			assertContains(result.mGeneratedSource, "int compare = values[middle].CompareTo(value);");
+			assertDoesNotContain(result.mGeneratedSource, "public int BinarySearch(int value) => BinarySearchByValue(value);");
+			assertContains(result.mGeneratedSource, "public Enumerator GetEnumerator()");
+			assertContains(result.mGeneratedSource, "public int this[TKey key]");
+			assertContains(result.mGeneratedSource, "public bool TryGetValue(TKey key, out int value)");
+			assertContains(result.mGeneratedSource, "public unsafe void SetValue(TKey key, int value)");
+			assertContains(result.mGeneratedSource, "mValues.getDictionaryStorage()->mValue[index] = value;");
+			assertContains(result.mGeneratedSource, "public float* x;");
+			assertContains(result.mGeneratedSource, "public float* y;");
+			assertContains(result.mGeneratedSource, "public __ECSColumn_x getXColumn()");
+			assertContains(result.mGeneratedSource, "public __ECSColumn_y getYColumn()");
+			assertDoesNotContain(result.mGeneratedSource, "public ref global::UnityEngine.Vector2 this[int index]");
+		}
+		private static void testBuiltInUnsafeLayout()
+		{
+			GeneratorTestResult result = runGeneratorForAssembly(string.Empty, true, "EasyECS.Runtime");
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "internal unsafe struct IntStorage");
+			assertContains(result.mGeneratedSource, "public int* mValue;");
+			assertContains(result.mGeneratedSource, "public const string BackendName = \"Unsafe\";");
+			assertContains(result.mGeneratedSource, "public __ECSColumn_mValue getValueColumn()");
+			assertContains(result.mGeneratedSource, "fixed (int* sourcePointer = source)");
+			assertContains(result.mGeneratedSource, "copyMemory(mStorage->mValue + destinationIndex, sourcePointer + sourceIndex");
+		}
+		private static void testBuiltInSafeSpanGeneration()
+		{
+			GeneratorTestResult result = runGeneratorForAssembly(string.Empty, false, "EasyECS.Runtime");
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "public const string BackendName = \"SafeSpan\";");
+			assertContains(result.mGeneratedSource, "public int[] mValue;");
+			assertContains(result.mGeneratedSource, "public ref int this[int index]");
+			assertContains(result.mGeneratedSource, "return ref mStorage[0].mValue[index];");
+			assertContains(result.mGeneratedSource, "global::System.Array.Copy(source, sourceIndex, storage.mValue, destinationIndex, count);");
+			assertDoesNotContain(result.mGeneratedSource, "internal unsafe struct IntStorage");
+		}
+		private static void testBuiltInSafeRegistryGeneration()
+		{
+			GeneratorTestResult result = runGeneratorForAssembly(string.Empty, true, "EasyECS.Runtime", "ECS_FORCE_SAFE_REGISTRY");
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "public const string BackendName = \"SafeRegistry\";");
+			assertContains(result.mGeneratedSource, "internal static class IntStorageRegistry");
+			assertContains(result.mGeneratedSource, "public ref int this[int index]");
+			assertContains(result.mGeneratedSource, "return ref IntStorageRegistry.get_mValue(mStorageID, index);");
+		}
+		private static void testBuiltInScalarStructLayout()
+		{
+			GeneratorTestResult result = runGeneratorForAssembly(BUILTIN_UNITY_VALUE_STUB_SOURCE + @"
+public static class BuiltInRangeUsage
+{
+	public static int Run()
+	{
+		EasyECS.Vector2Int_ECSList list = new EasyECS.Vector2Int_ECSList();
+		list.Add(new UnityEngine.Vector2Int(3, 8));
+		UnityEngine.Vector2Int value = list[0];
+		var x = list.getXColumn();
+		var y = list.getYColumn();
+		x[0] = 5;
+		y[0] = 12;
+		value = list[0];
+		list.Dispose();
+		return value.x + value.y;
+	}
+}
+", true, "EasyECS.Runtime");
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "internal unsafe struct Vector2IntStorage");
+			assertContains(result.mGeneratedSource, "public int* x;");
+			assertContains(result.mGeneratedSource, "public int* y;");
+			assertContains(result.mGeneratedSource, "public __ECSColumn_x getXColumn()");
+			assertContains(result.mGeneratedSource, "public __ECSColumn_y getYColumn()");
+			assertContains(result.mGeneratedSource, "public global::UnityEngine.Vector2Int this[int index]");
+			assertDoesNotContain(result.mGeneratedSource, "global::UnityEngine.Vector2Int* mValue");
+			assertContains(result.mGeneratedSource, "internal unsafe struct Vector2Storage");
+			assertContains(result.mGeneratedSource, "public float* x;");
+			assertContains(result.mGeneratedSource, "public float* y;");
+			assertDoesNotContain(result.mGeneratedSource, "global::UnityEngine.Vector2* mValue");
+			assertContains(result.mGeneratedSource, "internal unsafe struct Vector3Storage");
+			assertContains(result.mGeneratedSource, "internal unsafe struct Vector3IntStorage");
+			assertContains(result.mGeneratedSource, "internal unsafe struct Vector4Storage");
+			assertContains(result.mGeneratedSource, "internal unsafe struct QuaternionStorage");
+			assertContains(result.mGeneratedSource, "internal unsafe struct ColorStorage");
+			assertContains(result.mGeneratedSource, "internal unsafe struct RectStorage");
+			assertContains(result.mGeneratedSource, "internal unsafe struct RectIntStorage");
+			assertContains(result.mGeneratedSource, "internal unsafe struct BoundsStorage");
+			assertContains(result.mGeneratedSource, "internal unsafe struct BoundsIntStorage");
+			assertContains(result.mGeneratedSource, "internal unsafe struct Matrix4x4Storage");
+			assertDoesNotContain(result.mGeneratedSource, "global::UnityEngine.Vector3* mValue");
+			assertDoesNotContain(result.mGeneratedSource, "global::UnityEngine.Vector4* mValue");
+			assertDoesNotContain(result.mGeneratedSource, "global::UnityEngine.Quaternion* mValue");
+			assertDoesNotContain(result.mGeneratedSource, "global::UnityEngine.Color* mValue");
+			assertDoesNotContain(result.mGeneratedSource, "global::UnityEngine.Bounds* mValue");
+			assertDoesNotContain(result.mGeneratedSource, "global::UnityEngine.Matrix4x4* mValue");
+			assertContains(result.mGeneratedSource, "internal unsafe struct Color32Storage");
+			assertContains(result.mGeneratedSource, "public byte* r;");
+			assertContains(result.mGeneratedSource, "public byte* g;");
+			assertContains(result.mGeneratedSource, "public byte* b;");
+			assertContains(result.mGeneratedSource, "public byte* a;");
+			assertContains(result.mGeneratedSource, "public float* centerX;");
+			assertContains(result.mGeneratedSource, "public float* sizeZ;");
+			assertContains(result.mGeneratedSource, "public float* m00;");
+			assertContains(result.mGeneratedSource, "public float* m33;");
+			assertContains(result.mGeneratedSource, "global::UnityEngine.Vector2 value = default(global::UnityEngine.Vector2);");
+			assertContains(result.mGeneratedSource, "value.x = mStorage->x[index];");
+			assertContains(result.mGeneratedSource, "value.y = mStorage->y[index];");
+			assertContains(result.mGeneratedSource, "global::UnityEngine.Color32 value = default(global::UnityEngine.Color32);");
+			assertContains(result.mGeneratedSource, "value.r = mStorage->r[index];");
+			assertContains(result.mGeneratedSource, "return new global::UnityEngine.Bounds(new global::UnityEngine.Vector3(mStorage->centerX[index]");
+			assertContains(result.mGeneratedSource, "global::UnityEngine.Matrix4x4 value = default(global::UnityEngine.Matrix4x4);");
+			assertContains(result.mGeneratedSource, "value.m00 = mStorage->m00[index];");
+			assertContains(result.mGeneratedSource, "value.m33 = mStorage->m33[index];");
+			assertContains(result.mGeneratedSource, "column0[destinationCursor] = sourceValue.x;");
+			assertContains(result.mGeneratedSource, "= sourceValue.center.x;");
+			assertContains(result.mGeneratedSource, "= sourceValue.position.x;");
+		}
+		private static void testBuiltInDictionaryTryAddSingleLookup()
+		{
+			GeneratorTestResult result = runGeneratorForAssembly(string.Empty, true, "EasyECS.Runtime");
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "if (!mIndexMap.TryAdd(key, index)) return false;");
+			assertDoesNotContain(result.mGeneratedSource, "if (mIndexMap.ContainsKey(key)) return false;");
+		}
 		private static void testDictionaryGeneration()
 		{
 			GeneratorTestResult result = runGenerator(DICTIONARY_DATA_SOURCE, false);
 			assertNoErrors(result);
-			assertContains(result.mGeneratedSource, "public sealed class RoleDataECSDictionary<TKey> : global::System.IDisposable");
+			assertContains(result.mGeneratedSource, "public sealed class RoleData_ECSDictionary<TKey> : global::System.IDisposable");
 			assertContains(result.mGeneratedSource, "private readonly global::System.Collections.Generic.Dictionary<TKey, int> mIndexMap;");
-			assertContains(result.mGeneratedSource, "private readonly RoleDataECSList mValues;");
+			assertContains(result.mGeneratedSource, "private readonly RoleData_ECSList mValues;");
 			assertContains(result.mGeneratedSource, "private TKey[] mKeys;");
 			assertContains(result.mGeneratedSource, "public RoleDataRef this[TKey key]");
 			assertContains(result.mGeneratedSource, "public void Add(TKey key, global::RoleData value)");
@@ -1338,7 +1636,7 @@ public static class Usage
 {
 	public static void Run()
 	{
-		RoleDataECSDictionary<int> dict = new RoleDataECSDictionary<int>();
+		RoleData_ECSDictionary<int> dict = new RoleData_ECSDictionary<int>();
 		dict.Add(1, new RoleData { mHP = 10, mName = ""A"", mID = 1, mModelPath = ""P"" });
 		RoleDataRef value = dict[1];
 		value.mHP += 1;
@@ -1580,7 +1878,7 @@ public struct RoleData
 		{
 			GeneratorTestResult result = runGenerator(DICTIONARY_DATA_SOURCE, false);
 			assertNoErrors(result);
-			assertDoesNotContain(result.mGeneratedSource, "RoleDataECSDictionary<TKey> : global::System.Collections.Generic.IEnumerable");
+			assertDoesNotContain(result.mGeneratedSource, "RoleData_ECSDictionary<TKey> : global::System.Collections.Generic.IEnumerable");
 			assertDoesNotContain(result.mGeneratedSource, "global::System.Collections.Generic.IEnumerator<");
 			assertDoesNotContain(result.mGeneratedSource, "global::System.Collections.IEnumerator");
 			assertDoesNotContain(result.mGeneratedSource, "global::System.Collections.Generic.KeyValuePair<TKey, global::RoleData>");
@@ -1655,14 +1953,22 @@ public struct RoleData
 			GeneratorTestResult result = runGenerator(DICTIONARY_DATA_SOURCE, true);
 			assertNoErrors(result);
 			assertBefore(result.mGeneratedSource, "mIndexMap = new global::System.Collections.Generic.Dictionary<TKey, int>(capacity, comparer);", "mKeys = new TKey[capacity];");
-			assertBefore(result.mGeneratedSource, "mKeys = new TKey[capacity];", "mValues = new RoleDataECSList(capacity);");
+			assertBefore(result.mGeneratedSource, "mKeys = new TKey[capacity];", "mValues = new RoleData_ECSList(capacity);");
 		}
 		private static GeneratorTestResult runGenerator(string source, bool allowUnsafe, params string[] preprocessorSymbols)
+		{
+			return runGeneratorCore(source, allowUnsafe, "ECSGeneratorTest_" + Guid.NewGuid().ToString("N"), preprocessorSymbols);
+		}
+		private static GeneratorTestResult runGeneratorForAssembly(string source, bool allowUnsafe, string assemblyName, params string[] preprocessorSymbols)
+		{
+			return runGeneratorCore(source, allowUnsafe, assemblyName, preprocessorSymbols);
+		}
+		private static GeneratorTestResult runGeneratorCore(string source, bool allowUnsafe, string assemblyName, params string[] preprocessorSymbols)
 		{
 			CSharpParseOptions parseOptions = new CSharpParseOptions(LanguageVersion.Latest, DocumentationMode.Parse, SourceCodeKind.Regular, preprocessorSymbols ?? Array.Empty<string>());
 			SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(ATTRIBUTE_SOURCE + "\n" + source, parseOptions);
 			CSharpCompilationOptions compilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release, allowUnsafe: allowUnsafe);
-			CSharpCompilation compilation = CSharpCompilation.Create("ECSGeneratorTest_" + Guid.NewGuid().ToString("N"), new[] { syntaxTree }, mMetadataReferences, compilationOptions);
+			CSharpCompilation compilation = CSharpCompilation.Create(assemblyName, new[] { syntaxTree }, mMetadataReferences, compilationOptions);
 			ISourceGenerator generator = new ECSGenerator();
 			GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
 			driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out Compilation outputCompilation, out ImmutableArray<Diagnostic> driverDiagnostics);
@@ -1797,10 +2103,10 @@ public struct RoleData
 		private static string getPlayerDictionaryEnumeratorSource(string source)
 		{
 			string normalized = normalizeLineEnding(source);
-			int dictionaryIndex = normalized.IndexOf("sealed class RoleDataECSDictionary<TKey>", StringComparison.Ordinal);
+			int dictionaryIndex = normalized.IndexOf("sealed class RoleData_ECSDictionary<TKey>", StringComparison.Ordinal);
 			if (dictionaryIndex < 0)
 			{
-				throw new Exception("没有找到RoleDataECSDictionary<TKey>");
+				throw new Exception("没有找到RoleData_ECSDictionary<TKey>");
 			}
 			int playerIndex = normalized.IndexOf("#else", dictionaryIndex, StringComparison.Ordinal);
 			if (playerIndex < 0)

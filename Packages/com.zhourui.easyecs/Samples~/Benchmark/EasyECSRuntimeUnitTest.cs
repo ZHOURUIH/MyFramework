@@ -46,9 +46,12 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 		mPassCount = 0;
 		mFailCount = 0;
 		Debug.Log("================ EasyECS Runtime Unit Test Start ================");
-		Debug.Log("Backend:" + EasyECSRuntimeTestDataECSList.BackendName + ",Reason:" + EasyECSRuntimeTestDataECSList.BackendReason);
-		Debug.Log("Managed Backend:" + EasyECSManagedRuntimeTestDataECSList.BackendName + ",Reason:" + EasyECSManagedRuntimeTestDataECSList.BackendReason);
-		Debug.Log("AllManaged Backend:" + EasyECSAllManagedRuntimeTestDataECSList.BackendName + ",Reason:" + EasyECSAllManagedRuntimeTestDataECSList.BackendReason);
+		Debug.Log("Backend:" + EasyECSRuntimeTestData_ECSList.BackendName + ",Reason:" + EasyECSRuntimeTestData_ECSList.BackendReason);
+		Debug.Log("Managed Backend:" + EasyECSManagedRuntimeTestData_ECSList.BackendName + ",Reason:" + EasyECSManagedRuntimeTestData_ECSList.BackendReason);
+		Debug.Log("AllManaged Backend:" + EasyECSAllManagedRuntimeTestData_ECSList.BackendName + ",Reason:" + EasyECSAllManagedRuntimeTestData_ECSList.BackendReason);
+		runTest("内置Int ECSList", testBuiltInIntList);
+		runTest("内置Vector2Int ECSList", testBuiltInVector2IntList);
+		runTest("内置Int ECSDictionary", testBuiltInIntDictionary);
 		runTest("Backend选择检查", testBackendSelection);
 		runTest("List构造/Count/Capacity", testListConstructor);
 		runTest("List Add/Get/Resize/全部字段", testListAddGetResize);
@@ -178,6 +181,9 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 			throw new Exception("EasyECS Runtime Unit Test failed,FailCount:" + mFailCount);
 		}
 		Debug.Log("================ EasyECS Runtime Unit Test Pass =================");
+#if !UNITY_EDITOR
+		EasyECSBuiltInParityBenchmark.runBenchmark();
+#endif
 	}
 	private void runTest(string name, Action action)
 	{
@@ -191,6 +197,85 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 		{
 			++mFailCount;
 			Debug.LogError("[FAIL] " + name + "\n" + exception);
+		}
+	}
+	private static void testBuiltInIntList()
+	{
+		Int_ECSList list = new Int_ECSList(1);
+		try
+		{
+			list.Add(10);
+			list.Add(20);
+			int first = list.Get(0);
+			if (first != 10 || list.Count != 2)
+			{
+				throw new Exception("Int_ECSList Add/Get失败");
+			}
+			list[0] = 15;
+			var values = list.getValueColumn();
+			values[1] = 30;
+			int foreachSum = 0;
+			foreach (int value in list)
+			{
+				foreachSum += value;
+			}
+			int[] array = list.ToArray();
+			if (array.Length != 2 || array[0] != 15 || array[1] != 30 || foreachSum != 45)
+			{
+				throw new Exception("Int_ECSList直接int类型/Direct Column/ToArray失败");
+			}
+		}
+		finally
+		{
+			list.Dispose();
+		}
+	}
+	private static void testBuiltInVector2IntList()
+	{
+		Vector2Int_ECSList list = new Vector2Int_ECSList(1);
+		try
+		{
+			list.Add(new Vector2Int(3, 8));
+			Vector2Int range = list.Get(0);
+			if (range.x != 3 || range.y != 8)
+			{
+				throw new Exception("Vector2Int_ECSList Add/Get失败");
+			}
+			var xColumn = list.getXColumn();
+			var yColumn = list.getYColumn();
+			xColumn[0] = 5;
+			yColumn[0] = 12;
+			range = list.Get(0);
+			if (range.x != 5 || range.y != 12)
+			{
+				throw new Exception("Vector2Int_ECSList双int SoA Direct Column失败");
+			}
+		}
+		finally
+		{
+			list.Dispose();
+		}
+	}
+	private static void testBuiltInIntDictionary()
+	{
+		Int_ECSDictionary<int> dict = new Int_ECSDictionary<int>(1);
+		try
+		{
+			dict.Add(7, 100);
+			if (!dict.TryGetValue(7, out int value) || value != 100)
+			{
+				throw new Exception("Int_ECSDictionary直接int类型/TryGetValue失败");
+			}
+			dict.SetValue(7, 200);
+			dict[7] = 300;
+			if (dict.GetValue(7) != 300)
+			{
+				throw new Exception("Int_ECSDictionary SetValue/Indexer失败");
+			}
+		}
+		finally
+		{
+			dict.Dispose();
 		}
 	}
 	private static EasyECSRuntimeTestData createData(int id, int hp = 100, float speed = 2.0f, int camp = 1)
@@ -233,36 +318,36 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testBackendSelection()
 	{
-		string backend = EasyECSRuntimeTestDataECSList.BackendName;
-		string managedBackend = EasyECSManagedRuntimeTestDataECSList.BackendName;
-		string allManagedBackend = EasyECSAllManagedRuntimeTestDataECSList.BackendName;
+		string backend = EasyECSRuntimeTestData_ECSList.BackendName;
+		string managedBackend = EasyECSManagedRuntimeTestData_ECSList.BackendName;
+		string allManagedBackend = EasyECSAllManagedRuntimeTestData_ECSList.BackendName;
 #if ECS_FORCE_SAFE_REGISTRY
 		assertEqual("SafeRegistry", backend, "ECS_FORCE_SAFE_REGISTRY下普通数据后端错误");
 		assertEqual("SafeRegistry", managedBackend, "ECS_FORCE_SAFE_REGISTRY下Managed数据后端错误");
-		assertFalse(EasyECSRuntimeTestDataECSList.IsUnsafeBackend, "ECS_FORCE_SAFE_REGISTRY下普通数据不应生成Unsafe后端");
-		assertFalse(EasyECSManagedRuntimeTestDataECSList.IsUnsafeBackend, "ECS_FORCE_SAFE_REGISTRY下Managed数据不应生成Unsafe后端");
+		assertFalse(EasyECSRuntimeTestData_ECSList.IsUnsafeBackend, "ECS_FORCE_SAFE_REGISTRY下普通数据不应生成Unsafe后端");
+		assertFalse(EasyECSManagedRuntimeTestData_ECSList.IsUnsafeBackend, "ECS_FORCE_SAFE_REGISTRY下Managed数据不应生成Unsafe后端");
 		assertEqual("SafeRegistry", allManagedBackend, "ECS_FORCE_SAFE_REGISTRY下AllManaged数据后端错误");
-		assertFalse(EasyECSAllManagedRuntimeTestDataECSList.IsUnsafeBackend, "AllManaged数据不应生成Unsafe后端");
+		assertFalse(EasyECSAllManagedRuntimeTestData_ECSList.IsUnsafeBackend, "AllManaged数据不应生成Unsafe后端");
 #else
 		assertTrue(backend == "Unsafe" || backend == "SafeSpan" || backend == "SafeRegistry", "普通数据生成了未知Backend:" + backend);
 		assertTrue(managedBackend == "Unsafe" || managedBackend == "SafeSpan" || managedBackend == "SafeRegistry", "Managed数据生成了未知Backend:" + managedBackend);
 		assertTrue(allManagedBackend == "SafeSpan" || allManagedBackend == "SafeRegistry", "AllManaged数据只能使用SafeSpan或SafeRegistry,Actual:" + allManagedBackend);
-		assertFalse(EasyECSAllManagedRuntimeTestDataECSList.IsUnsafeBackend, "AllManaged数据没有Native候选,不应使用Unsafe");
+		assertFalse(EasyECSAllManagedRuntimeTestData_ECSList.IsUnsafeBackend, "AllManaged数据没有Native候选,不应使用Unsafe");
 		if (backend == "Unsafe")
 		{
 			assertEqual("Unsafe", managedBackend, "Allow Unsafe开启时包含Native字段的Managed结构体应使用Hybrid Unsafe");
-			assertTrue(EasyECSManagedRuntimeTestDataECSList.IsUnsafeBackend, "Hybrid Managed结构体应标记为Unsafe Backend");
-			assertEqual("AllowUnsafe=true,HybridStorage=true", EasyECSManagedRuntimeTestDataECSList.BackendReason, "Hybrid Unsafe后端原因错误");
+			assertTrue(EasyECSManagedRuntimeTestData_ECSList.IsUnsafeBackend, "Hybrid Managed结构体应标记为Unsafe Backend");
+			assertEqual("AllowUnsafe=true,HybridStorage=true", EasyECSManagedRuntimeTestData_ECSList.BackendReason, "Hybrid Unsafe后端原因错误");
 		}
 		else if (backend == "SafeSpan")
 		{
 			assertEqual("SafeSpan", managedBackend, "普通数据为SafeSpan时Managed数据也应为SafeSpan");
-			assertFalse(EasyECSManagedRuntimeTestDataECSList.IsUnsafeBackend, "SafeSpan下Managed结构体不应标记Unsafe");
+			assertFalse(EasyECSManagedRuntimeTestData_ECSList.IsUnsafeBackend, "SafeSpan下Managed结构体不应标记Unsafe");
 		}
 		else if (backend == "SafeRegistry")
 		{
 			assertEqual("SafeRegistry", managedBackend, "普通数据为SafeRegistry时Managed数据也应为SafeRegistry");
-			assertFalse(EasyECSManagedRuntimeTestDataECSList.IsUnsafeBackend, "SafeRegistry下Managed结构体不应标记Unsafe");
+			assertFalse(EasyECSManagedRuntimeTestData_ECSList.IsUnsafeBackend, "SafeRegistry下Managed结构体不应标记Unsafe");
 		}
 #endif
 	}
@@ -312,7 +397,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testListConstructor()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList(0);
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList(0);
 		try
 		{
 			assertEqual(0, list.Count, "新List Count错误");
@@ -325,7 +410,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testListAddGetResize()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList(2);
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList(2);
 		try
 		{
 			for (int i = 0; i < 10; ++i)
@@ -346,7 +431,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testListSet()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			list.Add(createData(1));
@@ -360,7 +445,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testListIndexerMutation()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			list.Add(createData(1));
@@ -379,7 +464,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testListLocalRefMutation()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			list.Add(createData(5));
@@ -398,7 +483,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testListRefAfterResize()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList(1);
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList(1);
 		try
 		{
 			list.Add(createData(1));
@@ -417,7 +502,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testListDirectColumn()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			list.Add(createData(1, 10));
@@ -438,7 +523,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testListSetKeepsColumnValid()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			list.Add(createData(1));
@@ -454,7 +539,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testListRemoveAtSwapBack()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			list.Add(createData(10, 110));
@@ -473,7 +558,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testListRemoveLast()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			list.Add(createData(1, 101));
@@ -491,7 +576,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testListInsertOrder()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			list.Add(createData(1, 101, 2.0f, 1 % 3));
@@ -518,7 +603,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testListInsertResize()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList(1);
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList(1);
 		try
 		{
 			list.Add(createData(1, 101));
@@ -538,7 +623,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testListRemoveAtOrder()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			for (int i = 1; i <= 5; ++i)
@@ -562,7 +647,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	private static void testListInsertRemoveAtCompatibility()
 	{
 		List<EasyECSRuntimeTestData> standard = new List<EasyECSRuntimeTestData>();
-		EasyECSRuntimeTestDataECSList ecs = new EasyECSRuntimeTestDataECSList(1);
+		EasyECSRuntimeTestData_ECSList ecs = new EasyECSRuntimeTestData_ECSList(1);
 		try
 		{
 			for (int i = 0; i < 64; ++i)
@@ -606,7 +691,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	{
 		const int count = 20000;
 		List<EasyECSRuntimeTestData> standard = new List<EasyECSRuntimeTestData>(count + 4);
-		EasyECSRuntimeTestDataECSList ecs = new EasyECSRuntimeTestDataECSList(count + 4);
+		EasyECSRuntimeTestData_ECSList ecs = new EasyECSRuntimeTestData_ECSList(count + 4);
 		try
 		{
 			for (int i = 0; i < count; ++i)
@@ -637,7 +722,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testListInsertRemoveAtBounds()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			list.Add(createData(1));
@@ -651,7 +736,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 		{
 			list.Dispose();
 		}
-		EasyECSRuntimeTestDataECSList disposed = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList disposed = new EasyECSRuntimeTestData_ECSList();
 		disposed.Dispose();
 		bool insertDisposedCaught = false;
 		try
@@ -674,7 +759,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 		}
 		assertTrue(removeDisposedCaught, "Dispose后RemoveAt应抛ObjectDisposedException");
 	}
-	private static void assertListIDs(EasyECSRuntimeTestDataECSList list, int[] expectedIDs, string message)
+	private static void assertListIDs(EasyECSRuntimeTestData_ECSList list, int[] expectedIDs, string message)
 	{
 		assertEqual(expectedIDs.Length, list.Count, message + ":Count错误");
 		for (int i = 0; i < expectedIDs.Length; ++i)
@@ -682,7 +767,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 			assertEqual(expectedIDs[i], list.Get(i).mID, message + ":Index:" + i);
 		}
 	}
-	private static void assertListEquals(List<EasyECSRuntimeTestData> standard, EasyECSRuntimeTestDataECSList ecs, string message)
+	private static void assertListEquals(List<EasyECSRuntimeTestData> standard, EasyECSRuntimeTestData_ECSList ecs, string message)
 	{
 		assertEqual(standard.Count, ecs.Count, message + ":Count错误");
 		for (int i = 0; i < standard.Count; ++i)
@@ -712,7 +797,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testListClearReuse()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			list.Add(createData(1));
@@ -731,7 +816,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testListEmptyClear()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			list.Clear();
@@ -745,8 +830,8 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testListAddRange()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList(1);
-		EasyECSRuntimeTestDataECSList other = new EasyECSRuntimeTestDataECSList(1);
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList(1);
+		EasyECSRuntimeTestData_ECSList other = new EasyECSRuntimeTestData_ECSList(1);
 		try
 		{
 			EasyECSRuntimeTestData[] source = { createData(1), createData(2), createData(3) };
@@ -777,9 +862,9 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testListInsertRange()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList(1);
-		EasyECSRuntimeTestDataECSList other = new EasyECSRuntimeTestDataECSList(1);
-		EasyECSRuntimeTestDataECSList self = new EasyECSRuntimeTestDataECSList(1);
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList(1);
+		EasyECSRuntimeTestData_ECSList other = new EasyECSRuntimeTestData_ECSList(1);
+		EasyECSRuntimeTestData_ECSList self = new EasyECSRuntimeTestData_ECSList(1);
 		try
 		{
 			list.Add(createData(1));
@@ -819,7 +904,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testListRemoveRange()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			for (int i = 1; i <= 6; ++i)
@@ -847,7 +932,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testListSearchAndRemoveAll()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			EasyECSRuntimeTestData duplicate = createData(2, 202, 3.0f, 4);
@@ -896,7 +981,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testListReverseSortBinarySearch()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			list.Add(createData(3));
@@ -950,7 +1035,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testListSortByPermutation()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList(1);
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList(1);
 		try
 		{
 			const int count = 257;
@@ -1007,7 +1092,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 		{
 			list.Dispose();
 		}
-		EasyECSManagedRuntimeTestDataECSList managedList = new EasyECSManagedRuntimeTestDataECSList(1);
+		EasyECSManagedRuntimeTestData_ECSList managedList = new EasyECSManagedRuntimeTestData_ECSList(1);
 		try
 		{
 			const int managedCount = 65;
@@ -1038,7 +1123,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testListByColumnSearchRemoveAll()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			list.Add(createData(1, 10));
@@ -1072,7 +1157,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 		{
 			list.Dispose();
 		}
-		EasyECSManagedRuntimeTestDataECSList managedList = new EasyECSManagedRuntimeTestDataECSList();
+		EasyECSManagedRuntimeTestData_ECSList managedList = new EasyECSManagedRuntimeTestData_ECSList();
 		try
 		{
 			object payload1 = new object();
@@ -1100,7 +1185,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testListCopyFindCapacity()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList(1);
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList(1);
 		try
 		{
 			assertTrue(list.EnsureCapacity(64) >= 64, "EnsureCapacity扩容失败");
@@ -1133,14 +1218,14 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testListDoubleDispose()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		list.Add(createData(1));
 		list.Dispose();
 		list.Dispose();
 	}
 	private static void testManagedFields()
 	{
-		EasyECSManagedRuntimeTestDataECSList list = new EasyECSManagedRuntimeTestDataECSList(1);
+		EasyECSManagedRuntimeTestData_ECSList list = new EasyECSManagedRuntimeTestData_ECSList(1);
 		try
 		{
 			object payloadA = new object();
@@ -1174,7 +1259,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testManagedListAddGetResize()
 	{
-		EasyECSManagedRuntimeTestDataECSList list = new EasyECSManagedRuntimeTestDataECSList(1);
+		EasyECSManagedRuntimeTestData_ECSList list = new EasyECSManagedRuntimeTestData_ECSList(1);
 		try
 		{
 			object[] payloads = new object[32];
@@ -1202,7 +1287,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testManagedListRefAfterResize()
 	{
-		EasyECSManagedRuntimeTestDataECSList list = new EasyECSManagedRuntimeTestDataECSList(1);
+		EasyECSManagedRuntimeTestData_ECSList list = new EasyECSManagedRuntimeTestData_ECSList(1);
 		try
 		{
 			object originalPayload = new object();
@@ -1232,7 +1317,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testManagedListDirectColumn()
 	{
-		EasyECSManagedRuntimeTestDataECSList list = new EasyECSManagedRuntimeTestDataECSList();
+		EasyECSManagedRuntimeTestData_ECSList list = new EasyECSManagedRuntimeTestData_ECSList();
 		try
 		{
 			object payload0 = new object();
@@ -1262,7 +1347,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testManagedListRemoveAtSwapBack()
 	{
-		EasyECSManagedRuntimeTestDataECSList list = new EasyECSManagedRuntimeTestDataECSList();
+		EasyECSManagedRuntimeTestData_ECSList list = new EasyECSManagedRuntimeTestData_ECSList();
 		try
 		{
 			object payload1 = new object();
@@ -1287,7 +1372,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testManagedListInsertRemoveAt()
 	{
-		EasyECSManagedRuntimeTestDataECSList list = new EasyECSManagedRuntimeTestDataECSList(1);
+		EasyECSManagedRuntimeTestData_ECSList list = new EasyECSManagedRuntimeTestData_ECSList(1);
 		try
 		{
 			object payloadA = new object();
@@ -1327,7 +1412,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	private static void testManagedListLargeStructuralMove()
 	{
 		const int count = 5000;
-		EasyECSManagedRuntimeTestDataECSList list = new EasyECSManagedRuntimeTestDataECSList(count + 4);
+		EasyECSManagedRuntimeTestData_ECSList list = new EasyECSManagedRuntimeTestData_ECSList(count + 4);
 		object[] payloads = new object[count];
 		try
 		{
@@ -1364,7 +1449,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testAllManagedListInsertRemoveAt()
 	{
-		EasyECSAllManagedRuntimeTestDataECSList list = new EasyECSAllManagedRuntimeTestDataECSList(1);
+		EasyECSAllManagedRuntimeTestData_ECSList list = new EasyECSAllManagedRuntimeTestData_ECSList(1);
 		try
 		{
 			object payloadA = new object();
@@ -1394,7 +1479,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testManagedListNullFields()
 	{
-		EasyECSManagedRuntimeTestDataECSList list = new EasyECSManagedRuntimeTestDataECSList();
+		EasyECSManagedRuntimeTestData_ECSList list = new EasyECSManagedRuntimeTestData_ECSList();
 		try
 		{
 			list.Add(new EasyECSManagedRuntimeTestData { mHP = 1, mName = null, mPayload = null, mID = 1, mModelPath = null });
@@ -1418,7 +1503,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testManagedListRangeSort()
 	{
-		EasyECSManagedRuntimeTestDataECSList list = new EasyECSManagedRuntimeTestDataECSList(1);
+		EasyECSManagedRuntimeTestData_ECSList list = new EasyECSManagedRuntimeTestData_ECSList(1);
 		try
 		{
 			object payload1 = new object();
@@ -1469,7 +1554,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 		source[5].mName = null;
 		source[5].mPayload = null;
 		source[5].mModelPath = null;
-		EasyECSManagedRuntimeTestDataECSList list = new EasyECSManagedRuntimeTestDataECSList(2);
+		EasyECSManagedRuntimeTestData_ECSList list = new EasyECSManagedRuntimeTestData_ECSList(2);
 		try
 		{
 			list.AddRange(source, 2, 5);
@@ -1512,7 +1597,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testDictionaryConstructor()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>(0);
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>(0);
 		try
 		{
 			assertEqual(0, dict.Count, "新Dictionary Count错误");
@@ -1526,7 +1611,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testDictionaryAddIndexerResize()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>(2);
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>(2);
 		try
 		{
 			for (int i = 0; i < 32; ++i)
@@ -1550,7 +1635,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testDictionaryDuplicateAdd()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(1, createData(1));
@@ -1574,7 +1659,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testDictionaryMissingIndexer()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(1, createData(1));
@@ -1596,7 +1681,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testDictionaryTryAdd()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			assertTrue(dict.TryAdd(1, createData(1)), "首次TryAdd应成功");
@@ -1611,7 +1696,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testDictionaryContainsKey()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(10, createData(1));
@@ -1625,7 +1710,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testDictionaryTryGetValue()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(10, createData(1, 100));
@@ -1641,7 +1726,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testDictionaryTryGetIndex()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(100, createData(1));
@@ -1657,7 +1742,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testDictionaryDenseAccess()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(100, createData(1, 11));
@@ -1676,7 +1761,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testDictionaryRemoveSwapBack()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(10, createData(1, 101));
@@ -1698,7 +1783,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testDictionaryRemoveLast()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(10, createData(1, 101));
@@ -1716,7 +1801,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testDictionaryRemoveMissing()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(1, createData(1));
@@ -1730,7 +1815,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testDictionaryForeachRead()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			for (int i = 1; i <= 5; ++i)
@@ -1757,7 +1842,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testDictionaryForeachWrite()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			for (int i = 0; i < 4; ++i)
@@ -1780,7 +1865,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testDictionaryKeys()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(10, createData(1));
@@ -1804,7 +1889,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testDictionaryValues()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(10, createData(1, 10));
@@ -1827,7 +1912,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testDictionaryManualEnumerator()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(1, createData(1, 10));
@@ -1851,7 +1936,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testDictionaryDirectColumn()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(10, createData(1, 10));
@@ -1869,7 +1954,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testDictionaryTryGetIndexDirectColumn()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(100, createData(1, 10));
@@ -1886,8 +1971,8 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testDictionaryDenseIndexFastPath()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
-		EasyECSManagedRuntimeTestDataECSDictionary<int> managedDict = new EasyECSManagedRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
+		EasyECSManagedRuntimeTestData_ECSDictionary<int> managedDict = new EasyECSManagedRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(10, createData(1, 100, 1.5f, 2));
@@ -1940,7 +2025,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testDictionaryClearReuse()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>(2);
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>(2);
 		try
 		{
 			dict.Add(1, createData(1));
@@ -1961,7 +2046,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	private static void testDictionaryComparer()
 	{
 		StringComparer comparer = StringComparer.OrdinalIgnoreCase;
-		EasyECSRuntimeTestDataECSDictionary<string> dict = new EasyECSRuntimeTestDataECSDictionary<string>(2, comparer);
+		EasyECSRuntimeTestData_ECSDictionary<string> dict = new EasyECSRuntimeTestData_ECSDictionary<string>(2, comparer);
 		try
 		{
 			assertTrue(ReferenceEquals(comparer, dict.Comparer), "Dictionary没有保留传入Comparer");
@@ -1977,14 +2062,14 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testDictionaryDoubleDispose()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		dict.Add(1, createData(1));
 		dict.Dispose();
 		dict.Dispose();
 	}
 	private static void testDictionarySetAndGetOrAdd()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(1, createData(1, 100));
@@ -2023,8 +2108,8 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testDictionaryFieldFastPath()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
-		EasyECSManagedRuntimeTestDataECSDictionary<int> managedDict = new EasyECSManagedRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
+		EasyECSManagedRuntimeTestData_ECSDictionary<int> managedDict = new EasyECSManagedRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			EasyECSRuntimeTestData original = createData(1, 100, 1.5f, 2);
@@ -2067,7 +2152,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testDictionaryContainsValueRemoveOut()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			EasyECSRuntimeTestData value1 = createData(1, 111, 1.5f, 2);
@@ -2093,7 +2178,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testDictionaryCapacityMethods()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>(1);
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>(1);
 		try
 		{
 			assertTrue(dict.EnsureCapacity(64) >= 64, "Dictionary EnsureCapacity失败");
@@ -2115,7 +2200,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testManagedDictionaryAddIndexerResize()
 	{
-		EasyECSManagedRuntimeTestDataECSDictionary<int> dict = new EasyECSManagedRuntimeTestDataECSDictionary<int>(1);
+		EasyECSManagedRuntimeTestData_ECSDictionary<int> dict = new EasyECSManagedRuntimeTestData_ECSDictionary<int>(1);
 		try
 		{
 			object[] payloads = new object[32];
@@ -2147,7 +2232,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testManagedDictionaryTryGetValue()
 	{
-		EasyECSManagedRuntimeTestDataECSDictionary<int> dict = new EasyECSManagedRuntimeTestDataECSDictionary<int>();
+		EasyECSManagedRuntimeTestData_ECSDictionary<int> dict = new EasyECSManagedRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			object payload = new object();
@@ -2170,7 +2255,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testManagedDictionaryForeach()
 	{
-		EasyECSManagedRuntimeTestDataECSDictionary<int> dict = new EasyECSManagedRuntimeTestDataECSDictionary<int>();
+		EasyECSManagedRuntimeTestData_ECSDictionary<int> dict = new EasyECSManagedRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			for (int i = 1; i <= 5; ++i)
@@ -2205,7 +2290,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testManagedDictionaryValues()
 	{
-		EasyECSManagedRuntimeTestDataECSDictionary<int> dict = new EasyECSManagedRuntimeTestDataECSDictionary<int>();
+		EasyECSManagedRuntimeTestData_ECSDictionary<int> dict = new EasyECSManagedRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(10, createManagedData(1, 10, "A"));
@@ -2232,7 +2317,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testManagedDictionaryRemoveSwapBack()
 	{
-		EasyECSManagedRuntimeTestDataECSDictionary<int> dict = new EasyECSManagedRuntimeTestDataECSDictionary<int>();
+		EasyECSManagedRuntimeTestData_ECSDictionary<int> dict = new EasyECSManagedRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			object payload1 = new object();
@@ -2260,7 +2345,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testManagedDictionaryDirectColumn()
 	{
-		EasyECSManagedRuntimeTestDataECSDictionary<int> dict = new EasyECSManagedRuntimeTestDataECSDictionary<int>();
+		EasyECSManagedRuntimeTestData_ECSDictionary<int> dict = new EasyECSManagedRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			object payload = new object();
@@ -2290,7 +2375,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testManagedDictionaryClearReuse()
 	{
-		EasyECSManagedRuntimeTestDataECSDictionary<int> dict = new EasyECSManagedRuntimeTestDataECSDictionary<int>(2);
+		EasyECSManagedRuntimeTestData_ECSDictionary<int> dict = new EasyECSManagedRuntimeTestData_ECSDictionary<int>(2);
 		try
 		{
 			object payload = new object();
@@ -2315,7 +2400,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testManagedDictionaryNullFields()
 	{
-		EasyECSManagedRuntimeTestDataECSDictionary<int> dict = new EasyECSManagedRuntimeTestDataECSDictionary<int>();
+		EasyECSManagedRuntimeTestData_ECSDictionary<int> dict = new EasyECSManagedRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(1, new EasyECSManagedRuntimeTestData { mHP = 1, mName = null, mPayload = null, mID = 1, mModelPath = null });
@@ -2340,7 +2425,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 #if UNITY_EDITOR
 	private static void testEditorListIndexOutOfRange()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			bool caught = false;
@@ -2382,7 +2467,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorListDisposedAccess()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		list.Add(createData(1));
 		list.Dispose();
 		bool caught = false;
@@ -2398,7 +2483,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorListRefAfterClear()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			list.Add(createData(1));
@@ -2422,7 +2507,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorListRemovedRef()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			list.Add(createData(1));
@@ -2447,7 +2532,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorListMovedLastRef()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			list.Add(createData(1));
@@ -2473,7 +2558,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorListUnrelatedRef()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			list.Add(createData(1, 101));
@@ -2492,7 +2577,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorListInsertAffectedRefs()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			list.Add(createData(1));
@@ -2511,7 +2596,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorListInsertEarlierRef()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			list.Add(createData(1, 101));
@@ -2530,7 +2615,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorListInsertAtEndRefs()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			list.Add(createData(1, 101));
@@ -2548,7 +2633,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorListRemoveAtAffectedRefs()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			for (int i = 1; i <= 4; ++i)
@@ -2570,7 +2655,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorListRemoveAtEarlierRef()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			list.Add(createData(1, 101));
@@ -2589,7 +2674,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorListRemoveAtRefDoesNotRevive()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			list.Add(createData(1));
@@ -2620,7 +2705,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorListRangeRefInvalidation()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			list.Add(createData(1));
@@ -2644,7 +2729,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorListSortReverseRefInvalidation()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			list.Add(createData(3));
@@ -2668,7 +2753,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorListColumnAfterAdd()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			list.Add(createData(1));
@@ -2692,7 +2777,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorListColumnAfterInsert()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			list.Add(createData(1));
@@ -2717,7 +2802,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorListColumnAfterRemove()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			list.Add(createData(1));
@@ -2742,7 +2827,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorListColumnAfterOrderedRemove()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			list.Add(createData(1));
@@ -2767,7 +2852,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorListColumnAfterClear()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			list.Add(createData(1));
@@ -2791,7 +2876,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorListColumnAfterDispose()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		list.Add(createData(1));
 		var hp = list.getHPColumn();
 		list.Dispose();
@@ -2808,7 +2893,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorListColumnOutOfRange()
 	{
-		EasyECSRuntimeTestDataECSList list = new EasyECSRuntimeTestDataECSList();
+		EasyECSRuntimeTestData_ECSList list = new EasyECSRuntimeTestData_ECSList();
 		try
 		{
 			list.Add(createData(1));
@@ -2835,7 +2920,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorDictionaryCurrentBeforeMoveNext()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(1, createData(1));
@@ -2859,7 +2944,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorDictionaryCurrentAfterEnd()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(1, createData(1));
@@ -2885,7 +2970,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorDictionaryEnumeratorAfterAdd()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(1, createData(1));
@@ -2910,7 +2995,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorDictionaryEnumeratorAfterSuccessfulTryAdd()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(1, createData(1));
@@ -2935,7 +3020,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorDictionaryEnumeratorAfterFailedTryAdd()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(1, createData(1));
@@ -2954,7 +3039,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorDictionaryEnumeratorAfterRemove()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(1, createData(1));
@@ -2980,7 +3065,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorDictionaryEnumeratorAfterMissingRemove()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(1, createData(1));
@@ -2999,7 +3084,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorDictionaryEnumeratorAfterClear()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(1, createData(1));
@@ -3024,7 +3109,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorDictionaryEnumeratorAfterDispose()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		dict.Add(1, createData(1));
 		var enumerator = dict.GetEnumerator();
 		assertTrue(enumerator.MoveNext(), "MoveNext失败");
@@ -3042,7 +3127,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorDictionaryEnumeratorAfterValueMutation()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(1, createData(1, 10));
@@ -3061,7 +3146,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorDictionaryEnumeratorAfterGetColumn()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(1, createData(1));
@@ -3079,7 +3164,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorDictionaryEntryAfterStructuralChange()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(1, createData(1));
@@ -3115,7 +3200,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorDictionaryColumnAfterAdd()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(1, createData(1));
@@ -3139,7 +3224,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorDictionaryColumnAfterRemove()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(1, createData(1));
@@ -3164,7 +3249,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorDictionaryColumnAfterClear()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(1, createData(1));
@@ -3188,7 +3273,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorDictionaryColumnAfterDispose()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		dict.Add(1, createData(1));
 		var hp = dict.getHPColumn();
 		dict.Dispose();
@@ -3205,7 +3290,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorDictionaryKeyEnumeratorStructuralChange()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(1, createData(1));
@@ -3230,7 +3315,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorDictionaryKeyEnumeratorCurrentBoundary()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(1, createData(1));
@@ -3266,7 +3351,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorDictionaryValueEnumeratorStructuralChange()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(1, createData(1));
@@ -3292,7 +3377,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorDictionaryValueEnumeratorCurrentBoundary()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(1, createData(1, 123));
@@ -3328,7 +3413,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorDictionaryDenseIndexOutOfRange()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		try
 		{
 			dict.Add(1, createData(1));
@@ -3360,7 +3445,7 @@ public sealed class EasyECSRuntimeUnitTest : MonoBehaviour
 	}
 	private static void testEditorDictionaryDisposedAccess()
 	{
-		EasyECSRuntimeTestDataECSDictionary<int> dict = new EasyECSRuntimeTestDataECSDictionary<int>();
+		EasyECSRuntimeTestData_ECSDictionary<int> dict = new EasyECSRuntimeTestData_ECSDictionary<int>();
 		dict.Add(1, createData(1));
 		dict.Dispose();
 		bool caught = false;
