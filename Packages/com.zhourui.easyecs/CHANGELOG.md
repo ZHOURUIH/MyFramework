@@ -2,6 +2,136 @@
 
 本文档记录 EasyECS 的主要版本变化。
 
+## [1.5.0] - 2026-08-21
+
+### Added
+
+- 新增通用 Burst Chunk API。
+- 新增 `DefaultBurstChunkSize`，当前默认值为 `8192`。
+- 新增 `BurstView.GetChunkCount(...)`。
+- 新增 `BurstView.GetChunkRange(...)`。
+- 新增 `ScheduleBurstChunk<TJob>(...)`。
+- 新增带 `JobHandle dependsOn` 的 `ScheduleBurstChunk<TJob>(...)` 重载。
+- `ECSDictionary` 支持将 Chunk Job 调度转发到底层 Dense ECSList。
+- Chunk 调度接入现有 EasyECS Burst Job 依赖管理。
+- 增加 Chunk Tail 正确性验证。
+- 增加 Burst Chunk 专项 Benchmark。
+
+### Changed
+
+- 正式性能架构调整为：
+
+```text
+Unsafe SoA
++ 64-byte Alignment
++ BurstView
++ Burst
++ Burst Auto Vectorization
++ Burst Chunk
+```
+
+- 将 Chunk 从原先 SIMD 相关概念中独立出来，成为通用 Burst 并行能力。
+- 保留原有 `ScheduleBurst<TJob>`，不改变其逐元素 `Execute(index)` 语义。
+- 明确区分 Unity `innerloopBatchCount` 与 EasyECS 逻辑 Chunk。
+- 大规模连续批处理推荐优先使用 `ScheduleBurstChunk`。
+- 热点字段访问继续推荐 Direct / Column / BurstView。
+- EasyECS.Runtime 不再为了批处理 API 强制引用 Unity Burst；Burst 由实际业务 Job 按需使用。
+
+### Removed
+
+- 移除正式 Generator 中的显式 SIMD 专用 API：
+
+```text
+SIMDAdd
+SIMDSubtract
+SIMDMultiply
+SIMDDivide
+SIMDMad
+SIMDFill
+ParallelSIMD*
+ScheduleSIMD*
+ScheduleBurstSIMD
+GetSIMDChunkCount
+GetSIMDChunkRange
+```
+
+- 移除 Generator 中 SIMD TypeKind、SIMD MethodSuffix、SIMD Kernel 等专用生成逻辑。
+- 移除 `__SIMDKernels`。
+- 移除针对 AVX / AVX2 / SSE / NEON / FMA 的显式 Intrinsics 实验路径。
+- 移除为 SIMD Kernel 单独维护的 Burst `OptimizeFor` 生成逻辑。
+
+### Performance
+
+最终 Burst Chunk Benchmark：
+
+```text
+Unity:       6000.3.21f1
+EntityCount: 2,000,000
+ChunkSize:   8192
+```
+
+结果：
+
+| Test | Burst Single | Element Parallel | Chunk Container | Chunk / Single | Chunk / Element |
+|---|---:|---:|---:|---:|---:|
+| Float MAD | 0.205 ms | 0.079 ms | 0.075 ms | 2.740x | 1.055x |
+| Int Add | 0.204 ms | 0.068 ms | 0.043 ms | 4.766x | 1.585x |
+| Vector2 MAD | 0.413 ms | 0.097 ms | 0.076 ms | 5.454x | 1.280x |
+| Color32 Add | 0.204 ms | 0.074 ms | 0.044 ms | 4.597x | 1.655x |
+
+几何平均：
+
+```text
+Chunk Direct / Single         : 4.029x
+Chunk Container / Single      : 4.254x
+Chunk Container / Element     : 1.372x
+```
+
+显式 SIMD 最终验证结果约为：
+
+```text
+Explicit SIMD / Burst Auto ≈ 1.00x
+```
+
+因此 1.5.0 不再继续维护显式 SIMD Intrinsics，统一依赖 Burst 自动向量化。
+
+### Fixed
+
+- 修正 Chunk API 从 SIMD 命名迁移后的生成结果。
+- 修正 Built-in ECSList Benchmark 对 `EasyECS` 命名空间的引用。
+- 清理旧 SIMD Benchmark 与正式 API 之间的耦合。
+- 验证 `GetChunkCount / GetChunkRange / ScheduleBurstChunk / Tail` 正确性。
+- 验证 Runtime Unit Test 在 1.5.0 架构下完整通过。
+
+### Compatibility
+
+- 原有基础 ECSList / ECSDictionary 使用方式保持不变。
+- 原有 `ScheduleBurst<TJob>` 保留。
+- Unsafe / Direct / Column / BurstView / Job 依赖管理继续保留。
+- 1.5.0 删除 SIMD 专用 API，因此使用过实验阶段 `SIMD*` API 的代码需要迁移到普通 Burst 循环或 Burst Chunk。
+
+推荐迁移：
+
+```text
+SIMD* 批处理
+→ BurstView + 普通连续循环
+
+ParallelSIMD* / ScheduleSIMD*
+→ IJobParallelFor + ScheduleBurstChunk
+```
+
+## Release Summary
+
+EasyECS 1.5.0 的核心变化不是继续增加 SIMD 指令层，而是确定最终性能路线：
+
+```text
+数据布局交给 EasyECS
+向量化交给 Burst
+多核批处理交给 Chunk
+```
+
+该版本作为当前 Burst / Jobs / Chunk 性能架构的稳定基线。
+
 ## 1.4.0 - 2026-08-19
 
 ### Added

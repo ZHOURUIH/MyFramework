@@ -67,9 +67,15 @@ namespace ECSSourceGenerator
 			CSharpCompilationOptions compilationOptions = context.Compilation.Options as CSharpCompilationOptions;
 			bool allowUnsafe = compilationOptions != null && compilationOptions.AllowUnsafe;
 			bool hasSpan = context.Compilation.GetTypeByMetadataName("System.Span`1") != null && context.Compilation.GetTypeByMetadataName("System.ReadOnlySpan`1") != null;
-			bool hasJobSystem = context.Compilation.GetTypeByMetadataName("Unity.Jobs.JobHandle") != null
-				&& context.Compilation.GetTypeByMetadataName("Unity.Jobs.IJobParallelFor") != null
-				&& context.Compilation.GetTypeByMetadataName("Unity.Jobs.IJobParallelForExtensions") != null;
+			INamedTypeSymbol jobHandleType = context.Compilation.GetTypeByMetadataName("Unity.Jobs.JobHandle");
+			INamedTypeSymbol parallelJobType = context.Compilation.GetTypeByMetadataName("Unity.Jobs.IJobParallelFor");
+			INamedTypeSymbol parallelJobExtensionsType = context.Compilation.GetTypeByMetadataName("Unity.Jobs.IJobParallelForExtensions");
+			bool hasJobSystem = jobHandleType != null
+				&& parallelJobType != null
+				&& parallelJobExtensionsType != null
+				&& jobHandleType.GetMembers("Complete").OfType<IMethodSymbol>().Any()
+				&& jobHandleType.GetMembers("CombineDependencies").OfType<IMethodSymbol>().Any()
+				&& parallelJobExtensionsType.GetMembers("Schedule").OfType<IMethodSymbol>().Any();
 			bool hasNativeDisableUnsafePtrRestriction = context.Compilation.GetTypeByMetadataName("Unity.Collections.LowLevel.Unsafe.NativeDisableUnsafePtrRestrictionAttribute") != null;
 			bool forceSafeRegistry = hasPreprocessorSymbol(context.Compilation, "ECS_FORCE_SAFE_REGISTRY");
 			bool needLeakTracker = false;
@@ -588,6 +594,8 @@ namespace ECSSourceGenerator
 				builder.AppendLine("\tpublic " + typeName + "_ECSList.BurstView GetBurstView() => mValues.GetBurstView();");
 				builder.AppendLine("\tpublic global::Unity.Jobs.JobHandle ScheduleBurst<TJob>(TJob job, int innerloopBatchCount = 64) where TJob : struct, global::Unity.Jobs.IJobParallelFor => mValues.ScheduleBurst(job, innerloopBatchCount);");
 				builder.AppendLine("\tpublic global::Unity.Jobs.JobHandle ScheduleBurst<TJob>(TJob job, int innerloopBatchCount, global::Unity.Jobs.JobHandle dependsOn) where TJob : struct, global::Unity.Jobs.IJobParallelFor => mValues.ScheduleBurst(job, innerloopBatchCount, dependsOn);");
+				builder.AppendLine("\tpublic global::Unity.Jobs.JobHandle ScheduleBurstChunk<TJob>(TJob job, int chunkSize = " + typeName + "_ECSList.DefaultBurstChunkSize) where TJob : struct, global::Unity.Jobs.IJobParallelFor => mValues.ScheduleBurstChunk(job, chunkSize);");
+				builder.AppendLine("\tpublic global::Unity.Jobs.JobHandle ScheduleBurstChunk<TJob>(TJob job, int chunkSize, global::Unity.Jobs.JobHandle dependsOn) where TJob : struct, global::Unity.Jobs.IJobParallelFor => mValues.ScheduleBurstChunk(job, chunkSize, dependsOn);");
 				builder.AppendLine("\tpublic global::Unity.Jobs.JobHandle GetBurstDependency() => mValues.GetBurstDependency();");
 				builder.AppendLine("\tpublic void RegisterBurstJob(global::Unity.Jobs.JobHandle handle) => mValues.RegisterBurstJob(handle);");
 				builder.AppendLine("\tpublic void CompleteBurstJobs() => mValues.CompleteBurstJobs();");
@@ -757,6 +765,14 @@ namespace ECSSourceGenerator
 				builder.AppendLine("\tpublic global::Unity.Jobs.JobHandle ScheduleBurst<TJob>(TJob job, int innerloopBatchCount, global::Unity.Jobs.JobHandle dependsOn) where TJob : struct, global::Unity.Jobs.IJobParallelFor");
 				builder.AppendLine("\t{");
 				builder.AppendLine("\t\treturn mValues.ScheduleBurst(job, innerloopBatchCount, dependsOn);");
+				builder.AppendLine("\t}");
+				builder.AppendLine("\tpublic global::Unity.Jobs.JobHandle ScheduleBurstChunk<TJob>(TJob job, int chunkSize = " + typeName + "_ECSList.DefaultBurstChunkSize) where TJob : struct, global::Unity.Jobs.IJobParallelFor");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\treturn mValues.ScheduleBurstChunk(job, chunkSize);");
+				builder.AppendLine("\t}");
+				builder.AppendLine("\tpublic global::Unity.Jobs.JobHandle ScheduleBurstChunk<TJob>(TJob job, int chunkSize, global::Unity.Jobs.JobHandle dependsOn) where TJob : struct, global::Unity.Jobs.IJobParallelFor");
+				builder.AppendLine("\t{");
+				builder.AppendLine("\t\treturn mValues.ScheduleBurstChunk(job, chunkSize, dependsOn);");
 				builder.AppendLine("\t}");
 				builder.AppendLine("\tpublic global::Unity.Jobs.JobHandle GetBurstDependency()");
 				builder.AppendLine("\t{");
@@ -3055,6 +3071,7 @@ namespace ECSSourceGenerator
 		}
 		private static void generateUnsafeBurstIntegration(StringBuilder builder, string typeName, List<ECSField> burstFields, bool hasNativeDisableUnsafePtrRestriction)
 		{
+			builder.AppendLine("\tpublic const int DefaultBurstChunkSize = 8192;");
 			builder.AppendLine("\tpublic readonly unsafe struct BurstView");
 			builder.AppendLine("\t{");
 			foreach (ECSField field in burstFields)
@@ -3084,6 +3101,19 @@ namespace ECSSourceGenerator
 			}
 			builder.AppendLine("\t\t\tCount = count;");
 			builder.AppendLine("\t\t}");
+			appendAggressiveInlining(builder, 2);
+			builder.AppendLine("\t\tpublic int GetChunkCount(int chunkSize)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\treturn (Count + chunkSize - 1) / chunkSize;");
+			builder.AppendLine("\t\t}");
+			appendAggressiveInlining(builder, 2);
+			builder.AppendLine("\t\tpublic void GetChunkRange(int chunkIndex, int chunkSize, out int start, out int count)");
+			builder.AppendLine("\t\t{");
+			builder.AppendLine("\t\t\tstart = chunkIndex * chunkSize;");
+			builder.AppendLine("\t\t\tint end = start + chunkSize;");
+			builder.AppendLine("\t\t\tif (end > Count) end = Count;");
+			builder.AppendLine("\t\t\tcount = end - start;");
+			builder.AppendLine("\t\t}");
 			builder.AppendLine("\t}");
 			builder.AppendLine("\tpublic BurstView GetBurstView()");
 			builder.AppendLine("\t{");
@@ -3100,6 +3130,24 @@ namespace ECSSourceGenerator
 				builder.Append("mStorage->" + fieldAccess(burstFields[i]));
 			}
 			builder.AppendLine(", mCount);");
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tpublic global::Unity.Jobs.JobHandle ScheduleBurstChunk<TJob>(TJob job, int chunkSize = DefaultBurstChunkSize) where TJob : struct, global::Unity.Jobs.IJobParallelFor");
+			builder.AppendLine("\t{");
+			builder.AppendLine("\t\treturn ScheduleBurstChunk(job, chunkSize, default(global::Unity.Jobs.JobHandle));");
+			builder.AppendLine("\t}");
+			builder.AppendLine("\tpublic global::Unity.Jobs.JobHandle ScheduleBurstChunk<TJob>(TJob job, int chunkSize, global::Unity.Jobs.JobHandle dependsOn) where TJob : struct, global::Unity.Jobs.IJobParallelFor");
+			builder.AppendLine("\t{");
+			builder.AppendLine("#if UNITY_EDITOR");
+			builder.AppendLine("\t\tvalidateAlive();");
+			builder.AppendLine("#endif");
+			builder.AppendLine("\t\tif (chunkSize < 1) throw new global::System.ArgumentOutOfRangeException(nameof(chunkSize));");
+			builder.AppendLine("\t\tif (mHasPendingBurstJob) dependsOn = global::Unity.Jobs.JobHandle.CombineDependencies(mBurstJobHandle, dependsOn);");
+			builder.AppendLine("\t\tif (mCount <= 0) return dependsOn;");
+			builder.AppendLine("\t\tint chunkCount = (mCount + chunkSize - 1) / chunkSize;");
+			builder.AppendLine("\t\tglobal::Unity.Jobs.JobHandle handle = global::Unity.Jobs.IJobParallelForExtensions.Schedule(job, chunkCount, 1, dependsOn);");
+			builder.AppendLine("\t\tmBurstJobHandle = handle;");
+			builder.AppendLine("\t\tmHasPendingBurstJob = true;");
+			builder.AppendLine("\t\treturn handle;");
 			builder.AppendLine("\t}");
 			builder.AppendLine("\tpublic global::Unity.Jobs.JobHandle ScheduleBurst<TJob>(TJob job, int innerloopBatchCount = 64) where TJob : struct, global::Unity.Jobs.IJobParallelFor");
 			builder.AppendLine("\t{");

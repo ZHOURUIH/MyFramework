@@ -72,6 +72,7 @@ public sealed class RoleDataBurstBenchmark : MonoBehaviour
 #else
 		runBenchmark();
 		EasyECSBuiltInBurstParityBenchmark.runBenchmark();
+		EasyECSSIMDBenchmark.runBenchmark();
 #endif
 	}
 	private void runBenchmark()

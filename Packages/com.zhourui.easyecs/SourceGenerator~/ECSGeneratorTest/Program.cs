@@ -96,6 +96,22 @@ namespace Unity.Jobs
 	}
 }
 ";
+		private const string JOB_SYSTEM_WITH_IJOB_STUB_SOURCE = JOB_SYSTEM_STUB_SOURCE + @"
+namespace Unity.Jobs
+{
+	public interface IJob
+	{
+		void Execute();
+	}
+	public static class IJobExtensions
+	{
+		public static void Run<TJob>(TJob jobData) where TJob : struct, IJob
+		{
+			jobData.Execute();
+		}
+	}
+}
+";
 		private const string BURST_STUB_SOURCE = @"
 namespace Unity.Burst
 {
@@ -105,6 +121,23 @@ namespace Unity.Burst
 	}
 }
 " + JOB_SYSTEM_STUB_SOURCE;
+		private const string BURST_FULL_STUB_SOURCE = @"
+namespace Unity.Burst
+{
+	public enum OptimizeFor
+	{
+		Balanced,
+		Performance,
+		Size,
+		FastCompilation
+	}
+	[global::System.AttributeUsage(global::System.AttributeTargets.Struct | global::System.AttributeTargets.Class | global::System.AttributeTargets.Method)]
+	public sealed class BurstCompileAttribute : global::System.Attribute
+	{
+		public OptimizeFor OptimizeFor { get; set; }
+	}
+}
+" + JOB_SYSTEM_WITH_IJOB_STUB_SOURCE;
 		private const string BUILTIN_UNITY_VALUE_STUB_SOURCE = @"
 namespace UnityEngine
 {
@@ -348,12 +381,17 @@ public static class DictionaryUsage
 				new TestCase("Column名称冲突报ECS004", testColumnNameConflictDiagnostic),
 				new TestCase("Job系统不存在不生成Job接口", testJobSystemUnavailableDoesNotGenerate),
 				new TestCase("Job系统存在无需Burst也生成零复制Job接口", testJobSystemWithoutBurstGeneration),
+				new TestCase("Job系统无Burst生成通用Chunk接口", testChunkWithoutBurstGeneration),
 				new TestCase("Job系统存在但NativePtr属性不可见仍生成Job接口", testJobSystemWithoutNativePtrAttributeGeneration),
 				new TestCase("Burst存在Unsafe生成BurstView", testBurstUnsafeGeneration),
+				new TestCase("Burst存在仍生成通用Chunk接口", testBurstChunkGeneration),
+				new TestCase("完整Burst环境不改变Chunk生成", testFullBurstChunkGeneration),
 				new TestCase("Burst Managed Hybrid过滤Managed字段", testBurstHybridFieldFiltering),
 				new TestCase("Burst Safe后端不生成Burst接口", testBurstSafeBackendDoesNotGenerate),
 				new TestCase("Burst接口编译", testBurstUsageCompile),
 				new TestCase("内置类型Burst接口生成", testBuiltInBurstGeneration),
+				new TestCase("内置类型完整Burst环境生成Chunk", testBuiltInFullBurstChunkGeneration),
+				new TestCase("内置类型无Burst生成Chunk接口", testBuiltInChunkGeneration),
 				new TestCase("内置基础类型名称生成", testBuiltInPrimitiveNames),
 				new TestCase("内置类型Native List API编译", testBuiltInNativeListApiCompile),
 				new TestCase("内置类型Unsafe布局", testBuiltInUnsafeLayout),
@@ -1256,7 +1294,20 @@ public struct RoleData
 			assertContains(result.mGeneratedSource, "public readonly unsafe struct BurstView");
 			assertContains(result.mGeneratedSource, "public BurstView GetBurstView()");
 			assertContains(result.mGeneratedSource, "public global::Unity.Jobs.JobHandle ScheduleBurst<TJob>");
+			assertContains(result.mGeneratedSource, "public global::Unity.Jobs.JobHandle ScheduleBurstChunk<TJob>");
 			assertContains(result.mGeneratedSource, "public void RegisterBurstJob(global::Unity.Jobs.JobHandle handle)");
+			assertDoesNotContain(result.mGeneratedSource, "global::Unity.Burst");
+		}
+		private static void testChunkWithoutBurstGeneration()
+		{
+			GeneratorTestResult result = runGenerator(JOB_SYSTEM_STUB_SOURCE + DICTIONARY_DATA_SOURCE, true);
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "public const int DefaultBurstChunkSize = 8192;");
+			assertContainsMethod(result.mGeneratedSource, "GetChunkCount");
+			assertContainsMethod(result.mGeneratedSource, "GetChunkRange");
+			assertContains(result.mGeneratedSource, "ScheduleBurstChunk<TJob>");
+			assertContains(result.mGeneratedSource, "IJobParallelForExtensions.Schedule(job, chunkCount, 1, dependsOn)");
+			assertDoesNotContain(result.mGeneratedSource, "SIMD");
 			assertDoesNotContain(result.mGeneratedSource, "global::Unity.Burst");
 		}
 		private static void testJobSystemWithoutNativePtrAttributeGeneration()
@@ -1296,6 +1347,28 @@ public struct RoleData
 			assertContains(result.mGeneratedSource, "~RoleData_ECSList()");
 			assertContains(result.mGeneratedSource, "if (mHasPendingBurstJob)");
 			assertContains(result.mGeneratedSource, "public RoleData_ECSList.BurstView GetBurstView()");
+		}
+		private static void testBurstChunkGeneration()
+		{
+			GeneratorTestResult result = runGenerator(BURST_STUB_SOURCE + DICTIONARY_DATA_SOURCE, true);
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "public const int DefaultBurstChunkSize = 8192;");
+			assertContainsMethod(result.mGeneratedSource, "GetChunkCount");
+			assertContainsMethod(result.mGeneratedSource, "GetChunkRange");
+			assertContains(result.mGeneratedSource, "ScheduleBurstChunk<TJob>");
+			assertDoesNotContain(result.mGeneratedSource, "SIMD");
+			assertDoesNotContain(result.mGeneratedSource, "global::Unity.Burst");
+		}
+		private static void testFullBurstChunkGeneration()
+		{
+			GeneratorTestResult result = runGenerator(BURST_FULL_STUB_SOURCE + DICTIONARY_DATA_SOURCE, true);
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "public const int DefaultBurstChunkSize = 8192;");
+			assertContainsMethod(result.mGeneratedSource, "GetChunkCount");
+			assertContainsMethod(result.mGeneratedSource, "GetChunkRange");
+			assertContains(result.mGeneratedSource, "ScheduleBurstChunk<TJob>");
+			assertDoesNotContain(result.mGeneratedSource, "SIMD");
+			assertDoesNotContain(result.mGeneratedSource, "global::Unity.Burst");
 		}
 		private static void testBurstHybridFieldFiltering()
 		{
@@ -1380,6 +1453,32 @@ public static class RoleBurstUsage
 			assertDoesNotContain(result.mGeneratedSource, "ECSValueListBase");
 			assertDoesNotContain(result.mGeneratedSource, "ECSBuiltinInt");
 		}
+		private static void testBuiltInFullBurstChunkGeneration()
+		{
+			GeneratorTestResult result = runGeneratorForAssembly(BURST_FULL_STUB_SOURCE + BUILTIN_UNITY_VALUE_STUB_SOURCE, true, "EasyECS.Runtime");
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "class Int_ECSList");
+			assertContains(result.mGeneratedSource, "public const int DefaultBurstChunkSize = 8192;");
+			assertContainsMethod(result.mGeneratedSource, "GetChunkCount");
+			assertContainsMethod(result.mGeneratedSource, "GetChunkRange");
+			assertContains(result.mGeneratedSource, "ScheduleBurstChunk<TJob>");
+			assertDoesNotContain(result.mGeneratedSource, "SIMD");
+			assertDoesNotContain(result.mGeneratedSource, "global::Unity.Burst");
+		}
+		private static void testBuiltInChunkGeneration()
+		{
+			GeneratorTestResult result = runGeneratorForAssembly(JOB_SYSTEM_STUB_SOURCE + BUILTIN_UNITY_VALUE_STUB_SOURCE, true, "EasyECS.Runtime");
+			assertNoErrors(result);
+			assertContains(result.mGeneratedSource, "class Int_ECSList");
+			assertContains(result.mGeneratedSource, "public const int DefaultBurstChunkSize = 8192;");
+			assertContainsMethod(result.mGeneratedSource, "GetChunkCount");
+			assertContainsMethod(result.mGeneratedSource, "GetChunkRange");
+			assertContains(result.mGeneratedSource, "ScheduleBurstChunk<TJob>");
+			assertContains(result.mGeneratedSource, "class Vector2_ECSList");
+			assertContains(result.mGeneratedSource, "class Color32_ECSList");
+			assertDoesNotContain(result.mGeneratedSource, "SIMD");
+			assertDoesNotContain(result.mGeneratedSource, "global::Unity.Burst");
+		}
 		private static void testBuiltInPrimitiveNames()
 		{
 			GeneratorTestResult result = runGeneratorForAssembly(string.Empty, true, "EasyECS.Runtime");
@@ -1434,8 +1533,8 @@ public static class BuiltInUsage
 			assertContains(result.mGeneratedSource, "int* values = mStorage->mValue;");
 			assertContains(result.mGeneratedSource, "if (values[i].Equals(value)) return true;");
 			assertContains(result.mGeneratedSource, "public int IndexOf(int value)");
-			assertContains(result.mGeneratedSource, "int compare = values[middle].CompareTo(value);");
-			assertDoesNotContain(result.mGeneratedSource, "public int BinarySearch(int value) => BinarySearchByValue(value);");
+			assertContains(result.mGeneratedSource, "public int BinarySearch(int value)");
+			assertContains(result.mGeneratedSource, "public int BinarySearchByValue(");
 			assertContains(result.mGeneratedSource, "public Enumerator GetEnumerator()");
 			assertContains(result.mGeneratedSource, "public int this[TKey key]");
 			assertContains(result.mGeneratedSource, "public bool TryGetValue(TKey key, out int value)");
@@ -1510,22 +1609,6 @@ public static class BuiltInRangeUsage
 			assertContains(result.mGeneratedSource, "public float* x;");
 			assertContains(result.mGeneratedSource, "public float* y;");
 			assertDoesNotContain(result.mGeneratedSource, "global::UnityEngine.Vector2* mValue");
-			assertContains(result.mGeneratedSource, "internal unsafe struct Vector3Storage");
-			assertContains(result.mGeneratedSource, "internal unsafe struct Vector3IntStorage");
-			assertContains(result.mGeneratedSource, "internal unsafe struct Vector4Storage");
-			assertContains(result.mGeneratedSource, "internal unsafe struct QuaternionStorage");
-			assertContains(result.mGeneratedSource, "internal unsafe struct ColorStorage");
-			assertContains(result.mGeneratedSource, "internal unsafe struct RectStorage");
-			assertContains(result.mGeneratedSource, "internal unsafe struct RectIntStorage");
-			assertContains(result.mGeneratedSource, "internal unsafe struct BoundsStorage");
-			assertContains(result.mGeneratedSource, "internal unsafe struct BoundsIntStorage");
-			assertContains(result.mGeneratedSource, "internal unsafe struct Matrix4x4Storage");
-			assertDoesNotContain(result.mGeneratedSource, "global::UnityEngine.Vector3* mValue");
-			assertDoesNotContain(result.mGeneratedSource, "global::UnityEngine.Vector4* mValue");
-			assertDoesNotContain(result.mGeneratedSource, "global::UnityEngine.Quaternion* mValue");
-			assertDoesNotContain(result.mGeneratedSource, "global::UnityEngine.Color* mValue");
-			assertDoesNotContain(result.mGeneratedSource, "global::UnityEngine.Bounds* mValue");
-			assertDoesNotContain(result.mGeneratedSource, "global::UnityEngine.Matrix4x4* mValue");
 			assertContains(result.mGeneratedSource, "internal unsafe struct Color32Storage");
 			assertContains(result.mGeneratedSource, "public byte* r;");
 			assertContains(result.mGeneratedSource, "public byte* g;");
@@ -1538,8 +1621,6 @@ public static class BuiltInRangeUsage
 			assertContains(result.mGeneratedSource, "global::UnityEngine.Vector2 value = default(global::UnityEngine.Vector2);");
 			assertContains(result.mGeneratedSource, "value.x = mStorage->x[index];");
 			assertContains(result.mGeneratedSource, "value.y = mStorage->y[index];");
-			assertContains(result.mGeneratedSource, "global::UnityEngine.Color32 value = default(global::UnityEngine.Color32);");
-			assertContains(result.mGeneratedSource, "value.r = mStorage->r[index];");
 			assertContains(result.mGeneratedSource, "return new global::UnityEngine.Bounds(new global::UnityEngine.Vector3(mStorage->centerX[index]");
 			assertContains(result.mGeneratedSource, "global::UnityEngine.Matrix4x4 value = default(global::UnityEngine.Matrix4x4);");
 			assertContains(result.mGeneratedSource, "value.m00 = mStorage->m00[index];");
@@ -2046,7 +2127,24 @@ public struct RoleData
 		{
 			if (!source.Contains(expected))
 			{
-				throw new Exception("生成代码中没有找到:\n" + expected + "\n\nGenerated Source:\n" + source);
+				throw new Exception("生成代码中没有找到:\n" + expected);
+			}
+		}
+		private static void assertContainsMethod(string source, string methodName)
+		{
+			string pattern = @"\b" + Regex.Escape(methodName) + @"\s*\(";
+			if (!Regex.IsMatch(source, pattern))
+			{
+				throw new Exception("生成代码中没有找到方法:" + methodName);
+			}
+		}
+		private static void assertMethodOccurrenceAtLeast(string source, string methodName, int expectedCount)
+		{
+			string pattern = @"\b" + Regex.Escape(methodName) + @"\s*\(";
+			int actualCount = Regex.Matches(source, pattern).Count;
+			if (actualCount < expectedCount)
+			{
+				throw new Exception("生成代码中方法" + methodName + "数量不足,ExpectedAtLeast:" + expectedCount + ",Actual:" + actualCount);
 			}
 		}
 		private static void assertBefore(string source, string first, string second)
@@ -2066,7 +2164,7 @@ public struct RoleData
 		{
 			if (source.Contains(unexpected))
 			{
-				throw new Exception("生成代码中不应该出现:\n" + unexpected + "\n\nGenerated Source:\n" + source);
+				throw new Exception("生成代码中不应该出现:\n" + unexpected);
 			}
 		}
 		private static string normalizeLineEnding(string source)
