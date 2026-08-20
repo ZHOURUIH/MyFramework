@@ -9,6 +9,11 @@ public class Game : GameFramework
 		mOnRegisteStuff += gameRegiste;
 
 		base.init();
+
+		if (isDevOrEditor())
+		{
+			GameTest.runAll();
+		}
 		// 编辑器中或者非热更版就强制从StreamingAssets中读取资源
 		if (!isEnableHotFix() || isEditor())
 		{

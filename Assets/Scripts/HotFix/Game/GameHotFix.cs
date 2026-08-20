@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Obfuz;
+using System;
 using static FrameBaseUtility;
 using static GBR;
 
+[ObfuzIgnore]
 public class GameHotFix : GameHotFixBase<GameHotFix>
 {
 	//----------------------------------------------------------------------------------------------------------------------------------

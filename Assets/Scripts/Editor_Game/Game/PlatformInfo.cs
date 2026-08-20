@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEngine;
 using static EditorCommonUtility;
 using static FrameBaseUtility;
+using static GameEditorDefine;
 using static FrameMacro;
 
 // 游戏上架渠道,用于给添加后缀名,以及注入宏,来执行不同的sdk逻辑
@@ -60,7 +61,7 @@ public abstract class PlatformInfo : PlatformBase
 	}
 	public override void generateFolderPreName()
 	{
-		string folderPreName = isWindows() ? "我的传奇" : "MicroLegend";
+		string folderPreName = GAME_NAME;
 		if (mTestClient)
 		{
 			folderPreName += "_Test";
