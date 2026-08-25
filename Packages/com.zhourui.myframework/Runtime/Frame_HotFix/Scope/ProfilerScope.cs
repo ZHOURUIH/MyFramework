@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Unity.Profiling;
 using static FrameBaseUtility;
 
@@ -10,16 +11,29 @@ using static FrameBaseUtility;
 public struct ProfilerScope : IDisposable
 {
 	private static readonly bool mValid = isDevOrEditor();
-	private static readonly ProfilerMarker[] mProfilerMarkers = CreateMarkers();
 	private ProfilerMarker.AutoScope mScope;
-	private static ProfilerMarker[] CreateMarkers()
+	private static class LineMarkerCache
 	{
-		var arr = new ProfilerMarker[30000];
-		for (int i = 0; i < arr.Length; ++i)
+		private const int MARKER_COUNT = 30000;
+		private static readonly ProfilerMarker[] mProfilerMarkers = new ProfilerMarker[MARKER_COUNT];
+		private static readonly bool[] mMarkerCreated = new bool[MARKER_COUNT];
+		private static readonly object mLock = new();
+		public static ProfilerMarker getMarker(int line)
 		{
-			arr[i] = new ProfilerMarker((i).IToS());
+			if (Volatile.Read(ref mMarkerCreated[line]))
+			{
+				return mProfilerMarkers[line];
+			}
+			lock (mLock)
+			{
+				if (!mMarkerCreated[line])
+				{
+					mProfilerMarkers[line] = new ProfilerMarker(line.IToS());
+					Volatile.Write(ref mMarkerCreated[line], true);
+				}
+				return mProfilerMarkers[line];
+			}
 		}
-		return arr;
 	}
 	public ProfilerScope(string name)
 	{
@@ -28,17 +42,10 @@ public struct ProfilerScope : IDisposable
 	// id固定填0即可,用于避免直接调用默认构造
 	public ProfilerScope(int id, [CallerMemberName] string callerName = null, [CallerLineNumber] int line = 0, [CallerFilePath] string file = null)
 	{
-		if (mValid)
-		{
-			// 如果想要更详细的信息,则可以使用下面被注释的哪一行
-			mScope = mProfilerMarkers[line].Auto();
-			// 更加准确的信息显示,但是会有额外的GC和性能消耗,这里使用Path.GetFileName是为了能够在多线程调用
-			//mScope = new ProfilerMarker(callerName + "," + Path.GetFileName(file) + ":" + IToS(line)).Auto();
-		}
-		else
-		{
-			mScope = default;
-		}
+		// 如果想要更详细的信息,则可以使用下面被注释的那一行
+		mScope = mValid ? LineMarkerCache.getMarker(line).Auto() : default;
+		// 更加准确的信息显示,但是会有额外的GC和性能消耗,这里使用Path.GetFileName是为了能够在多线程调用
+		//mScope = mValid ? new ProfilerMarker(callerName + "," + Path.GetFileName(file) + ":" + IToS(line)).Auto() : default;
 	}
 	public void Dispose()
 	{
