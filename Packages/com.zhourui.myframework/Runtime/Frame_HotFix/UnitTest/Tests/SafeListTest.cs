@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using static TestAssert;
 
@@ -24,6 +24,7 @@ public static class SafeListTest
 		testFind();
 		testIsForeaching();
 		testGetEnumerator();
+		testEnumeratorCurrentSemantics();
 		testDispose();
 		testStartForeachEndForeach();
 		testClearDuringForeach();
@@ -294,6 +295,20 @@ public static class SafeListTest
 		assertEqual(6, sum);
 	}
 
+	private static void testEnumeratorCurrentSemantics()
+	{
+		SafeList<int> list = new();
+		list.add(10);
+		list.add(20);
+		using SafeList<int>.SafeListEnumerator enumerator = list.GetEnumerator();
+		assertEqual(0, enumerator.Current, "MoveNext前Current应为default");
+		assertTrue(enumerator.MoveNext(), "第一次MoveNext成功");
+		assertEqual(10, enumerator.Current, "第一次Current");
+		assertTrue(enumerator.MoveNext(), "第二次MoveNext成功");
+		assertEqual(20, enumerator.Current, "第二次Current");
+		assertFalse(enumerator.MoveNext(), "遍历结束MoveNext返回false");
+		assertEqual(0, enumerator.Current, "遍历结束后Current恢复default");
+	}
 	private static void testStartForeachEndForeach()
 	{
 		// foreach 进入时对主列表做快照并遍历,结束后 isForeaching 复位

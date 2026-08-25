@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using static UnityUtility;
 using static FrameUtility;
 using static FrameBaseUtility;
@@ -11,24 +12,41 @@ public class SafeList<T> : ClassObject
 	public struct SafeListEnumerator : IDisposable
 	{
 		private SafeList<T> mOwner;
-		private List<T>.Enumerator mEnumerator;
+		private List<T> mList;
+		private T mCurrent;
+		private int mIndex;
+		private int mCount;
 		public SafeListEnumerator(SafeList<T> safeList)
 		{
 			mOwner = safeList;
-			mEnumerator = safeList.startForeach().safe().GetEnumerator();
+			mList = safeList.startForeach();
+			mCurrent = default;
+			mIndex = 0;
+			mCount = mList.Count;
 		}
-		public T Current => mEnumerator.Current;
-		public bool MoveNext() { return mEnumerator.MoveNext(); }
-		public void Dispose()
+		public T Current => mCurrent;
+		// mUpdateList在一次SafeList foreach期间不会被修改,因此无需List<T>.Enumerator的version检查。
+		// 固定遍历开始时的Count,继续保持当前foreach只看到旧快照的语义。
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public bool MoveNext()
 		{
-			mEnumerator.Dispose();
-			mOwner.endForeach();
+			int index = mIndex;
+			if ((uint)index < (uint)mCount)
+			{
+				mCurrent = mList[index];
+				mIndex = index + 1;
+				return true;
+			}
+			mCurrent = default;
+			return false;
 		}
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Dispose() { mOwner.endForeach(); }
 	}
-	protected List<SafeListModify<T>> mModifyList = new();  // 记录操作的列表,按顺序存储所有的操作
+	protected List<SafeListModify<T>> mModifyList = new();  // 记录无法立即同步到更新列表的操作,通常只会在遍历过程中产生
 	protected List<T> mUpdateList = new();                  // 用于遍历更新的列表
 	protected List<T> mMainList = new();                    // 用于存储实时数据的列表
-	protected string mLastFileName;							// 上一次开始遍历时的文件名
+	protected string mLastFileName;                         // 上一次开始遍历时的文件名
 	protected bool mForeaching;                             // 当前是否正在遍历中
 	public override void resetProperty()
 	{
@@ -39,7 +57,7 @@ public class SafeList<T> : ClassObject
 		mLastFileName = null;
 		mForeaching = false;
 	}
-	public bool isForeaching()		{ return mForeaching; }
+	public bool isForeaching() { return mForeaching; }
 	public bool addOrRemove(T value, bool isAdd)
 	{
 		if (isAdd)
@@ -68,20 +86,29 @@ public class SafeList<T> : ClassObject
 		}
 	}
 	// 安全遍历枚举器：foreach 时自动调用 startForeach，枚举器 Dispose 时自动调用 endForeach
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public SafeListEnumerator GetEnumerator() { return new(this); }
 	// 获取主列表,存储着当前实时的数据列表,所有的删除和新增都会立即更新此列表
 	// 如果确保在遍历过程中不会对列表进行修改,则可以使用MainList
-	// 如果可能会对列表进行修改,则应该使用startForeach
-	public List<T> getMainList()	{ return mMainList; }
-	public bool contains(T value)	{ return mMainList.Contains(value); }
-	public T get(int index)			{ return mMainList[index]; }
-	public int count()				{ return mMainList.Count; }
+	// 如果可能会对列表进行修改,则应该使用foreach安全遍历
+	public List<T> getMainList() { return mMainList; }
+	public bool contains(T value) { return mMainList.Contains(value); }
+	public T get(int index) { return mMainList[index]; }
+	public int count() { return mMainList.Count; }
 	public T find(Predicate<T> predicate) { return mMainList.Find(predicate); }
-	// 因为只能保证开始遍历时mUpdateList与mMainList一致,但是遍历结束后两个列表可能就不一致了,所以即使没有正在遍历时,也只能是记录操作,而不是直接修改mUpdateList
 	public T add(T value)
 	{
 		mMainList.Add(value);
-		mModifyList.Add(new(value, true, -1));
+		// 当前没有遍历并且没有历史待同步操作时,mUpdateList与mMainList必然同步,
+		// 直接同时修改两个列表,避免为了下一次foreach再记录并回放一次操作
+		if (!mForeaching && mModifyList.Count == 0)
+		{
+			mUpdateList.Add(value);
+		}
+		else
+		{
+			mModifyList.Add(new(value, true, -1));
+		}
 		return value;
 	}
 	public bool addUnique(T value)
@@ -103,18 +130,34 @@ public class SafeList<T> : ClassObject
 	}
 	public void addRange(List<T> list)
 	{
+		bool directSync = !mForeaching && mModifyList.Count == 0;
 		foreach (T item in list)
 		{
 			mMainList.Add(item);
-			mModifyList.Add(new(item, true, -1));
+			if (directSync)
+			{
+				mUpdateList.Add(item);
+			}
+			else
+			{
+				mModifyList.Add(new(item, true, -1));
+			}
 		}
 	}
 	public void addRange(HashSet<T> list)
 	{
+		bool directSync = !mForeaching && mModifyList.Count == 0;
 		foreach (T item in list)
 		{
 			mMainList.Add(item);
-			mModifyList.Add(new(item, true, -1));
+			if (directSync)
+			{
+				mUpdateList.Add(item);
+			}
+			else
+			{
+				mModifyList.Add(new(item, true, -1));
+			}
 		}
 	}
 	public void setRange(List<T> list)
@@ -142,8 +185,20 @@ public class SafeList<T> : ClassObject
 		{
 			return false;
 		}
+		bool directSync = !mForeaching && mModifyList.Count == 0;
 		mMainList.RemoveAt(index);
-		mModifyList.Add(new(value, false, index));
+		if (directSync)
+		{
+			if (isEditor() && !equal(value, mUpdateList[index]))
+			{
+				logError("同步列表数据错误");
+			}
+			mUpdateList.RemoveAt(index);
+		}
+		else
+		{
+			mModifyList.Add(new(value, false, index));
+		}
 		return true;
 	}
 	public T removeAt(int index)
@@ -152,8 +207,20 @@ public class SafeList<T> : ClassObject
 		{
 			return default;
 		}
+		bool directSync = !mForeaching && mModifyList.Count == 0;
 		T value = mMainList.removeAt(index);
-		mModifyList.Add(new(value, false, index));
+		if (directSync)
+		{
+			if (isEditor() && !equal(value, mUpdateList[index]))
+			{
+				logError("同步列表数据错误");
+			}
+			mUpdateList.RemoveAt(index);
+		}
+		else
+		{
+			mModifyList.Add(new(value, false, index));
+		}
 		return value;
 	}
 	// 清空所有数据
@@ -175,51 +242,65 @@ public class SafeList<T> : ClassObject
 		mMainList.Clear();
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	// 获取用于更新的列表,会自动从主列表同步,遍历结束时需要调用endForeach,仅在迭代器中被调用
+	// 获取用于更新的列表。绝大多数foreach都没有待同步操作,先走极短快路径;
+	// 只有遍历过程中发生过修改时,下一次foreach才进入syncUpdateList。
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	protected List<T> startForeach(string fileName = null)
 	{
 		if (mForeaching)
 		{
-			logError("当前列表正在遍历中,无法再次开始遍历, 上一次开始遍历的地方:" + (mLastFileName ?? "") + ", 当前遍历的地方:" + fileName);
-			return null;
+			return startForeachError(fileName);
 		}
 		mLastFileName = fileName;
 		mForeaching = true;
-
-		// 获取更新列表前,先同步主列表到更新列表,为了避免当列表过大时每次同步量太大
-		// 所以单独使用了添加列表和移除列表,用来存储主列表的添加和移除的元素
+		if (mModifyList.Count == 0)
+		{
+			if (isEditor() && mUpdateList.Count != mMainList.Count)
+			{
+				logError("同步失败");
+			}
+			return mUpdateList;
+		}
+		return syncUpdateList();
+	}
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	protected void endForeach() { mForeaching = false; }
+	private List<T> startForeachError(string fileName)
+	{
+		logError("当前列表正在遍历中,无法再次开始遍历, 上一次开始遍历的地方:" + (mLastFileName ?? "") + ", 当前遍历的地方:" + fileName);
+		// SafeList本身不支持同一列表嵌套foreach,保持原先safe()后的实际行为:内层得到空列表
+		return EmptyList<T>.getEmptyList();
+	}
+	private List<T> syncUpdateList()
+	{
 		int mainCount = mMainList.Count;
-		// 主列表为空,则直接清空即可
+		int modifyCount = mModifyList.Count;
 		if (mainCount == 0)
 		{
 			mUpdateList.Clear();
 		}
-		else
+		else if (modifyCount < mainCount)
 		{
-			// 操作记录较少,则根据操作进行增删
-			if (mModifyList.Count < mainCount)
+			for (int i = 0; i < modifyCount; ++i)
 			{
-				foreach (var value in mModifyList)
+				SafeListModify<T> value = mModifyList[i];
+				if (value.mAdd)
 				{
-					if (value.mAdd)
+					mUpdateList.Add(value.mValue);
+				}
+				else
+				{
+					if (isEditor() && !equal(value.mValue, mUpdateList[value.mRemoveIndex]))
 					{
-						mUpdateList.Add(value.mValue);
+						logError("同步列表数据错误");
 					}
-					else
-					{
-						if (isEditor() && !equal(value.mValue, mUpdateList[value.mRemoveIndex]))
-						{
-							logError("同步列表数据错误");
-						}
-						mUpdateList.RemoveAt(value.mRemoveIndex);
-					}
+					mUpdateList.RemoveAt(value.mRemoveIndex);
 				}
 			}
-			// 主列表元素较少,则直接同步主列表到更新列表
-			else
-			{
-				mUpdateList.setRange(mMainList);
-			}
+		}
+		else
+		{
+			mUpdateList.setRange(mMainList);
 		}
 		if (mUpdateList.Count != mMainList.Count)
 		{
@@ -228,7 +309,6 @@ public class SafeList<T> : ClassObject
 		mModifyList.Clear();
 		return mUpdateList;
 	}
-	protected void endForeach() { mForeaching = false; }
 }
 
 // SafeList的扩展方法,提供便捷的添加ClassObject操作

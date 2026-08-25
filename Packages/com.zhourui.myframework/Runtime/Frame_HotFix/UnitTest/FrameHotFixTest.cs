@@ -337,6 +337,9 @@ public class FrameHotFixTest
         Register("AssetBundleLoaderUpdateBenchmark", AssetBundleLoaderUpdateBenchmark.Run);
         Register("MouseCastWindowSetBenchmark", MouseCastWindowSetBenchmark.Run);
         Register("TouchInfoStationaryRaycastBenchmark", TouchInfoStationaryRaycastBenchmark.Run);
+        Register("ComponentOwnerUpdateBenchmark", ComponentOwnerUpdateBenchmark.Run);
+        Register("SafeListFastPathBenchmark", SafeListFastPathBenchmark.Run);
+        Register("SafeListEnumeratorBenchmark", SafeListEnumeratorBenchmark.Run);
 		doRunAll(sTests);
     }
     public static void Register(string name, Action run)
