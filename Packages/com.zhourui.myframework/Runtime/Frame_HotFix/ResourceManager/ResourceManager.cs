@@ -105,6 +105,8 @@ public class ResourceManager : FrameSystem
 	public void removeUnloadPathCallback(StringCallback callback) { mUnloadPathCallback.Remove(callback); }
 	// 请求加载指定AssetBundle(包括其依赖),由AssetBundleLoader内部调度
 	public void requestLoadAssetBundle(AssetBundleInfo bundleInfo) { mAssetBundleLoader.requestLoadAssetBundle(bundleInfo); }
+	// AssetBundle进入延迟卸载状态时加入更新列表
+	public void requestDelayUnloadAssetBundle(AssetBundleInfo bundleInfo) { mAssetBundleLoader.requestDelayUnloadAssetBundle(bundleInfo); }
 	// 请求加载AssetBundle中的某个资源文件,由AssetBundleLoader内部调度
 	public void requestLoadAsset(AssetBundleInfo bundleInfo, string fileNameWithSuffix) { mAssetBundleLoader.requestLoadAsset(bundleInfo, fileNameWithSuffix); }
 	// 设置资源下载的URL地址

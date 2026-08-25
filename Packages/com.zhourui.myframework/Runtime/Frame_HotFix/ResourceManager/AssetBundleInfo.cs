@@ -47,17 +47,29 @@ public class AssetBundleInfo : ClassObject
 		// mBundleName = null;
 		mWillUnloadTime = -1.0f;
 	}
-	public void update(float elapsedTime)
+	// 返回true表示仍然需要继续更新,false表示已经不再等待延迟卸载
+	public bool update(float elapsedTime)
 	{
-		// 需要再次确认是否有引用
-		if (tickTimerOnce(ref mWillUnloadTime, elapsedTime) && canUnload())
+		if (mWillUnloadTime < 0.0f)
+		{
+			return false;
+		}
+		if (!tickTimerOnce(ref mWillUnloadTime, elapsedTime))
+		{
+			return true;
+		}
+		// 计时结束后需要再次确认是否仍然满足卸载条件
+		if (canUnload())
 		{
 			unload();
 		}
+		return false;
 	}
 	// 卸载整个资源包
 	public void unload()
 	{
+		// 无论是否真正执行卸载,都结束当前延迟卸载计时
+		mWillUnloadTime = -1.0f;
 		if (mResourceManager.isDontUnloadAssetBundle(mBundleFileName))
 		{
 			return;
@@ -100,7 +112,7 @@ public class AssetBundleInfo : ClassObject
 		info.clear();
 		if (canUnload())
 		{
-			mWillUnloadTime = UNLOAD_DELAY_TIME;
+			startUnloadTimer();
 		}
 		return true;
 	}
@@ -139,7 +151,7 @@ public class AssetBundleInfo : ClassObject
 	{
 		if (canUnload())
 		{
-			mWillUnloadTime = UNLOAD_DELAY_TIME;
+			startUnloadTimer();
 		}
 	}
 	// 查找所有依赖项
@@ -376,6 +388,16 @@ public class AssetBundleInfo : ClassObject
 		}
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
+	// 开始延迟卸载计时,只在第一次进入等待状态时通知AssetBundleLoader加入更新列表
+	protected void startUnloadTimer()
+	{
+		if (mWillUnloadTime >= 0.0f)
+		{
+			return;
+		}
+		mWillUnloadTime = UNLOAD_DELAY_TIME;
+		mResourceManager.requestDelayUnloadAssetBundle(this);
+	}
 	// 尝试卸载AssetBundle,卸载需要满足两个条件
 	// 当前AssetBundle内的所有资源已经没有正在使用
 	// 已经没有其他的正在使用的AssetBundle引用了自己

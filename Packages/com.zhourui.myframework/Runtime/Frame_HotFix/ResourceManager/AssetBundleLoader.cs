@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -23,6 +23,7 @@ public class AssetBundleLoader
 	protected Dictionary<string, AssetInfo> mAssetToBundleInfo = new();             // 根据资源文件名查找Asset信息的列表,初始化时就会填充此列表
 	protected HashSet<Coroutine> mCoroutineList = new();                            // 当前的协程列表
 	protected HashSet<string> mDontUnloadAssetBundle = new();                       // 即使没有引用也不会调用卸载的AssetBundle
+	protected List<AssetBundleInfo> mDelayUnloadAssetBundleList = new();             // 当前正在等待延迟卸载的AssetBundle,只有这些AssetBundle需要每帧更新
 	protected WaitForEndOfFrame mWaitForEndOfFrame = new();                         // 用于避免GC
 	protected string mDownloadURL;                                                  // 资源包下载的地址
 	protected bool mAutoLoad = true;                                                // 当资源可用时是否自动初始化AssetBundle
@@ -48,12 +49,13 @@ public class AssetBundleLoader
 			return;
 		}
 
-		// 更新检查所有资源包是否需要卸载
-		foreach (var bundle in mAssetBundleInfoList)
+		// 只更新正在等待延迟卸载的资源包,避免每帧遍历全部AssetBundleInfo
+		// 倒序遍历允许AssetBundleInfo在update->unload->notifyChildUnload过程中将新的父节点追加到列表
+		for (int i = mDelayUnloadAssetBundleList.Count - 1; i >= 0; --i)
 		{
-			if (bundle.Value.getAssetBundle() != null)
+			if (!mDelayUnloadAssetBundleList[i].update(elapsedTime))
 			{
-				bundle.Value.update(elapsedTime);
+				mDelayUnloadAssetBundleList.RemoveAt(i);
 			}
 		}
 	}
@@ -79,6 +81,8 @@ public class AssetBundleLoader
 		{
 			item.Value.unload();
 		}
+		// unload过程中可能因为依赖关系重新加入延迟卸载列表,全部卸载完成后统一清空
+		mDelayUnloadAssetBundleList.Clear();
 	}
 	public bool unloadAsset(UObject asset, bool showError)
 	{
@@ -307,6 +311,14 @@ public class AssetBundleLoader
 		}
 		mCoroutineList.Add(GameEntryBase.startCoroutine(loadAssetBundleCoroutine(bundleInfo)));
 	}
+	// AssetBundle进入延迟卸载状态时加入更新列表,该操作发生频率很低,使用Contains避免额外维护HashSet
+	public void requestDelayUnloadAssetBundle(AssetBundleInfo bundleInfo)
+	{
+		if (bundleInfo != null && !mDelayUnloadAssetBundleList.Contains(bundleInfo))
+		{
+			mDelayUnloadAssetBundleList.Add(bundleInfo);
+		}
+	}
 	public void requestLoadAsset(AssetBundleInfo bundleInfo, string fileNameWithSuffix)
 	{
 		if (!mInited)
@@ -510,6 +522,7 @@ public class AssetBundleLoader
 			return;
 		}
 		mInited = false;
+		mDelayUnloadAssetBundleList.Clear();
 		mAssetBundleInfoList.Clear();
 		mAssetToBundleInfo.Clear();
 		Span<byte> tempStringBuffer = stackalloc byte[256];
