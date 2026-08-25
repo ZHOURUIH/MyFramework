@@ -46,6 +46,8 @@ public class Transformable : ComponentOwner, ITransformable
 			}
 		}
 	}
+	protected virtual void notifyActiveChanged() { }
+	protected virtual void notifyColliderChanged() { }
 	public virtual void setObject(GameObject obj)
 	{
 		mObject = obj;
@@ -77,7 +79,9 @@ public class Transformable : ComponentOwner, ITransformable
 			mObject.SetActive(active);
 		}
 		mActive = active;
-		return base.setActive(active);
+		bool result = base.setActive(active);
+		notifyActiveChanged();
+		return result;
 	}
 	public void resetActive()
 	{
@@ -85,6 +89,7 @@ public class Transformable : ComponentOwner, ITransformable
 		mObject.SetActive(false);
 		mObject.SetActive(true);
 		mActive = true;
+		notifyActiveChanged();
 	}
 	public void enableAllColliders(bool enable)
 	{
@@ -92,6 +97,7 @@ public class Transformable : ComponentOwner, ITransformable
 		{
 			collider.enabled = enable;
 		}
+		notifyColliderChanged();
 	}
 	// 返回第一个碰撞体,当前节点找不到,则会在子节点中寻找
 	public Collider getColliderInChild() { return getUnityComponentInChild<Collider>(true); }
@@ -427,6 +433,10 @@ public class Transformable : ComponentOwner, ITransformable
 			return;
 		}
 		mTransform.Rotate(rotation, Space.Self);
+		foreach (Action item in mRotationModifyCallback.safe())
+		{
+			item?.Invoke();
+		}
 	}
 	public void rotateWorld(Vector3 rotation)
 	{
@@ -435,6 +445,10 @@ public class Transformable : ComponentOwner, ITransformable
 			return;
 		}
 		mTransform.Rotate(rotation, Space.World);
+		foreach (Action item in mRotationModifyCallback.safe())
+		{
+			item?.Invoke();
+		}
 	}
 	// 绕本地坐标系下某个轴原地旋转,angle为角度制
 	public void rotateAround(Vector3 axis, float angle)
@@ -444,6 +458,10 @@ public class Transformable : ComponentOwner, ITransformable
 			return;
 		}
 		mTransform.Rotate(axis, angle, Space.Self);
+		foreach (Action item in mRotationModifyCallback.safe())
+		{
+			item?.Invoke();
+		}
 	}
 	// 绕世界某条直线旋转
 	public void rotateAround(Vector3 point, Vector3 axis, float angle)
@@ -453,6 +471,14 @@ public class Transformable : ComponentOwner, ITransformable
 			return;
 		}
 		mTransform.RotateAround(point, axis, angle);
+		foreach (Action item in mPositionModifyCallback.safe())
+		{
+			item?.Invoke();
+		}
+		foreach (Action item in mRotationModifyCallback.safe())
+		{
+			item?.Invoke();
+		}
 	}
 	public void rotateAroundWorld(Vector3 axis, float angle)
 	{
@@ -461,6 +487,10 @@ public class Transformable : ComponentOwner, ITransformable
 			return;
 		}
 		mTransform.Rotate(axis, angle, Space.World);
+		foreach (Action item in mRotationModifyCallback.safe())
+		{
+			item?.Invoke();
+		}
 	}
 	public void lookAt(Vector3 direction)
 	{
@@ -493,6 +523,18 @@ public class Transformable : ComponentOwner, ITransformable
 		mTransform.localPosition = Vector3.zero;
 		mTransform.localEulerAngles = Vector3.zero;
 		mTransform.localScale = Vector3.one;
+		foreach (Action item in mPositionModifyCallback.safe())
+		{
+			item?.Invoke();
+		}
+		foreach (Action item in mRotationModifyCallback.safe())
+		{
+			item?.Invoke();
+		}
+		foreach (Action item in mScaleModifyCallback.safe())
+		{
+			item?.Invoke();
+		}
 	}
 	public void setLayer(int layer)
 	{

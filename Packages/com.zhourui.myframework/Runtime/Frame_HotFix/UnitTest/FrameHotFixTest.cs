@@ -335,6 +335,8 @@ public class FrameHotFixTest
         Register("DictionaryPoolTest", DictionaryPoolTest.Run);
         Register("MySpriteRendererTest", MySpriteRendererTest.Run);
         Register("AssetBundleLoaderUpdateBenchmark", AssetBundleLoaderUpdateBenchmark.Run);
+        Register("MouseCastWindowSetBenchmark", MouseCastWindowSetBenchmark.Run);
+        Register("TouchInfoStationaryRaycastBenchmark", TouchInfoStationaryRaycastBenchmark.Run);
 		doRunAll(sTests);
     }
     public static void Register(string name, Action run)

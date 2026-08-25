@@ -28,6 +28,8 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	protected bool mReceiveLayoutHide;                              // 布局隐藏时是否会通知此窗口,默认不通知
 	protected bool mChildOrderSorted;								// 子节点的顺序是否已经排序过了
 	protected bool mIsNewObject;                                    // 是否是从空的GameObject创建的,一般都是会确认已经存在了对应组件,而不是要动态添加组件
+	protected int mMouseCastWindowCountInTree;                      // 自己和所有子节点中已注册到GlobalTouchSystem的UI数量,用于只让真正相关的UI变化触发MouseCast缓存失效
+	protected bool mMouseCastTransformCallbackRegisted;             // 是否已经注册Transform变化回调
 	protected static int mDefaultClickSound;						// 默认的点击音效,如果没有为某个对象设置点击音效,则使用这个默认的点击音效
 	public myUGUIObject()
 	{
@@ -62,6 +64,13 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 		}
 		mCOMWindowCollider?.setColliderSize(mRectTransform);
 		tryGetUnityComponent(out mCanvas);
+		if (!mMouseCastTransformCallbackRegisted)
+		{
+			mMouseCastTransformCallbackRegisted = true;
+			addPositionModifyCallback(notifyMouseCastTransformChanged);
+			addRotationModifyCallback(notifyMouseCastTransformChanged);
+			addScaleModifyCallback(notifyMouseCastTransformChanged);
+		}
 	}
 	public void onLayoutHide() 
 	{
@@ -225,7 +234,15 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 		setPositionY(other.getPosition().y - other.getSize().y * 0.5f + getSize().y * 0.5f + interval);
 	}
 	public Vector2 getPivot()							{ return mRectTransform.pivot; }
-	public void setPivot(Vector2 pivot)					{ mRectTransform.pivot = pivot; }
+	public void setPivot(Vector2 pivot)
+	{
+		if (mRectTransform.pivot.isEqual(pivot))
+		{
+			return;
+		}
+		mRectTransform.pivot = pivot;
+		notifyMouseCastTransformChanged();
+	}
 	public RectTransform getRectTransform()				{ return mRectTransform; }
 	public List<myUGUIObject> getChildList()			{ return mChildList; }
 	public static void setDefaultClickSound(int sound)	{ mDefaultClickSound = sound; }
@@ -256,6 +273,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 		}
 		mRectTransform.setRectSize(size);
 		ensureColliderSize();
+		notifyMouseCastTransformChanged();
 	}
 	public virtual Vector2 getSize(bool transformed = false)
 	{
@@ -351,16 +369,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 		// 同样的,由于一般myUGUIObject不会使用对象池来管理,所以销毁时需要手动去标记为已销毁的状态
 		mHasDestroy = true;
 	}
-	public override bool setActive(bool active)
-	{
-		if (active == isActive())
-		{
-			return active;
-		}
-		base.setActive(active);
-		mGlobalTouchSystem?.notifyWindowActiveChanged();
-		return active;
-	}
+	public override bool setActive(bool active) { return base.setActive(active); }
 	public static void destroyWindow(myUGUIObject window, bool destroyReally)
 	{
 		if (window == null)
@@ -465,7 +474,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 		return true;
 	}
 	// 当自适应更新完以后调用
-	public virtual void notifyAnchorApply() { }
+	public virtual void notifyAnchorApply() 		{ notifyMouseCastTransformChanged(); }
 	public int getSibling()							{ return mTransform.GetSiblingIndex(); }
 	// 获取描述,UI则返回所处布局名
 	public string getDescription()					{ return mLayout?.getName(); }
@@ -504,9 +513,21 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	public void setDestroyImmediately(bool immediately)					{ mDestroyImmediately = immediately; }
 	public void setAllowGenerateDepth(bool allowGenerate)				{ getCOMInteractive().setAllowGenerateDepth(allowGenerate); }
 	public virtual void setColor(Color color) { }
-	public void setPassRay(bool passRay)								{ getCOMInteractive().setPassRay(passRay); }
+	public void setPassRay(bool passRay)
+	{
+		if (isPassRay() == passRay)
+		{
+			return;
+		}
+		getCOMInteractive().setPassRay(passRay);
+		notifyMouseCastTransformChanged();
+	}
 	public void setPassDragEvent(bool pass)								{ getCOMInteractive().setPassDragEvent(pass); }
-	public void setDepth(UIDepth parentDepth, int orderInParent)		{ getCOMInteractive().setDepth(parentDepth, orderInParent); }
+	public void setDepth(UIDepth parentDepth, int orderInParent)
+	{
+		getCOMInteractive().setDepth(parentDepth, orderInParent);
+		notifyMouseCastTransformChanged();
+	}
 	public void setLongPressLengthThreshold(float threshold)			{ getCOMInteractive().setLongPressLengthThreshold(threshold); }
 	// 自己调用的callback,仅在启用自定义输入系统时生效
 	public void setPreClickCallback(Action callback)					{ getCOMInteractive().setPreClickCallback(callback); }
@@ -550,6 +571,11 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 		{
 			return;
 		}
+		int mouseCastCount = mMouseCastWindowCountInTree;
+		if (mouseCastCount > 0)
+		{
+			mParent?.modifyMouseCastWindowCountToRoot(-mouseCastCount);
+		}
 		// 从原来的父节点上移除
 		mParent?.removeChild(this);
 		// 设置新的父节点
@@ -562,9 +588,29 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 				mTransform.SetParent(mParent.getTransform());
 			}
 			mParent.addChild(this, refreshDepth);
+			if (mouseCastCount > 0)
+			{
+				mParent.modifyMouseCastWindowCountToRoot(mouseCastCount);
+			}
+		}
+		if (mouseCastCount > 0)
+		{
+			mGlobalTouchSystem?.notifyWindowChanged();
 		}
 	}
-	public virtual void setHandleInput(bool enable)							{ mCOMWindowCollider?.enableCollider(enable); }
+	public void notifyMouseCastRegiste(bool registe)
+	{
+		modifyMouseCastWindowCountToRoot(registe ? 1 : -1);
+	}
+	public virtual void setHandleInput(bool enable)
+	{
+		bool oldEnable = isHandleInput();
+		mCOMWindowCollider?.enableCollider(enable);
+		if (oldEnable != isHandleInput())
+		{
+			notifyMouseCastTransformChanged();
+		}
+	}
 	public void addLongPress(Action callback, float pressTime, FloatCallback pressingCallback = null)
 	{
 		getCOMInteractive().addLongPress(callback, pressTime, pressingCallback);
@@ -722,6 +768,27 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 		mGlobalTouchSystem?.unregisteCollider(this);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
+	protected override void notifyActiveChanged() { notifyMouseCastTransformChanged(); }
+	protected override void notifyColliderChanged() { notifyMouseCastTransformChanged(); }
+	protected void notifyMouseCastTransformChanged()
+	{
+		if (mMouseCastWindowCountInTree > 0)
+		{
+			mGlobalTouchSystem?.notifyWindowChanged();
+		}
+	}
+	protected void modifyMouseCastWindowCountToRoot(int delta)
+	{
+		for (myUGUIObject cur = this; cur != null; cur = cur.mParent)
+		{
+			cur.mMouseCastWindowCountInTree += delta;
+			if (cur.mMouseCastWindowCountInTree < 0)
+			{
+				logError("MouseCast窗口计数异常,name:" + cur.getName() + ", count:" + cur.mMouseCastWindowCountInTree);
+				cur.mMouseCastWindowCountInTree = 0;
+			}
+		}
+	}
 	protected static int compareZDecending(Transform a, Transform b) { return (int)sign(b.localPosition.z - a.localPosition.z); }
 	protected void ensureColliderSize()
 	{

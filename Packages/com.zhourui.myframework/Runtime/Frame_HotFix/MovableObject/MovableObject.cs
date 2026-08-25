@@ -8,10 +8,12 @@ using static FrameBaseHotFix;
 // 可移动物体,表示一个3D物体
 public class MovableObject : Transformable, IMouseEventCollect
 {
-	protected ComponentInteractive mCOMInteractive;				// 交互组件,跟UI通用的
+	protected ComponentInteractive mCOMInteractive;			// 交互组件,跟UI通用的
 	protected COMMovableObjectMoveInfo mCOMMoveInfo;		// 移动信息组件
 	protected int mObjectID;								// 物体的客户端ID
 	protected bool mSelfCreatedObject;						// 是否已经由MovableObject自己创建一个GameObject作为节点
+	protected bool mMouseCastRegisted;                      // 是否已经注册到GlobalTouchSystem
+	protected bool mMouseCastTransformCallbackRegisted;     // 是否已经注册Transform变化回调
 	public MovableObject()
 	{
 		mObjectID = makeID();
@@ -29,6 +31,8 @@ public class MovableObject : Transformable, IMouseEventCollect
 		mCOMInteractive = null;
 		mCOMMoveInfo = null;
 		mSelfCreatedObject = false;
+		mMouseCastRegisted = false;
+		mMouseCastTransformCallbackRegisted = false;
 		// mObjectID不重置
 		// mObjectID = 0;
 	}
@@ -36,8 +40,9 @@ public class MovableObject : Transformable, IMouseEventCollect
 	// 且此函数需要在init之前调用,这样的话就能检测到setObject是否与mAutoCreateObject冲突,而且初始化也能够正常执行
 	public override void setObject(GameObject obj)
 	{
+		bool changed = mObject != obj;
 		// 如果是当前类自动创建的GameObject设置为空了,而且设置了一个不同的节点(无论是否为空),则取消此标记
-		if (mObject != obj)
+		if (changed)
 		{
 			destroySelfCreateObject();
 		}
@@ -49,6 +54,10 @@ public class MovableObject : Transformable, IMouseEventCollect
 		{
 			base.setObject(obj);
 		}
+		if (changed)
+		{
+			notifyMouseCastTransformChanged();
+		}
 	}
 	public virtual void init()
 	{
@@ -58,6 +67,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 			selfCreateObject();
 		}
 		initComponents();
+		ensureMouseCastTransformCallback();
 	}
 	// 让MovableObject自己创建一个GameObject作为自己的节点,同时销毁对象时会将此GameObject也销毁
 	public void selfCreateObject(string name = null, GameObject parent = null)
@@ -144,13 +154,29 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public COMMovableObjectMoveInfo getCOMMoveInfo()						{ return mCOMMoveInfo; }
 	// set
 	//------------------------------------------------------------------------------------------------------------------------------
-	public virtual void setPassRay(bool passRay)							{ getCOMInteractive().setPassRay(passRay); }
-	public virtual void setHandleInput(bool handleInput)					{ getCOMInteractive().setHandleInput(handleInput); }
+	public virtual void setPassRay(bool passRay)
+	{
+		if (isPassRay() == passRay)
+		{
+			return;
+		}
+		getCOMInteractive().setPassRay(passRay);
+		notifyMouseCastTransformChanged();
+	}
+	public virtual void setHandleInput(bool handleInput)
+	{
+		if (isHandleInput() == handleInput)
+		{
+			return;
+		}
+		getCOMInteractive().setHandleInput(handleInput);
+		notifyMouseCastTransformChanged();
+	}
 	public void setOnTouchEnter(Vector3IntCallback callback)				{ getCOMInteractive().setOnTouchEnter(callback); }
 	public void setOnTouchLeave(Vector3IntCallback callback)				{ getCOMInteractive().setOnTouchLeave(callback); }
 	public void setOnTouchDown(Vector3IntCallback callback)					{ getCOMInteractive().setOnTouchDown(callback); }
 	public void setOnTouchUp(Vector3IntCallback callback)					{ getCOMInteractive().setOnTouchUp(callback); }
-	public void setOnTouchMove(TouchMoveCallback callback)						{ getCOMInteractive().setOnTouchMove(callback); }
+	public void setOnTouchMove(TouchMoveCallback callback)					{ getCOMInteractive().setOnTouchMove(callback); }
 	public virtual void setClickCallback(Action callback)					{ getCOMInteractive().setClickCallback(callback); }
 	public virtual void setClickDetailCallback(Vector3Callback callback)	{ getCOMInteractive().setClickDetailCallback(callback); }
 	public virtual void setHoverCallback(BoolCallback callback)				{ getCOMInteractive().setHoverCallback(callback); }
@@ -186,7 +212,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 	{
 		getCOMInteractive().onDragHovered(dragObj, touchPos, hover);
 	}
-	public virtual void onMultiTouchStart(Vector3 touch0, Vector3 touch1) { getCOMInteractive().onMultiTouchStart(touch0, touch1); }
+	public virtual void onMultiTouchStart(Vector3 touch0, Vector3 touch1) 	{ getCOMInteractive().onMultiTouchStart(touch0, touch1); }
 	public virtual void onMultiTouchMove(Vector3 touch0, Vector3 lastTouch0, Vector3 touch1, Vector3 lastTouch1) 
 	{
 		getCOMInteractive().onMultiTouchMove(touch0, lastTouch0, touch1, lastTouch1);
@@ -195,6 +221,36 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public void enableMoveInfo()
 	{
 		mCOMMoveInfo ??= addComponent<COMMovableObjectMoveInfo>(true);
+	}
+	public void notifyMouseCastRegiste(bool registe)
+	{
+		mMouseCastRegisted = registe;
+		if (registe)
+		{
+			ensureMouseCastTransformCallback();
+		}
+	}
+	//------------------------------------------------------------------------------------------------------------------------------
+	protected override void notifyActiveChanged() { notifyMouseCastTransformChanged(); }
+	protected override void notifyColliderChanged() { notifyMouseCastTransformChanged(); }
+	protected void ensureMouseCastTransformCallback()
+	{
+		if (mMouseCastTransformCallbackRegisted)
+		{
+			return;
+		}
+		mMouseCastTransformCallbackRegisted = true;
+		addPositionModifyCallback(notifyMouseCastTransformChanged);
+		addRotationModifyCallback(notifyMouseCastTransformChanged);
+		addScaleModifyCallback(notifyMouseCastTransformChanged);
+		addWorldScaleModifyCallback(notifyMouseCastTransformChanged);
+	}
+	protected void notifyMouseCastTransformChanged()
+	{
+		if (mMouseCastRegisted)
+		{
+			mGlobalTouchSystem?.notifyObjectChanged();
+		}
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected ComponentInteractive getCOMInteractive()

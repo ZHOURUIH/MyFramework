@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using static FrameBaseHotFix;
 using static TestAssert;
 
@@ -9,6 +9,10 @@ using static TestAssert;
 //   destroy 链自动注销(真实交互链路前置)
 public static class GlobalTouchRegisteTest
 {
+	private class TestUGUIObject : myUGUIObject
+	{
+		public int getMouseCastWindowCountInTree() { return mMouseCastWindowCountInTree; }
+	}
 	public static void Run()
 	{
 		testRegisteState();
@@ -17,6 +21,9 @@ public static class GlobalTouchRegisteTest
 		testDestroyAutoUnregiste();
 		testUnregisteSafe();
 		testNeedUpdateEnabled();
+		testMouseCastTreeCount();
+		testMouseCastTreeCountAfterReparent();
+		testRaycastVersionOnUIChange();
 	}
 
 	// ═════════════════════════════════════════════════════════════════
@@ -28,6 +35,16 @@ public static class GlobalTouchRegisteTest
 		go.AddComponent<RectTransform>();
 		myUGUIObject ui = new myUGUIObject();
 		ui.setObject(go);
+		ui.init();
+		return ui;
+	}
+	private static TestUGUIObject createTestUI(TestUGUIObject parent = null)
+	{
+		GameObject go = new GameObject("TestTouchTreeUI");
+		go.AddComponent<RectTransform>();
+		TestUGUIObject ui = new();
+		ui.setObject(go);
+		ui.setParent(parent, false);
 		ui.init();
 		return ui;
 	}
@@ -129,4 +146,76 @@ public static class GlobalTouchRegisteTest
 			LayoutScript.destroyObject(ref ui, true);
 		}
 	}
+
+	// 注册一个子节点后,自己以及所有父节点都应该记录这棵子树中存在1个MouseCast窗口
+	private static void testMouseCastTreeCount()
+	{
+		TestUGUIObject parent = createTestUI();
+		TestUGUIObject child = createTestUI(parent);
+		try
+		{
+			assertEqual(0, parent.getMouseCastWindowCountInTree(), "注册前父节点MouseCast子树计数应为0");
+			assertEqual(0, child.getMouseCastWindowCountInTree(), "注册前子节点MouseCast子树计数应为0");
+			child.registeCollider();
+			assertEqual(1, child.getMouseCastWindowCountInTree(), "注册后子节点MouseCast子树计数应为1");
+			assertEqual(1, parent.getMouseCastWindowCountInTree(), "注册后父节点应统计到已注册子节点");
+			child.unregisteCollider();
+			assertEqual(0, child.getMouseCastWindowCountInTree(), "注销后子节点MouseCast子树计数应恢复为0");
+			assertEqual(0, parent.getMouseCastWindowCountInTree(), "注销后父节点MouseCast子树计数应恢复为0");
+		}
+		finally
+		{
+			LayoutScript.destroyObject(child, true);
+			LayoutScript.destroyObject(parent, true);
+		}
+	}
+	// 已注册子树换父节点时,MouseCast子树计数必须从旧父链迁移到新父链
+	private static void testMouseCastTreeCountAfterReparent()
+	{
+		TestUGUIObject parentA = createTestUI();
+		TestUGUIObject parentB = createTestUI();
+		TestUGUIObject child = createTestUI(parentA);
+		try
+		{
+			child.registeCollider();
+			assertEqual(1, parentA.getMouseCastWindowCountInTree(), "换父节点前旧父节点计数应为1");
+			assertEqual(0, parentB.getMouseCastWindowCountInTree(), "换父节点前新父节点计数应为0");
+			child.setParent(parentB, false);
+			assertEqual(0, parentA.getMouseCastWindowCountInTree(), "换父节点后旧父节点计数应恢复为0");
+			assertEqual(1, parentB.getMouseCastWindowCountInTree(), "换父节点后新父节点计数应变为1");
+			assertEqual(1, child.getMouseCastWindowCountInTree(), "换父节点不应改变子树自身计数");
+		}
+		finally
+		{
+			LayoutScript.destroyObject(child, true);
+			LayoutScript.destroyObject(parentA, true);
+			LayoutScript.destroyObject(parentB, true);
+		}
+	}
+	// 已注册UI真正影响Raycast结果的状态发生变化时,必须推进版本,否则静止鼠标会错误复用旧Hover
+	private static void testRaycastVersionOnUIChange()
+	{
+		myUGUIObject ui = createUI();
+		try
+		{
+			int version0 = mGlobalTouchSystem.getRaycastVersion();
+			ui.registeCollider();
+			int version1 = mGlobalTouchSystem.getRaycastVersion();
+			assertTrue(version1 != version0, "注册Collider后Raycast版本必须变化");
+			ui.setPositionX(10.0f);
+			int version2 = mGlobalTouchSystem.getRaycastVersion();
+			assertTrue(version2 != version1, "已注册UI移动后Raycast版本必须变化");
+			ui.setPassRay(!ui.isPassRay());
+			int version3 = mGlobalTouchSystem.getRaycastVersion();
+			assertTrue(version3 != version2, "已注册UI修改PassRay后Raycast版本必须变化");
+			ui.setHandleInput(false);
+			int version4 = mGlobalTouchSystem.getRaycastVersion();
+			assertTrue(version4 != version3, "已注册UI修改HandleInput后Raycast版本必须变化");
+		}
+		finally
+		{
+			LayoutScript.destroyObject(ref ui, true);
+		}
+	}
+
 }
