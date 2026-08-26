@@ -2,13 +2,17 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Reflection;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text;
 using Spine;
 
-// 读取由SpineAnimationSubsetWindow生成的Spine 4.3单动画二进制,不修改Spine官方代码。
+// 读取Spine 4.3拆分单动画。二进制payload走Direct Reader，JSON payload复用官方4.3 SkeletonJson动画解析逻辑。
 public class Spine43AnimationBinaryReader
 {
+    private static readonly byte[] ANIMATION_JSON_MAGIC = new byte[] { 0x53, 0x50, 0x4A, 0x41, 0x4E, 0x49, 0x34, 0x33 }; // SPJANI43
+    private static readonly MethodInfo mSkeletonJsonReadAnimation = typeof(SkeletonJson).GetMethod("ReadAnimation", BindingFlags.Instance | BindingFlags.NonPublic, null, new Type[] { typeof(Dictionary<string, object>), typeof(string), typeof(SkeletonData) }, null);
     private const int BONE_ROTATE = 0;
     private const int BONE_TRANSLATE = 1;
     private const int BONE_TRANSLATEX = 2;
@@ -74,6 +78,10 @@ public class Spine43AnimationBinaryReader
         {
             throw new ArgumentNullException(nameof(skeletonData));
         }
+        if (isJsonPayload(binaryData, binaryOffset, binaryLength))
+        {
+            return readJsonAnimation(binaryData, binaryOffset, binaryLength, skeletonData, scale, expectedAnimationName);
+        }
         mScale = scale;
         Spine43AnimationBinaryInput input = new Spine43AnimationBinaryInput(binaryData, binaryOffset, binaryLength, strings);
         string animationName = input.readString();
@@ -95,6 +103,67 @@ public class Spine43AnimationBinaryReader
         if (remaining != 0)
         {
             throw new InvalidDataException("动画二进制没有完全读取:" + animationName + ",剩余字节:" + remaining);
+        }
+        return animation;
+    }
+    private static bool isJsonPayload(byte[] data, int offset, int length)
+    {
+        if (length < ANIMATION_JSON_MAGIC.Length)
+        {
+            return false;
+        }
+        for (int i = 0; i < ANIMATION_JSON_MAGIC.Length; ++i)
+        {
+            if (data[offset + i] != ANIMATION_JSON_MAGIC[i])
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    private static Animation readJsonAnimation(byte[] data, int offset, int length, SkeletonData skeletonData, float scale, string expectedAnimationName)
+    {
+        if (mSkeletonJsonReadAnimation == null)
+        {
+            throw new MissingMethodException("Spine 4.3 SkeletonJson.ReadAnimation不存在,请确认spine-csharp版本为4.3");
+        }
+        offset += ANIMATION_JSON_MAGIC.Length;
+        length -= ANIMATION_JSON_MAGIC.Length;
+        if (length <= 0)
+        {
+            throw new InvalidDataException("Spine 4.3单动画JSON为空:" + expectedAnimationName);
+        }
+        string jsonText = Encoding.UTF8.GetString(data, offset, length);
+        object jsonObject;
+        using (StringReader stringReader = new StringReader(jsonText))
+        {
+            jsonObject = Spine.Json.Deserialize(stringReader);
+        }
+        Dictionary<string, object> animationMap = jsonObject as Dictionary<string, object>;
+        if (animationMap == null)
+        {
+            throw new InvalidDataException("Spine 4.3单动画JSON格式无效:" + expectedAnimationName);
+        }
+        SkeletonJson skeletonJson = new SkeletonJson(new Atlas[0]);
+        skeletonJson.Scale = scale;
+        int oldAnimationCount = skeletonData.Animations.Count;
+        try
+        {
+            mSkeletonJsonReadAnimation.Invoke(skeletonJson, new object[] { animationMap, expectedAnimationName, skeletonData });
+        }
+        catch (TargetInvocationException exception)
+        {
+            throw new InvalidDataException("Spine 4.3单动画JSON解析失败:" + expectedAnimationName, exception.InnerException ?? exception);
+        }
+        if (skeletonData.Animations.Count != oldAnimationCount + 1)
+        {
+            throw new InvalidDataException("Spine 4.3单动画JSON解析后Animation数量异常:" + expectedAnimationName);
+        }
+        Animation animation = skeletonData.Animations.Items[oldAnimationCount];
+        skeletonData.Animations.Remove(animation);
+        if (animation == null || (!string.IsNullOrEmpty(expectedAnimationName) && !string.Equals(animation.Name, expectedAnimationName, StringComparison.Ordinal)))
+        {
+            throw new InvalidDataException("Spine 4.3单动画JSON名称不一致:" + expectedAnimationName);
         }
         return animation;
     }
