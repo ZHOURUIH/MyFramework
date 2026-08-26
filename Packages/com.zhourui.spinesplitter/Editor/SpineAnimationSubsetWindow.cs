@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if SPINE_RUNTIME_43 || SPINE_RUNTIME_42 || SPINE_RUNTIME_41 || SPINE_RUNTIME_40
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Spine.Unity;
@@ -25,8 +26,6 @@ using static Spine40AnimationSplitter;
 using SpineBinaryScannerVersion = Spine40BinaryScanner;
 using static Spine40AnimationFile;
 using SpineSingleAnimationDataVersion = Spine40SingleAnimationData;
-#else
-#error SpineSplitter仅支持通过UPM安装的Spine 4.0、4.1、4.2或4.3 Runtime。
 #endif
 using static SpineAnimationFileNameUtility;
 
@@ -912,3 +911,4 @@ public class SpineAnimationSubsetWindow : EditorWindow
         return Path.GetFullPath(Path.Combine(projectRoot, assetPath));
     }
 }
+#endif

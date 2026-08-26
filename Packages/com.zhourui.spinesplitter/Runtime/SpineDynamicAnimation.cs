@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if SPINE_RUNTIME_43 || SPINE_RUNTIME_42 || SPINE_RUNTIME_41 || SPINE_RUNTIME_40
+using System;
 using System.Collections.Generic;
 using Spine;
 using Spine.Unity;
@@ -23,8 +24,6 @@ using SpineAnimationFileVersion = Spine40AnimationFile;
 using SpineAnimationCommonDataVersion = Spine40AnimationCommonData;
 using SpineSingleAnimationDataVersion = Spine40SingleAnimationData;
 using SpineAnimationBinaryReaderVersion = Spine40AnimationBinaryReader;
-#else
-#error SpineSplitter仅支持通过UPM安装的Spine 4.0、4.1、4.2或4.3 Runtime。
 #endif
 
 // Spine动态动画通用接口,资源由外部管理。支持ZeroCopy加载、共享AnimationState安全卸载和事件驱动LRU；动态动画默认至少驻留60秒，且只管理本类动态加入的动画。
@@ -924,3 +923,4 @@ public static class SpineDynamicAnimation
 		}
 	}
 }
+#endif

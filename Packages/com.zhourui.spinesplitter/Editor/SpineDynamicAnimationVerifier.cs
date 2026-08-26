@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if SPINE_RUNTIME_43 || SPINE_RUNTIME_42 || SPINE_RUNTIME_41 || SPINE_RUNTIME_40
+using System;
 using System.IO;
 using Spine;
 using Spine.Unity;
@@ -25,8 +26,6 @@ using SpineAnimationFileVersion = Spine40AnimationFile;
 using SpineAnimationCommonDataVersion = Spine40AnimationCommonData;
 using SpineSingleAnimationDataVersion = Spine40SingleAnimationData;
 using SpineAnimationBinaryReaderVersion = Spine40AnimationBinaryReader;
-#else
-#error SpineSplitter仅支持通过UPM安装的Spine 4.0、4.1、4.2或4.3 Runtime。
 #endif
 
 // 验证当前选中的拆分SkeletonDataAsset是否可以正确读取全部单动画文件,不会把验证动画加入SkeletonData。
@@ -155,3 +154,4 @@ public static class SpineDynamicAnimationVerifier
         return Path.GetFullPath(Path.Combine(projectRoot, assetPath));
     }
 }
+#endif

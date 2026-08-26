@@ -2,13 +2,18 @@
 	"name": "com.zhourui.spinesplitter",
 	"displayName": "SpineSplitter",
 	"version": "1.0.0",
-	"description": "split skel.bytes to animations and SkeletonOnly.skel.bytes",
+	"description": "Split Spine 4.0-4.3 skeleton animations into on-demand assets for Unity, with JSON/Binary support, zero-copy runtime parsing, safe unloading and LRU animation caching.",
 	"keywords": [
-		"optimize",
-		"memory",
+		"unity",
 		"spine",
-		"split",
-		"animation"
+		"animation",
+		"splitter",
+		"streaming",
+		"memory",
+		"performance",
+		"json",
+		"binary",
+		"lru"
 	],
 	"author": {
 		"name": "ZHOURUIH",
@@ -16,8 +21,6 @@
 		"url": "https://github.com/ZHOURUIH/MyFramework"
 	},
 	"dependencies": {
-		"com.unity.ugui": "1.0.0",
-		"com.unity.textmeshpro": "3.0.6",
 		"com.unity.nuget.newtonsoft-json": "3.2.1"
 	}
 }

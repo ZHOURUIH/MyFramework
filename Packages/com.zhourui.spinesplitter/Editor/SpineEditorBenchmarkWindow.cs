@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if SPINE_RUNTIME_43 || SPINE_RUNTIME_42 || SPINE_RUNTIME_41 || SPINE_RUNTIME_40
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -32,8 +33,6 @@ using SpineAnimationBinaryReader = Spine40AnimationBinaryReader;
 using SpineSingleAnimationData = Spine40SingleAnimationData;
 using SpineAnimationCommonData = Spine40AnimationCommonData;
 using static Spine40AnimationFile;
-#else
-#error SpineSplitter仅支持通过UPM安装的Spine 4.0、4.1、4.2或4.3 Runtime。
 #endif
 
 public class SpineEditorBenchmarkWindow : EditorWindow
@@ -927,3 +926,4 @@ public class SpineEditorBenchmarkWindow : EditorWindow
 		return bytes + " bytes (" + (bytes / 1024.0 / 1024.0).ToString("F3") + " MiB)";
 	}
 }
+#endif

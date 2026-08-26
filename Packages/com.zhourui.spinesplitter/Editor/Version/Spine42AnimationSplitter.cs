@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if SPINE_RUNTIME_42
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Spine;
@@ -726,3 +727,4 @@ public static class Spine42AnimationSplitter
         }
     }
 }
+#endif

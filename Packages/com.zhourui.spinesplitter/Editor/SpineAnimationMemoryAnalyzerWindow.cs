@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if SPINE_RUNTIME_43 || SPINE_RUNTIME_42 || SPINE_RUNTIME_41 || SPINE_RUNTIME_40
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -18,8 +19,6 @@ using static Spine42AnimationSplitter;
 using static Spine41AnimationSplitter;
 #elif SPINE_RUNTIME_40
 using static Spine40AnimationSplitter;
-#else
-#error SpineSplitter仅支持通过UPM安装的Spine 4.0、4.1、4.2或4.3 Runtime。
 #endif
 using static UnityEditor.AssetDatabase;
 
@@ -1181,3 +1180,4 @@ public class SpineAnimationMemoryAnalyzerWindow : EditorWindow
         }
     }
 }
+#endif
