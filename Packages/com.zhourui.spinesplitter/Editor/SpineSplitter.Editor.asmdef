@@ -1,0 +1,20 @@
+{
+    "name": "SpineSplitter.Editor",
+    "rootNamespace": "",
+    "references": [
+        "SpineSplitter.Runtime",
+        "spine-csharp",
+        "spine-unity"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

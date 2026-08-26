@@ -1,0 +1,23 @@
+{
+	"name": "com.zhourui.spinesplitter",
+	"displayName": "SpineSplitter",
+	"version": "1.0.0",
+	"description": "split skel.bytes to animations and SkeletonOnly.skel.bytes",
+	"keywords": [
+		"optimize",
+		"memory",
+		"spine",
+		"split",
+		"animation"
+	],
+	"author": {
+		"name": "ZHOURUIH",
+		"email": "785130190@qq.com",
+		"url": "https://github.com/ZHOURUIH/MyFramework"
+	},
+	"dependencies": {
+		"com.unity.ugui": "1.0.0",
+		"com.unity.textmeshpro": "3.0.6",
+		"com.unity.nuget.newtonsoft-json": "3.2.1"
+	}
+}
