@@ -18,7 +18,7 @@ using static Spine40AnimationSplitter;
 #endif
 using static UnityEditor.AssetDatabase;
 
-// 监听原始.skel.bytes和原始SkeletonDataAsset导入并自动执行Spine动画拆分。
+// 监听当前Spine版本支持的源Skeleton文件和SkeletonDataAsset导入并自动执行动画拆分。
 public class SpineAnimationAssetPostprocessor : AssetPostprocessor
 {
     private const bool VERIFY_AFTER_GENERATE = true;
@@ -52,13 +52,10 @@ public class SpineAnimationAssetPostprocessor : AssetPostprocessor
             return;
         }
         assetPath = normalizeAssetPath(assetPath);
-        // 原始.skel.bytes直接触发拆分,生成的*_SkeletonOnly.skel.bytes会被isSourceSkeletonAssetPath排除。
-        if (assetPath.EndsWith(".skel.bytes"))
+        // 源Skeleton资源直接触发拆分。具体支持.json还是.skel.bytes由当前Spine版本Splitter决定。
+        if (isSourceSkeletonAssetPath(assetPath))
         {
-            if (isSourceSkeletonAssetPath(assetPath))
-            {
-                mPendingSkeletonAssetPaths.Add(assetPath);
-            }
+            mPendingSkeletonAssetPaths.Add(assetPath);
             return;
         }
         if (!assetPath.EndsWith(".asset"))
@@ -99,7 +96,7 @@ public class SpineAnimationAssetPostprocessor : AssetPostprocessor
         List<string> sourceSkeletonAssetPaths = findAllSourceSkeletonAssetPaths();
         if (sourceSkeletonAssetPaths.Count == 0)
         {
-            EditorUtility.DisplayDialog("重新拆分全部Spine", "没有找到可以拆分的原始.skel.bytes文件。", "确定");
+            EditorUtility.DisplayDialog("重新拆分全部Spine", "没有找到可以拆分的原始Spine Skeleton源文件。", "确定");
             return;
         }
         if (!EditorUtility.DisplayDialog("重新拆分全部Spine", "即将重新拆分" + sourceSkeletonAssetPaths.Count + "个Spine资源。" +

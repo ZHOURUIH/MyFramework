@@ -16,6 +16,11 @@ public static class SpineAnimationFileNameUtility
         {
             throw new ArgumentException("SkeletonDataAsset名称为空", nameof(skeletonDataAssetName));
         }
+        string generatedSuffix = SKELETON_ONLY_SUFFIX + SKELETON_DATA_SUFFIX;
+        if (skeletonDataAssetName.EndsWith(generatedSuffix, StringComparison.OrdinalIgnoreCase))
+        {
+            return skeletonDataAssetName.Substring(0, skeletonDataAssetName.Length - generatedSuffix.Length);
+        }
         if (skeletonDataAssetName.EndsWith(SKELETON_DATA_SUFFIX, StringComparison.OrdinalIgnoreCase))
         {
             return skeletonDataAssetName.Substring(0, skeletonDataAssetName.Length - SKELETON_DATA_SUFFIX.Length);

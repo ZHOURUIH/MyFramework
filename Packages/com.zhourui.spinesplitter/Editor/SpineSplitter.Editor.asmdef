@@ -1,10 +1,11 @@
-{
+﻿{
     "name": "SpineSplitter.Editor",
     "rootNamespace": "",
     "references": [
         "SpineSplitter.Runtime",
         "spine-csharp",
-        "spine-unity"
+        "spine-unity",
+        "Unity.Newtonsoft.Json"
     ],
     "includePlatforms": [
         "Editor"

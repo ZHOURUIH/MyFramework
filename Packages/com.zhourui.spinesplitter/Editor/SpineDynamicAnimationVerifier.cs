@@ -102,7 +102,7 @@ public static class SpineDynamicAnimationVerifier
                 }
                 ++animationFileCount;
                 EditorUtility.DisplayProgressBar("验证Spine动态动画", Path.GetFileName(filePath), (float)animationFileCount / Mathf.Max(1, files.Length));
-                SpineSingleAnimationDataVersion animationData = SpineAnimationFileVersion.readAnimation(bytes);
+                SpineSingleAnimationDataVersion animationData = SpineAnimationFileVersion.readAnimationNoCopy(bytes);
                 if (animationData.mSkeletonHash != commonData.mSkeletonHash)
                 {
                     Debug.LogError("Skeleton Hash不一致:" + filePath);
@@ -114,7 +114,7 @@ public static class SpineDynamicAnimationVerifier
                     return;
                 }
                 SpineAnimationBinaryReaderVersion reader = new SpineAnimationBinaryReaderVersion();
-                Spine.Animation animation = reader.readAnimation(animationData.mBinaryData, commonData.mStrings, skeletonData, 
+                Spine.Animation animation = reader.readAnimation(animationData.mBinarySourceData, animationData.mBinaryOffset, animationData.mBinaryLength, commonData.mStrings, skeletonData,
                                                                 skeletonDataAsset.scale, animationData.mAnimationName);
                 if (animation == null || !string.Equals(animation.Name, animationData.mAnimationName, StringComparison.Ordinal))
                 {
@@ -147,12 +147,7 @@ public static class SpineDynamicAnimationVerifier
         {
             return false;
         }
-        long skeletonHash = 0L;
-        if (!string.IsNullOrEmpty(skeletonData.Hash) && !long.TryParse(skeletonData.Hash, out skeletonHash))
-        {
-            return false;
-        }
-        return skeletonHash == commonData.mSkeletonHash;
+        return SpineSkeletonHashUtility.getStableHash(skeletonData.Hash) == commonData.mSkeletonHash;
     }
     private static string assetPathToAbsolutePath(string assetPath)
     {

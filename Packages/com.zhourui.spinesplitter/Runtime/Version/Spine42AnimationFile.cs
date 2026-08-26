@@ -12,7 +12,7 @@ public class Spine42AnimationCommonData
     public string[] mStrings;
 }
 
-// Spine 4.2单动画数据,每个文件只保存一个动画名称以及从原始.skel.bytes中复制出的完整动画二进制块。
+// Spine 4.2单动画数据。payload可来自二进制动画块，也可来自JSON中的单个animation对象。
 public class Spine42SingleAnimationData
 {
     public int mFileVersion;
@@ -25,7 +25,7 @@ public class Spine42SingleAnimationData
     public int mBinaryLength;
 }
 
-// Spine 4.2公共文件和单动画文件读写器,公共字符串表只保存一次,每个.spineanim.bytes只保存一个动画。
+// Spine 4.2公共文件和单动画文件读写器。外层容器格式统一，payload可为Binary或JSON。
 public static class Spine42AnimationFile
 {
     public const int CURRENT_VERSION = 1;
@@ -308,7 +308,7 @@ public static class Spine42AnimationFile
     {
         if (string.IsNullOrEmpty(spineVersion) || !spineVersion.StartsWith("4.2", StringComparison.Ordinal))
         {
-            throw new InvalidDataException(fileType + "中的Spine版本不是4.0:" + spineVersion);
+            throw new InvalidDataException(fileType + "中的Spine版本不是4.2:" + spineVersion);
         }
     }
     private static void validateReadStream(Stream stream)

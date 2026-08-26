@@ -30,7 +30,7 @@ using SpineSingleAnimationDataVersion = Spine40SingleAnimationData;
 #endif
 using static SpineAnimationFileNameUtility;
 
-// Spine动画拆分窗口,用于通过独立Scanner扫描完整.skel.bytes,生成最小化基础Skeleton文件。
+// Spine动画拆分窗口,用于通过当前版本Scanner扫描完整Skeleton源数据,生成最小化基础Skeleton文件。
 // 普通版本会移除全部动画;Spine 4.3带Slider Constraint时会保留Slider加载阶段必须引用的动画,其余动画分别生成为独立.bytes文件。
 public class SpineAnimationSubsetWindow : EditorWindow
 {
@@ -151,7 +151,7 @@ public class SpineAnimationSubsetWindow : EditorWindow
         drawScanArea();
         if (mScanResult == null)
         {
-            EditorGUILayout.HelpBox("选择SkeletonDataAsset后点击“扫描动画二进制”。", UnityEditor.MessageType.Info);
+            EditorGUILayout.HelpBox("选择SkeletonDataAsset后点击“分析动画数据”。", UnityEditor.MessageType.Info);
         }
         else
         {
@@ -209,7 +209,7 @@ public class SpineAnimationSubsetWindow : EditorWindow
     {
         EditorGUILayout.BeginHorizontal("box");
         EditorGUI.BeginDisabledGroup(mSkeletonDataAsset == null);
-        if (GUILayout.Button("分析动画二进制", GUILayout.Height(30.0f)))
+        if (GUILayout.Button("分析动画数据", GUILayout.Height(30.0f)))
         {
             scanAnimations();
         }
@@ -231,8 +231,8 @@ public class SpineAnimationSubsetWindow : EditorWindow
         drawInfoLine("SkeletonDataAsset", mSourceSkeletonDataAssetPath);
         drawInfoLine("源文件", mSourceAssetPath);
         drawInfoLine("源文件大小", getMemoryText(mSourceBytes.LongLength));
-        drawInfoLine("骨架/皮肤/附件公共数据", getMemoryText(mScanResult.mAnimationCountPosition));
-        drawInfoLine("全部动画二进制", getMemoryText(allAnimationBytes));
+        drawInfoLine("基础Skeleton数据", getMemoryText(mScanResult.mAnimationCountPosition));
+        drawInfoLine("全部动画数据", getMemoryText(allAnimationBytes));
         drawInfoLine("动画总数", mAnimationItems.Count.ToString());
         if (requiredAnimationCount > 0)
         {
@@ -241,7 +241,7 @@ public class SpineAnimationSubsetWindow : EditorWindow
         drawInfoLine("基础Skeleton预计大小", getMemoryText(baseSkeletonSize));
         if (requiredAnimationCount == 0)
         {
-            EditorGUILayout.HelpBox("运行时基础Skeleton不包含动画。生成时保留动画区之前的原始Skeleton数据,将动画数量写为0,全部动画分别保存为独立.bytes文件。", UnityEditor.MessageType.Info);
+            EditorGUILayout.HelpBox("运行时基础Skeleton不包含动画。Binary源会重写动画数量；JSON源会移除animations节点；全部动画分别保存为独立.bytes文件。", UnityEditor.MessageType.Info);
         }
         else
         {
@@ -267,6 +267,10 @@ public class SpineAnimationSubsetWindow : EditorWindow
         if (mScanResult == null)
         {
             return 0;
+        }
+        if (mScanResult.mSourceFormat == SpineSourceDataFormat.Json)
+        {
+            return mScanResult.mAnimationCountPosition;
         }
         List<int> requiredIndices = new List<int>();
         HashSet<int> unique = new HashSet<int>();
@@ -595,14 +599,14 @@ public class SpineAnimationSubsetWindow : EditorWindow
         }
         mSourceSkeletonDataAssetName = Path.GetFileNameWithoutExtension(mSourceSkeletonDataAssetPath);
         mSourceAssetPath = GetAssetPath(mSkeletonDataAsset.skeletonJSON);
-        if (!mSourceAssetPath.EndsWith(".skel.bytes", StringComparison.OrdinalIgnoreCase))
+        if (!isSourceSkeletonAssetPath(mSourceAssetPath))
         {
-            Debug.LogError("当前工具只支持当前Runtime对应版本的.skel.bytes文件:" + mSourceAssetPath, mSkeletonDataAsset.skeletonJSON);
+            Debug.LogError("当前Skeleton源文件不是本Runtime版本支持的可拆分资源:" + mSourceAssetPath, mSkeletonDataAsset.skeletonJSON);
             return;
         }
         try
         {
-            EditorUtility.DisplayProgressBar("扫描Spine动画", "正在扫描二进制结构...", 0.2f);
+            EditorUtility.DisplayProgressBar("扫描Spine动画", "正在分析动画数据...", 0.2f);
             mSourceBytes = mSkeletonDataAsset.skeletonJSON.bytes;
 			SpineBinaryScannerVersion scanner = new SpineBinaryScannerVersion();
             mScanResult = scanner.scan(mSourceBytes);
@@ -624,7 +628,7 @@ public class SpineAnimationSubsetWindow : EditorWindow
                 "\n版本:" + mScanResult.mVersion +
                 "\n动画数量:" + mAnimationItems.Count +
                 "\n公共数据:" + getMemoryText(mScanResult.mAnimationCountPosition) +
-                "\n动画数据:" + getMemoryText(mSourceBytes.LongLength - mScanResult.mAnimationDataPosition), mSkeletonDataAsset);
+                "\n动画数据:" + getMemoryText(getTotalAnimationDataSize()), mSkeletonDataAsset);
             Repaint();
         }
         catch (Exception exception)
@@ -636,6 +640,13 @@ public class SpineAnimationSubsetWindow : EditorWindow
         {
             EditorUtility.ClearProgressBar();
         }
+    }
+    protected long getTotalAnimationDataSize()
+    {
+        if (mScanResult == null) return 0L;
+        long total = 0L;
+        for (int i = 0; i < mScanResult.mAnimations.Count; ++i) total += mScanResult.mAnimations[i].mLength;
+        return total;
     }
     protected bool isItemVisible(AnimationItem item)
     {
@@ -709,7 +720,7 @@ public class SpineAnimationSubsetWindow : EditorWindow
         {
             return;
         }
-        SpineSingleAnimationDataVersion animationData = readAnimation(bytes);
+        SpineSingleAnimationDataVersion animationData = readAnimationNoCopy(bytes);
         if (animationData.mSkeletonHash != mScanResult.mSkeletonHash ||
             !string.Equals(animationData.mSpineVersion, mScanResult.mVersion, StringComparison.Ordinal))
         {
@@ -790,10 +801,10 @@ public class SpineAnimationSubsetWindow : EditorWindow
     {
         if (mScanResult == null || mSourceBytes == null || string.IsNullOrEmpty(mSourceAssetPath))
         {
-            Debug.LogError("请先扫描完整Skeleton动画二进制");
+            Debug.LogError("请先扫描完整Skeleton动画数据");
             return;
         }
-        string confirmMessage = "即将按当前源.skel.bytes重新生成基础Skeleton、公共数据和全部" + mAnimationItems.Count + "个单动画文件。" +
+        string confirmMessage = "即将按当前Skeleton源文件重新生成基础Skeleton、公共数据和全部" + mAnimationItems.Count + "个单动画文件。" +
             "\n源SkeletonDataAsset:" + mSourceSkeletonDataAssetPath +
             "\n源文件:" + mSourceAssetPath +
             "\n\n动画新增会自动生成,动画删除或改名产生的旧文件会自动清理。";

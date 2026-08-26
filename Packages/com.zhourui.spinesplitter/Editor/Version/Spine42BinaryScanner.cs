@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-// Spine 4.2二进制文件扫描器,用于在不修改Spine官方库且不创建SkeletonData、Animation、Timeline等运行时对象的情况下解析并跳过.skel.bytes中的数据,记录生成基础Skeleton文件和独立动作包所需的信息。
+// Spine 4.2源资源扫描器。二进制源走原始高性能Scanner，JSON源交给Spine42JsonUtility解析。
 public class Spine42BinaryScanner
 {
     protected const int ATTACHMENT_REGION = 0;
@@ -51,6 +51,10 @@ public class Spine42BinaryScanner
         if (bytes == null)
         {
             throw new ArgumentNullException(nameof(bytes));
+        }
+        if (Spine42JsonUtility.isJson(bytes))
+        {
+            return Spine42JsonUtility.scan(bytes);
         }
         using (MemoryStream stream = new MemoryStream(bytes, false))
         {

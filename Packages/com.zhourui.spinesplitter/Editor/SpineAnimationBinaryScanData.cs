@@ -1,6 +1,12 @@
 ﻿using System.Collections.Generic;
 
-// Spine二进制文件中单个动画的原始字节范围,起始位置包含动画名称,结束位置指向动画数据之后。
+public enum SpineSourceDataFormat
+{
+    Binary,
+    Json,
+}
+
+// Spine源文件中单个动画的数据范围。二进制源记录真实偏移，JSON源使用序列化后的动画payload估算范围。
 public sealed class SpineAnimationBinaryRange
 {
     public int mIndex;
@@ -16,9 +22,10 @@ public sealed class SpineAnimationBinaryRange
     }
 }
 
-// Spine二进制扫描结果,保存Skeleton Hash、共享字符串表、动画区位置以及每个动画的原始字节范围。
+// Spine扫描结果,同时兼容二进制与JSON源资源。
 public sealed class SpineBinaryScanResult
 {
+    public SpineSourceDataFormat mSourceFormat = SpineSourceDataFormat.Binary;
     public long mSkeletonHash;
     public string mVersion;
     public string[] mStrings;

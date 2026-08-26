@@ -868,12 +868,7 @@ public static class SpineDynamicAnimation
             Debug.LogError("Spine版本不一致,公共文件:" + commonData.mSpineVersion + ",Skeleton:" + skeletonData.Version);
             return;
         }
-        long skeletonHash = 0L;
-        if (!string.IsNullOrEmpty(skeletonData.Hash) && !long.TryParse(skeletonData.Hash, out skeletonHash))
-        {
-            Debug.LogError("Skeleton Hash不是有效的Int64:" + skeletonData.Hash);
-            return;
-        }
+        long skeletonHash = SpineSkeletonHashUtility.getStableHash(skeletonData.Hash);
         if (commonData.mSkeletonHash != skeletonHash)
         {
             Debug.LogError("Skeleton Hash不一致,公共文件:" + commonData.mSkeletonHash + ",Skeleton:" + skeletonHash);
