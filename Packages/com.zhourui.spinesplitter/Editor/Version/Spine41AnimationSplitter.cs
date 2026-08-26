@@ -8,8 +8,8 @@ using UnityEngine;
 using static SpineAnimationFileNameUtility;
 using static UnityEditor.AssetDatabase;
 
-// Spine 4.1动画拆分器,不包含任何窗口逻辑。
-// 输入原始.skel.bytes,自动找到引用它的SkeletonDataAsset,生成无动画Skeleton、Common和全部单动画文件。
+// Spine 4.1动画拆分器,同时支持官方JSON与二进制.skel.bytes源资源。
+// JSON源的SkeletonOnly保存为普通.txt TextAsset，避免触发Spine官方.json自动Importer。
 public static class Spine41AnimationSplitter
 {
     public static bool isSourceSkeletonAssetPath(string assetPath)
@@ -23,26 +23,176 @@ public static class Spine41AnimationSplitter
         {
             return false;
         }
-        if (!assetPath.EndsWith(".skel.bytes", StringComparison.OrdinalIgnoreCase))
-        {
-            return false;
-        }
         string fileName = Path.GetFileName(assetPath);
-        if (fileName.EndsWith(SKELETON_ONLY_SUFFIX + ".skel.bytes", StringComparison.OrdinalIgnoreCase))
+        if (assetPath.EndsWith(".skel.bytes", StringComparison.OrdinalIgnoreCase))
         {
-            return false;
+            return !fileName.EndsWith(SKELETON_ONLY_SUFFIX + ".skel.bytes", StringComparison.OrdinalIgnoreCase);
         }
-        return true;
+        if (assetPath.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+        {
+            if (fileName.EndsWith(SKELETON_ONLY_SUFFIX + ".json", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+            TextAsset textAsset = LoadAssetAtPath<TextAsset>(assetPath);
+            if (textAsset == null)
+            {
+                return false;
+            }
+            try
+            {
+                Spine41JsonUtility.parse(textAsset.bytes);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        return false;
+    }
+    private static bool isJsonSourceSkeletonAssetPath(string assetPath)
+    {
+        return !string.IsNullOrEmpty(assetPath) && assetPath.EndsWith(".json", StringComparison.OrdinalIgnoreCase);
+    }
+    private static bool isBinarySourceSkeletonAssetPath(string assetPath)
+    {
+        return !string.IsNullOrEmpty(assetPath) && assetPath.EndsWith(".skel.bytes", StringComparison.OrdinalIgnoreCase);
     }
 
     public static SpineAnimationSplitResult split(string sourceSkeletonAssetPath, bool verifyAfterGenerate = true, bool showProgress = false)
+    {
+        sourceSkeletonAssetPath = normalizeAssetPath(sourceSkeletonAssetPath);
+        if (isJsonSourceSkeletonAssetPath(sourceSkeletonAssetPath))
+        {
+            return splitJson(sourceSkeletonAssetPath, verifyAfterGenerate, showProgress);
+        }
+        return splitBinary(sourceSkeletonAssetPath, verifyAfterGenerate, showProgress);
+    }
+    private static SpineAnimationSplitResult splitJson(string sourceSkeletonAssetPath, bool verifyAfterGenerate, bool showProgress)
     {
         SpineAnimationSplitResult result = new SpineAnimationSplitResult();
         result.mSourceSkeletonAssetPath = normalizeAssetPath(sourceSkeletonAssetPath);
         SkeletonDataAsset sourceSkeletonDataAsset = null;
         try
         {
-            if (!isSourceSkeletonAssetPath(result.mSourceSkeletonAssetPath))
+            if (!isSourceSkeletonAssetPath(result.mSourceSkeletonAssetPath) || !isJsonSourceSkeletonAssetPath(result.mSourceSkeletonAssetPath))
+            {
+                throw new Exception("不是可拆分的Spine 4.1 JSON文件:" + result.mSourceSkeletonAssetPath);
+            }
+            TextAsset sourceTextAsset = LoadAssetAtPath<TextAsset>(result.mSourceSkeletonAssetPath);
+            if (sourceTextAsset == null)
+            {
+                throw new Exception("无法加载Spine JSON源文件:" + result.mSourceSkeletonAssetPath);
+            }
+            sourceSkeletonDataAsset = findSourceSkeletonDataAsset(result.mSourceSkeletonAssetPath);
+            if (sourceSkeletonDataAsset == null)
+            {
+                throw new Exception("没有找到引用该.json的SkeletonDataAsset:" + result.mSourceSkeletonAssetPath);
+            }
+            result.mSourceSkeletonDataAssetPath = normalizeAssetPath(GetAssetPath(sourceSkeletonDataAsset));
+            if (string.IsNullOrEmpty(result.mSourceSkeletonDataAssetPath))
+            {
+                throw new Exception("无法获取源SkeletonDataAsset路径:" + sourceSkeletonDataAsset.name);
+            }
+            byte[] sourceBytes = sourceTextAsset.bytes;
+            Spine41JsonUtility.SourceData jsonData = Spine41JsonUtility.parse(sourceBytes);
+            SpineBinaryScanResult scanResult = Spine41JsonUtility.scan(sourceBytes);
+            string sourceDirectory = normalizeAssetPath(Path.GetDirectoryName(result.mSourceSkeletonAssetPath));
+            string sourceSkeletonName = Path.GetFileNameWithoutExtension(result.mSourceSkeletonAssetPath);
+            string sourceSkeletonDataAssetName = Path.GetFileNameWithoutExtension(result.mSourceSkeletonDataAssetPath);
+            string skeletonResourceName = getSkeletonResourceName(sourceSkeletonDataAssetName);
+            string generatedSkeletonDataAssetName = getAnimationlessSkeletonDataAssetName(skeletonResourceName);
+            result.mGeneratedSkeletonAssetPath = combineAssetPath(sourceDirectory, sanitizeSkeletonFileName(skeletonResourceName) + SKELETON_ONLY_SUFFIX + ".txt");
+            result.mGeneratedSkeletonDataAssetPath = combineAssetPath(sourceDirectory, generatedSkeletonDataAssetName + ".asset");
+            result.mAnimationDirectoryAssetPath = combineAssetPath(sourceDirectory, getAnimationDirectoryName(skeletonResourceName));
+            result.mAnimationCount = scanResult.mAnimations.Count;
+            SpineAnimationSplitOutputPlan outputPlan = createOutputPlan(scanResult, generatedSkeletonDataAssetName);
+            string generatedSkeletonAbsolutePath = assetPathToAbsolutePath(result.mGeneratedSkeletonAssetPath);
+            string animationDirectoryAbsolutePath = assetPathToAbsolutePath(result.mAnimationDirectoryAssetPath);
+            validateOutputPaths(result);
+            displayProgress(showProgress, "自动拆分Spine 4.1 JSON动画", "正在清理旧生成资源...", 0.05f);
+            result.mClearedGeneratedFileCount = clearGeneratedOutput(result);
+            result.mClearedGeneratedFileCount += clearAlternateGeneratedSkeletonFile(sourceDirectory, skeletonResourceName, result.mGeneratedSkeletonAssetPath);
+            byte[] animationlessBytes = Spine41JsonUtility.createAnimationlessSkeletonBytes(jsonData);
+            string outputDirectory = Path.GetDirectoryName(generatedSkeletonAbsolutePath);
+            if (!Directory.Exists(outputDirectory)) Directory.CreateDirectory(outputDirectory);
+            File.WriteAllBytes(generatedSkeletonAbsolutePath, animationlessBytes);
+            ImportAsset(result.mGeneratedSkeletonAssetPath, ImportAssetOptions.ForceSynchronousImport);
+            TextAsset generatedSkeletonTextAsset = LoadAssetAtPath<TextAsset>(result.mGeneratedSkeletonAssetPath);
+            if (generatedSkeletonTextAsset == null)
+            {
+                throw new Exception("无法加载生成的Spine 4.1基础Skeleton TextAsset:" + result.mGeneratedSkeletonAssetPath);
+            }
+            if (verifyAfterGenerate)
+            {
+                displayProgress(showProgress, "自动拆分Spine 4.1 JSON动画", "正在验证无动画Skeleton...", 0.14f);
+                verifyAnimationlessSkeleton(sourceSkeletonDataAsset, generatedSkeletonTextAsset);
+            }
+            createOrUpdateGeneratedSkeletonDataAsset(sourceSkeletonDataAsset, generatedSkeletonTextAsset, result.mGeneratedSkeletonDataAssetPath);
+            result.mTotalOutputBytes += animationlessBytes.LongLength;
+            if (File.Exists(assetPathToAbsolutePath(result.mGeneratedSkeletonDataAssetPath)))
+            {
+                result.mTotalOutputBytes += new FileInfo(assetPathToAbsolutePath(result.mGeneratedSkeletonDataAssetPath)).Length;
+            }
+            Directory.CreateDirectory(animationDirectoryAbsolutePath);
+            Spine41AnimationCommonData commonData = createAnimationCommonData(scanResult, sourceSkeletonName);
+            string commonAbsolutePath = Path.Combine(animationDirectoryAbsolutePath, outputPlan.mCommonFileName);
+            Spine41AnimationFile.writeCommon(commonAbsolutePath, commonData);
+            if (verifyAfterGenerate) verifyGeneratedCommonFile(commonAbsolutePath, commonData);
+            result.mTotalOutputBytes += new FileInfo(commonAbsolutePath).Length;
+            for (int i = 0; i < scanResult.mAnimations.Count; ++i)
+            {
+                SpineAnimationBinaryRange range = scanResult.mAnimations[i];
+                byte[] animationPayload = Spine41JsonUtility.getAnimationPayloadBytes(jsonData, range.mName);
+                Spine41SingleAnimationData animationData = new Spine41SingleAnimationData();
+                animationData.mFileVersion = Spine41AnimationFile.CURRENT_VERSION;
+                animationData.mSpineVersion = scanResult.mVersion;
+                animationData.mSkeletonHash = scanResult.mSkeletonHash;
+                animationData.mAnimationName = range.mName;
+                animationData.mBinaryData = animationPayload;
+                animationData.mBinaryOffset = 0;
+                animationData.mBinaryLength = animationPayload.Length;
+                string absoluteFilePath = Path.Combine(animationDirectoryAbsolutePath, outputPlan.mAnimationFileNameByIndex[i]);
+                displayProgress(showProgress, "自动拆分Spine 4.1 JSON动画", "正在生成:" + range.mName, 0.20f + 0.72f * (i + 1) / Math.Max(1, scanResult.mAnimations.Count));
+                Spine41AnimationFile.writeAnimation(absoluteFilePath, animationData);
+                if (verifyAfterGenerate) verifyGeneratedSingleAnimationFile(absoluteFilePath, animationData);
+                result.mTotalOutputBytes += new FileInfo(absoluteFilePath).Length;
+            }
+            result.mClearedGeneratedFileCount += deleteObsoleteAnimationMetaFiles(animationDirectoryAbsolutePath);
+            Refresh(ImportAssetOptions.ForceSynchronousImport);
+            SaveAssets();
+            result.mSuccess = true;
+            UnityEngine.Object logContext = LoadAssetAtPath<SkeletonDataAsset>(result.mGeneratedSkeletonDataAssetPath);
+            if (logContext == null) logContext = generatedSkeletonTextAsset;
+            Debug.Log("Spine 4.1 JSON自动拆分完成" +
+                "\n源SkeletonDataAsset:" + result.mSourceSkeletonDataAssetPath +
+                "\n源JSON:" + result.mSourceSkeletonAssetPath +
+                "\n基础Skeleton TextAsset:" + result.mGeneratedSkeletonAssetPath +
+                "\n无动画SkeletonDataAsset:" + result.mGeneratedSkeletonDataAssetPath +
+                "\n动画目录:" + result.mAnimationDirectoryAssetPath +
+                "\n动画数量:" + result.mAnimationCount +
+                "\n输出总大小:" + getMemoryText(result.mTotalOutputBytes), logContext);
+        }
+        catch (Exception exception)
+        {
+            result.mError = exception.Message;
+            Debug.LogError("Spine 4.1 JSON自动拆分失败:" + result.mSourceSkeletonAssetPath + "\n" + exception, sourceSkeletonDataAsset);
+        }
+        finally
+        {
+            if (showProgress) EditorUtility.ClearProgressBar();
+        }
+        return result;
+    }
+    private static SpineAnimationSplitResult splitBinary(string sourceSkeletonAssetPath, bool verifyAfterGenerate, bool showProgress)
+    {
+        SpineAnimationSplitResult result = new SpineAnimationSplitResult();
+        result.mSourceSkeletonAssetPath = normalizeAssetPath(sourceSkeletonAssetPath);
+        SkeletonDataAsset sourceSkeletonDataAsset = null;
+        try
+        {
+            if (!isBinarySourceSkeletonAssetPath(result.mSourceSkeletonAssetPath))
             {
                 throw new Exception("不是可拆分的原始Spine .skel.bytes文件:" + result.mSourceSkeletonAssetPath);
             }
@@ -92,6 +242,7 @@ public static class Spine41AnimationSplitter
             validateOutputPaths(result);
             displayProgress(showProgress, "自动拆分Spine动画", "正在清理旧生成资源...", 0.06f);
             result.mClearedGeneratedFileCount = clearGeneratedOutput(result);
+            result.mClearedGeneratedFileCount += clearAlternateGeneratedSkeletonFile(sourceDirectory, skeletonResourceName, result.mGeneratedSkeletonAssetPath);
             displayProgress(showProgress, "自动拆分Spine动画", "正在生成无动画Skeleton:" + result.mGeneratedSkeletonAssetPath, 0.08f);
             writeAnimationlessSkeleton(generatedSkeletonAbsolutePath, sourceBytes, scanResult);
             ImportAsset(result.mGeneratedSkeletonAssetPath, ImportAssetOptions.ForceSynchronousImport);
@@ -252,7 +403,7 @@ public static class Spine41AnimationSplitter
             paths.Add(normalizeAssetPath(GetAssetPath(matches[i])));
         }
         paths.Sort(StringComparer.OrdinalIgnoreCase);
-        return new Exception("同一个.skel.bytes被多个SkeletonDataAsset引用,无法确定自动拆分时应使用哪一个:" + sourceSkeletonAssetPath + "\n" + string.Join("\n", paths));
+        return new Exception("同一个Skeleton源文件被多个SkeletonDataAsset引用,无法确定自动拆分时应使用哪一个:" + sourceSkeletonAssetPath + "\n" + string.Join("\n", paths));
     }
 
     private static SpineAnimationSplitOutputPlan createOutputPlan(SpineBinaryScanResult scanResult, string generatedSkeletonDataAssetName)
@@ -317,6 +468,40 @@ public static class Spine41AnimationSplitter
             ++clearedFileCount;
         }
         return clearedFileCount;
+    }
+
+    // 4.1同时支持JSON和Binary。JSON的SkeletonOnly保存为.txt，避免触发Spine官方.json自动Importer。
+    // 每次生成时清理另外两种历史格式，防止旧SkeletonOnly继续触发Importer或造成资源混乱。
+    private static int clearAlternateGeneratedSkeletonFile(string sourceDirectory, string skeletonResourceName, string currentGeneratedAssetPath)
+    {
+        string baseName = sanitizeSkeletonFileName(skeletonResourceName) + SKELETON_ONLY_SUFFIX;
+        string[] candidateAssetPaths =
+        {
+            combineAssetPath(sourceDirectory, baseName + ".txt"),
+            combineAssetPath(sourceDirectory, baseName + ".json"),
+            combineAssetPath(sourceDirectory, getAnimationlessSkeletonFileName(skeletonResourceName)),
+        };
+        int deletedCount = 0;
+        for (int i = 0; i < candidateAssetPaths.Length; ++i)
+        {
+            string assetPath = candidateAssetPaths[i];
+            if (string.Equals(assetPath, currentGeneratedAssetPath, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+            string absolutePath = assetPathToAbsolutePath(assetPath);
+            if (File.Exists(absolutePath))
+            {
+                File.Delete(absolutePath);
+                ++deletedCount;
+            }
+            string metaPath = absolutePath + ".meta";
+            if (File.Exists(metaPath))
+            {
+                File.Delete(metaPath);
+            }
+        }
+        return deletedCount;
     }
 
     // 已经不存在的动画不会重新生成,此时删除它遗留下来的.meta。
@@ -465,7 +650,8 @@ public static class Spine41AnimationSplitter
 
     private static void verifyGeneratedSingleAnimationFile(string absolutePath, Spine41SingleAnimationData expectedData)
     {
-        Spine41SingleAnimationData actualData = Spine41AnimationFile.readAnimation(File.ReadAllBytes(absolutePath));
+        byte[] fileBytes = File.ReadAllBytes(absolutePath);
+        Spine41SingleAnimationData actualData = Spine41AnimationFile.readAnimationNoCopy(fileBytes);
         if (actualData.mFileVersion != Spine41AnimationFile.CURRENT_VERSION ||
             actualData.mSkeletonHash != expectedData.mSkeletonHash ||
             !string.Equals(actualData.mSpineVersion, expectedData.mSpineVersion, StringComparison.Ordinal) ||
@@ -473,15 +659,16 @@ public static class Spine41AnimationSplitter
         {
             throw new Exception("单动画文件基础信息验证失败:" + absolutePath);
         }
-        if (actualData.mBinaryData.Length != expectedData.mBinaryData.Length)
+        int expectedLength = expectedData.mBinaryLength > 0 ? expectedData.mBinaryLength : expectedData.mBinaryData.Length - expectedData.mBinaryOffset;
+        if (actualData.mBinaryLength != expectedLength)
         {
             throw new Exception("单动画文件长度验证失败:" + expectedData.mAnimationName);
         }
-        for (int i = 0; i < expectedData.mBinaryData.Length; ++i)
+        for (int i = 0; i < expectedLength; ++i)
         {
-            if (actualData.mBinaryData[i] != expectedData.mBinaryData[i])
+            if (actualData.mBinarySourceData[actualData.mBinaryOffset + i] != expectedData.mBinaryData[expectedData.mBinaryOffset + i])
             {
-                throw new Exception("单动画文件二进制验证失败:" + expectedData.mAnimationName + ",位置:" + i);
+                throw new Exception("单动画文件Payload验证失败:" + expectedData.mAnimationName + ",位置:" + i);
             }
         }
     }
@@ -501,6 +688,13 @@ public static class Spine41AnimationSplitter
         }
     }
 
+    private static string sanitizeSkeletonFileName(string value)
+    {
+        if (string.IsNullOrEmpty(value)) return "Skeleton";
+        char[] invalid = Path.GetInvalidFileNameChars();
+        for (int i = 0; i < invalid.Length; ++i) value = value.Replace(invalid[i], '_');
+        return value;
+    }
     private static string removeSkeletonBinarySuffix(string fileName)
     {
         if (fileName.EndsWith(".skel.bytes", StringComparison.OrdinalIgnoreCase))
