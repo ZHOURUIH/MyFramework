@@ -135,12 +135,6 @@ public class GlobalTouchSystem : FrameSystem
 	// 注册碰撞器,只有注册了的碰撞器才会进行检测,showError是否显示重复注册的报错
 	public void registeCollider(IMouseEventCollect obj, GameCamera camera = null)
 	{
-		// 允许自动添加碰撞盒
-		if (obj.getCollider(true) == null)
-		{
-			logError("注册碰撞体的物体上找不到碰撞体组件! name:" + obj.getName() + ", " + obj.getDescription());
-			return;
-		}
 		if (mAllObjectSet.Contains(obj))
 		{
 			return;
@@ -148,6 +142,11 @@ public class GlobalTouchSystem : FrameSystem
 
 		if (obj is myUGUIObject uiObj)
 		{
+			if (uiObj.getCollider(true) == null)
+			{
+				logError("注册碰撞体的UI上找不到碰撞体组件! name:" + obj.getName());
+				return;
+			}
 			// 寻找窗口对应的摄像机
 			camera ??= mCameraManager.getUICamera();
 			if (camera == null)
@@ -176,6 +175,17 @@ public class GlobalTouchSystem : FrameSystem
 		}
 		else if (obj is MovableObject movable)
 		{
+			// 已有3D或者2D碰撞体都可以注册
+			if (movable.getCollider() == null &&
+				movable.getCollider2D() == null)
+			{
+				// 保持原来MovableObject没有Collider时自动生成3D BoxCollider的行为
+				if (movable.getCollider(true) == null)
+				{
+					logError("注册碰撞体的物体上找不到碰撞体组件! name:" + obj.getName());
+					return;
+				}
+			}
 			// 如果没有指定一个摄像机,则会使用当前主摄像机
 			camera ??= getMainCamera();
 			MouseCastObjectSet mouseCastSet = null;
@@ -198,6 +208,7 @@ public class GlobalTouchSystem : FrameSystem
 		else
 		{
 			logError("不支持的注册类型:" + obj.GetType());
+			return;
 		}
 		mAllObjectSet.Add(obj);
 		notifyRaycastChanged();
@@ -611,12 +622,12 @@ public class GlobalTouchSystem : FrameSystem
 		foreach (IMouseEventCollect box in moveObjectList)
 		{
 			// 将所有射线碰到的物体都放到列表中
-			if (box.isActiveInHierarchy() && 
-				box.isHandleInput() && 
-				box.getCollider() != null && 
-				box.getCollider().Raycast(ray, out RaycastHit hit, 10000.0f))
+			if (box.isActiveInHierarchy() &&
+				box.isHandleInput() &&
+				box is MovableObject movable &&
+				movable.raycastSelf(ref ray, out Vector3 hitPoint, 10000.0f))
 			{
-				sortList.Add(new((hit.point - ray.origin).getSquaredLength(), box));
+				sortList.Add(new((hitPoint - ray.origin).getSquaredLength(), box));
 			}
 		}
 		// 根据相交点由近到远的顺序排序

@@ -1409,6 +1409,52 @@ public class UnityUtility
 		return urpAsset.renderScale;
 	}
 #endif
+	public static Texture2D captureCamera(Camera camera, int width, string name)
+	{
+		if (camera == null)
+		{
+			return null;
+		}
+		int height = (width / camera.aspect).round().clampMin(1);
+		RenderTexture oldActive = RenderTexture.active;
+		RenderTexture renderTexture = RenderTexture.GetTemporary(width, height, 24, RenderTextureFormat.ARGB32);
+		Texture2D preview = new(width, height, TextureFormat.RGB24, false);
+		try
+		{
+#if USE_URP
+			UniversalRenderPipeline.SingleCameraRequest request = new();
+			if (!RenderPipeline.SupportsRenderRequest(camera, request))
+			{
+				destroyUnityObject(preview);
+				preview = null;
+				return null;
+			}
+			request.destination = renderTexture;
+			RenderPipeline.SubmitRenderRequest(camera, request);
+#else
+			RenderTexture oldTarget = camera.targetTexture;
+			try
+			{
+				camera.targetTexture = renderTexture;
+				camera.Render();
+			}
+			finally
+			{
+				camera.targetTexture = oldTarget;
+			}
+#endif
+			RenderTexture.active = renderTexture;
+			preview.ReadPixels(new Rect(0.0f, 0.0f, width, height), 0, 0, false);
+			preview.Apply(false, false);
+			preview.name = name;
+		}
+		finally
+		{
+			RenderTexture.active = oldActive;
+			RenderTexture.ReleaseTemporary(renderTexture);
+		}
+		return preview;
+	}
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR
 	public static int getLastError()
 	{

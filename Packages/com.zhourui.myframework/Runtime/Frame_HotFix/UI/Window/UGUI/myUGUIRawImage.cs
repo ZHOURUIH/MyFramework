@@ -9,19 +9,19 @@ using static FrameBaseUtility;
 // 对UGUI的RawImage的封装
 public class myUGUIRawImage : myUGUIObject, IShaderWindow
 {
-	protected WindowShader mWindowShader;				// shader对象
+	protected WindowShader mWindowShader;               // shader对象
 	protected RawImage mRawImage;                       // UGUI的RawImage组件
-	protected CanvasGroup mCanvasGroup;					// 用于是否显示
-	protected Material mOriginMaterial;					// 初始的材质,用于重置时恢复材质
+	protected CanvasGroup mCanvasGroup;                 // 用于是否显示
+	protected Material mOriginMaterial;                 // 初始的材质,用于重置时恢复材质
 	protected Texture mOriginTexture;                   // 初始的图片,只用于恢复参数,不用作卸载,此图片的卸载是在prefab卸载后,没有任何地方对其有引用,在Resources.UnloadUnusedAssets中被卸载
 	protected ResourceRef<Texture> mCurTexture;         // 当前引用的图片,用于卸载
-	protected ResourceRef<Material> mCurMaterial;		// 当前引用的材质,用于卸载
+	protected ResourceRef<Material> mCurMaterial;       // 当前引用的材质,用于卸载
 	protected string mOriginMaterialPath;               // 初始材质的文件路径
 	protected string mTextureName;                      // 当前图片的名字,避免GC
 	protected string mMaterialName;                     // 当前材质的名字,避免GC
 	protected bool mTextureNameDirty;                   // 图片名字是否需要更新
 	protected bool mMaterialNameDirty;                  // 材质名字是否需要更新
-	protected bool mIsNewMaterial;						// 当前的材质是否是新创建的材质对象
+	protected bool mIsNewMaterial;                      // 当前的材质是否是新创建的材质对象
 	public override void init()
 	{
 		base.init();
@@ -42,7 +42,7 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		mMaterialName = mRawImage.material != null ? mRawImage.material.name : null;
 		string materialName = getMaterialName().removeAll(" (Instance)");
 		// 不再将默认材质替换为自定义的默认材质,只判断其他材质
-		if (!materialName.isEmpty() && 
+		if (!materialName.isEmpty() &&
 			materialName != BUILDIN_UI_MATERIAL)
 		{
 			if (mOriginMaterial != null && mObject.TryGetComponent<MaterialPath>(out var comMaterialPath))
@@ -92,7 +92,7 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		mCanvasGroup.alpha = isCull ? 0.0f : 1.0f;
 	}
 	public bool isCull() { return mCanvasGroup != null && mCanvasGroup.alpha.isZero(); }
-	public void setWindowShader(WindowShader shader) 
+	public void setWindowShader(WindowShader shader)
 	{
 		mWindowShader = shader;
 		// 因为shader参数的需要在update中更新,所以需要启用窗口的更新
@@ -114,7 +114,22 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		color.a = alpha;
 		mRawImage.color = color;
 	}
-	// 设置一个图片,并且当前对象拥有图片资源的所有权
+	// 直接设置一个图片,不涉及到所有权问题,适用于运行时动态创建的图片,或者远程下载的图片
+	public void setTextureDirect(Texture tex, bool useTextureSize = false)
+	{
+		if (mRawImage == null)
+		{
+			return;
+		}
+		mResourceManager.unload(ref mCurTexture);
+		mRawImage.texture = tex;
+		mTextureNameDirty = true;
+		if (useTextureSize && tex != null)
+		{
+			setSize(getTextureSize());
+		}
+	}
+	// 设置一个图片,并且当前对象拥有图片资源的所有权,适用于从资源中加载的图片
 	public void setTexture(ResourceRef<Texture> tex, bool useTextureSize = false)
 	{
 		if (mRawImage == null)
@@ -146,14 +161,14 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		}
 		return new(mRawImage.texture.width, mRawImage.texture.height);
 	}
-	public string getTextureName() 
+	public string getTextureName()
 	{
 		if (mTextureNameDirty)
 		{
 			mTextureNameDirty = false;
 			mTextureName = mRawImage.texture != null ? mRawImage.texture.name : null;
 		}
-		return mTextureName; 
+		return mTextureName;
 	}
 	public void setTextureName(string name, bool useTextureSize = false)
 	{
@@ -175,7 +190,7 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		// 异步加载
 		mResourceManager.loadGameResourceAsync<Texture>(name, (tex) => { setTexture(tex, useTextureSize); });
 	}
-	public Material getMaterial() 
+	public Material getMaterial()
 	{
 		if (mRawImage == null)
 		{
@@ -188,14 +203,14 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		mRawImage.material = mat;
 		mMaterialNameDirty = true;
 	}
-	public string getMaterialName() 
+	public string getMaterialName()
 	{
 		if (mMaterialNameDirty)
 		{
 			mMaterialNameDirty = false;
 			mMaterialName = mRawImage.material != null ? mRawImage.material.name : null;
 		}
-		return mMaterialName; 
+		return mMaterialName;
 	}
 	public void setMaterialName(string materialPath, bool newMaterial, bool loadAsync = false)
 	{

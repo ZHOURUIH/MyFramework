@@ -10,10 +10,10 @@ using static FrameBaseHotFix;
 public class CharacterManager : FrameSystem
 {
 	protected Dictionary<Type, Dictionary<long, Character>> mCharacterTypeList = new(); // 角色分类列表
-	protected SafeDictionary<long, Character> mCharacterUpdateList = new();				// 用于更新角色的列表
-	protected Dictionary<long, Character> mCharacterGUIDList = new();					// 角色ID索引表
-	protected SafeDictionary<long, Character> mFixedUpdateList = new();					// 需要在FixedUpdate中更新的列表,如果直接使用mCharacterGUIDList,会非常慢,而很多时候其实并不需要进行物理更新,所以单独使用一个列表存储
-	protected Character mMyself;														// 玩家自己,方便获取
+	protected SafeDictionary<long, Character> mCharacterUpdateList = new();             // 用于更新角色的列表
+	protected Dictionary<long, Character> mCharacterGUIDList = new();                   // 角色ID索引表
+	protected SafeDictionary<long, Character> mFixedUpdateList = new();                 // 需要在FixedUpdate中更新的列表,如果直接使用mCharacterGUIDList,会非常慢,而很多时候其实并不需要进行物理更新,所以单独使用一个列表存储
+	protected Character mMyself;                                                        // 玩家自己,方便获取
 	public CharacterManager()
 	{
 		mCreateObject = true;
@@ -102,6 +102,15 @@ public class CharacterManager : FrameSystem
 		character.init();
 		addCharacterToList(character, managed);
 		return character;
+	}
+	public void destroyAllCharacterT<T>() where T : Character
+	{
+		using var a = new ListScope<T>(out var list);
+		foreach (var item in mCharacterGUIDList)
+		{
+			list.addNotNull(item.Value as T);
+		}
+		destroyCharacterList(list);
 	}
 	public void destroyAllCharacter()
 	{

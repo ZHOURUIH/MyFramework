@@ -99,6 +99,19 @@ public class Transformable : ComponentOwner, ITransformable
 		}
 		notifyColliderChanged();
 	}
+	public Collider2D getCollider2DInChild()
+	{
+		return getUnityComponentInChild<Collider2D>(true);
+	}
+	public virtual Collider2D getCollider2D(bool addIfNotExist = false)
+	{
+		var collider = tryGetUnityComponent<Collider2D>();
+		if (addIfNotExist && collider == null)
+		{
+			collider = getOrAddUnityComponent<BoxCollider2D>();
+		}
+		return collider;
+	}
 	// 返回第一个碰撞体,当前节点找不到,则会在子节点中寻找
 	public Collider getColliderInChild() { return getUnityComponentInChild<Collider>(true); }
 	// 返回第一个碰撞体,仅在当前节点中寻找,允许子类重写此函数,碰撞体可能不在当前节点,或者也不在此节点的子节点中

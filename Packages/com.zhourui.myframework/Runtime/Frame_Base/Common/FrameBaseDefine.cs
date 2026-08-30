@@ -63,7 +63,7 @@ public class FrameBaseDefine
 	public static string F_ASSET_BUNDLE_PATH = F_ASSET_BUNDLE_WEBGL_PATH;
 #endif
 	// 绝对路径,以F_开头,表示Full
-#if UNITY_WEBGL
+#if !UNITY_EDITOR && UNITY_WEBGL
 #if BYTE_DANCE
 	public static string F_PERSISTENT_DATA_PATH = GetTTPersistantPath();
 #elif UNITY_WEIXINMINIGAME

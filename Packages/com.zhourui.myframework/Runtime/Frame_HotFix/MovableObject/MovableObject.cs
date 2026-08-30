@@ -230,6 +230,40 @@ public class MovableObject : Transformable, IMouseEventCollect
 			ensureMouseCastTransformCallback();
 		}
 	}
+	public bool raycastSelf(ref Ray ray, out Vector3 hitPoint, float maxDistance)
+	{
+		hitPoint = Vector3.zero;
+		Collider collider = getCollider();
+		if (collider != null && collider.enabled && collider.Raycast(ray, out RaycastHit hit, maxDistance))
+		{
+			hitPoint = hit.point;
+			return true;
+		}
+		Collider2D collider2D = getCollider2D();
+		if (collider2D == null || !collider2D.enabled || !collider2D.gameObject.activeInHierarchy)
+		{
+			return false;
+		}
+		float directionZ = ray.direction.z;
+		if (directionZ.isZero())
+		{
+			return false;
+		}
+
+		float distance = (collider2D.transform.position.z - ray.origin.z) / directionZ;
+		if (distance < 0.0f || distance > maxDistance)
+		{
+			return false;
+		}
+
+		Vector3 point = ray.GetPoint(distance);
+		if (!collider2D.OverlapPoint(point))
+		{
+			return false;
+		}
+		hitPoint = point;
+		return true;
+	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void notifyActiveChanged() { notifyMouseCastTransformChanged(); }
 	protected override void notifyColliderChanged() { notifyMouseCastTransformChanged(); }
