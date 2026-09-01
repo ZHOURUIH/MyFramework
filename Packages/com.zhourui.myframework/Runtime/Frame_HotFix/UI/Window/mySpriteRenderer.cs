@@ -6,16 +6,14 @@ using static StringUtility;
 using static UnityUtility;
 
 // 对SpriteRenderer的封装,在3D空间中使用的
-public class mySpriteRenderer : ClassObject
+public class mySpriteRenderer : Transformable
 {
-	protected GameObject mObject;					// 节点
 	protected SpriteRenderer mSpriteRenderer;		// 图片组件
 	protected AtlasRef mOriginAtlasPtr;				// 图片图集,用于卸载,当前类只关心初始图集的卸载,后续再次设置的图集不关心是否需要卸载,需要外部设置的地方自己关心
 	protected AtlasRef mAtlasPtr;					// 图片图集
 	protected Material mOriginMaterial;				// 初始的材质,用于重置时恢复材质
 	protected ResourceRef<Material> mCurMaterial;   // 当前引用的材质,用于卸载
 	protected Sprite mOriginSprite;					// 备份加载物体时原始的精灵图片
-	protected string mName;							// 节点名字的缓存
 	protected string mOriginMaterialPath;			// 原始材质的文件路径
 	protected string mOriginSpriteName;             // 初始图片的名字,用于外部根据初始名字设置其他效果的图片
 	protected string mSpriteName;                   // 当前图片的名字,避免GC
@@ -23,62 +21,10 @@ public class mySpriteRenderer : ClassObject
 	protected bool mSpriteNameDirty;                // 图片名字是否需要更新
 	protected bool mMaterialNameDirty;              // 材质名字是否需要更新
 	protected bool mIsNewMaterial;                  // 当前的材质是否是新建的材质对象
-	public void init(SpriteRenderer renderer)
+	public override void setObject(GameObject obj)
 	{
-		mSpriteRenderer = renderer;
-		mObject = mSpriteRenderer.gameObject;
-        mName = mObject.name;
-        mOriginSprite = mSpriteRenderer.sprite;
-		mOriginMaterial = mSpriteRenderer.sharedMaterial;
-		mSpriteName = mOriginSprite != null ? mOriginSprite.name : null;
-		mOriginSpriteName = mSpriteName;
-		mMaterialName = mOriginMaterial != null ? mOriginMaterial.name : null;
-		// 获取初始的精灵所在图集
-		if (mOriginSprite != null)
-		{
-			if (!mObject.TryGetComponent<ImageAtlasPath>(out var imageAtlasPath))
-			{
-				logError("需要切换图片的SpriteRenderer组件上找不到ImageAtlasPath组件, GameObject:" + getGameObjectPath(mObject));
-				return;
-			}
-			string atlasPath = imageAtlasPath.mAtlasPath;
-			if (atlasPath.isEmpty())
-			{
-				logError("ImageAtlasPath中记录的路径为空,GameObject:" + getGameObjectPath(mObject));
-			}
-			atlasPath = atlasPath.removeStart(P_GAME_RESOURCES_PATH);
-			mOriginAtlasPtr = mAtlasManager.getAtlas(atlasPath);
-			if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
-			{
-				logError("无法加载初始化的图集:" + atlasPath + ",GameObject:" + getGameObjectPath(mObject) +
-					",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
-			}
-			mAtlasPtr = mOriginAtlasPtr;
-		}
-		string materialName = getMaterialName().removeAll(" (Instance)");
-		// 不再将默认材质替换为自定义的默认材质,只判断其他材质
-		if (!materialName.isEmpty() &&
-			materialName != DEFAULT_MATERIAL &&
-			materialName != SPRITE_DEFAULT_MATERIAL)
-		{
-			if (mOriginMaterial != null && mObject.TryGetComponent<MaterialPath>(out var comMaterialPath))
-			{
-				mOriginMaterialPath = comMaterialPath.mMaterialPath;
-			}
-			if (mOriginMaterialPath.isEmpty())
-			{
-				logError("没有找到MaterialPath组件,name:" + mName);
-			}
-			mOriginMaterialPath = mOriginMaterialPath.removeStart(P_GAME_RESOURCES_PATH);
-			if (!mOriginMaterialPath.endWith("/unity_builtin_extra"))
-			{
-				if (!mOriginMaterialPath.Contains('.'))
-				{
-					logError("材质文件需要带后缀:" + mOriginMaterialPath + ",GameObject:" + mName);
-				}
-				setMaterialName(mOriginMaterialPath, !mShaderManager.isSingleShader(mOriginMaterial.shader.name), true);
-			}
-		}
+		base.setObject(obj);
+		initSpriteRenderer();
 	}
     public override void resetProperty()
     {
@@ -179,7 +125,7 @@ public class mySpriteRenderer : ClassObject
 		{
 			logWarning("设置不同图集的图片可能会引起问题,如果需要设置其他图集的图片,请使用setSpriteOnly, sprite:" + sprite.name + 
 					   ", atlas:" + mAtlasPtr.getAtlasSingleName() + ", token:" + mAtlasPtr.getToken() + ", hash:" + mAtlasPtr.GetHashCode() +
-                       ", GameObject:" + getGameObjectPath(mObject) + ", GameObject hash:" + GetHashCode());
+                       ", GameObject:" + getGameObjectPath() + ", GameObject hash:" + GetHashCode());
 		}
 		mSpriteRenderer.sprite = sprite;
 		mSpriteNameDirty = true;
@@ -195,7 +141,7 @@ public class mySpriteRenderer : ClassObject
 		if (sprite != null && !sprite.pixelsPerUnit.isEqual(1.0f) && mObject.transform.localScale.x <= 1.0f)
 		{
 			logWarning("sprite的pixelsPerUnit为1,且Transform缩放为1, 会使最终渲染结果缩小100倍,如果需要显示正常,请调整pixelsPerUnit或者Transform缩放, sprite:" + 
-					   sprite.name + ", GameObject:" + getGameObjectPath(mObject));
+					   sprite.name + ", GameObject:" + getGameObjectPath());
 		}
 		mSpriteRenderer.sprite = sprite;
 		mSpriteNameDirty = true;
@@ -307,7 +253,7 @@ public class mySpriteRenderer : ClassObject
 		}
 		return mMaterialName; 
 	}
-	public void setAlpha(float alpha)
+	public override void setAlpha(float alpha)
 	{
 		if (mSpriteRenderer == null)
 		{
@@ -317,7 +263,7 @@ public class mySpriteRenderer : ClassObject
 		color.a = alpha;
 		mSpriteRenderer.color = color;
 	}
-	public float getAlpha() { return mSpriteRenderer.color.a; }
+	public override float getAlpha() { return mSpriteRenderer.color.a; }
 	public void setColor(Color color)
 	{
 		if (mSpriteRenderer == null)
@@ -340,13 +286,70 @@ public class mySpriteRenderer : ClassObject
 	public string getOriginSpriteName() { return mOriginSpriteName; }
 	public void setOriginSpriteName(string textureName) { mOriginSpriteName = textureName; }
 	// 自动计算图片的原始名称,也就是不带后缀的名称,后缀默认以_分隔
-	public void generateOriginSpriteName(char key = '_')
+	public string generateOriginSpriteName(char key = '_')
 	{
 		if (!mOriginSpriteName.Contains(key))
 		{
 			logError("texture name is not valid!can not generate origin texture name, texture name : " + mOriginSpriteName);
-			return;
+			return null;
 		}
 		mOriginSpriteName = mOriginSpriteName.rangeToLastInclude(key);
+		return mOriginSpriteName;
+	}
+	//------------------------------------------------------------------------------------------------------------------------------
+	protected virtual void initSpriteRenderer()
+	{
+		tryGetUnityComponent(out mSpriteRenderer);
+		mOriginSprite = mSpriteRenderer.sprite;
+		mOriginMaterial = mSpriteRenderer.sharedMaterial;
+		mSpriteName = mOriginSprite != null ? mOriginSprite.name : null;
+		mOriginSpriteName = mSpriteName;
+		mMaterialName = mOriginMaterial != null ? mOriginMaterial.name : null;
+		// 获取初始的精灵所在图集
+		if (mOriginSprite != null)
+		{
+			if (!mObject.TryGetComponent<ImageAtlasPath>(out var imageAtlasPath))
+			{
+				logError("需要切换图片的SpriteRenderer组件上找不到ImageAtlasPath组件, GameObject:" + getGameObjectPath());
+				return;
+			}
+			string atlasPath = imageAtlasPath.mAtlasPath;
+			if (atlasPath.isEmpty())
+			{
+				logError("ImageAtlasPath中记录的路径为空,GameObject:" + getGameObjectPath());
+			}
+			atlasPath = atlasPath.removeStart(P_GAME_RESOURCES_PATH);
+			mOriginAtlasPtr = mAtlasManager.getAtlas(atlasPath);
+			if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
+			{
+				logError("无法加载初始化的图集:" + atlasPath + ",GameObject:" + getGameObjectPath() +
+					",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
+			}
+			mAtlasPtr = mOriginAtlasPtr;
+		}
+		string materialName = getMaterialName().removeAll(" (Instance)");
+		// 不再将默认材质替换为自定义的默认材质,只判断其他材质
+		if (!materialName.isEmpty() &&
+			materialName != DEFAULT_MATERIAL &&
+			materialName != SPRITE_DEFAULT_MATERIAL)
+		{
+			if (mOriginMaterial != null && mObject.TryGetComponent<MaterialPath>(out var comMaterialPath))
+			{
+				mOriginMaterialPath = comMaterialPath.mMaterialPath;
+			}
+			if (mOriginMaterialPath.isEmpty())
+			{
+				logError("没有找到MaterialPath组件,name:" + mName);
+			}
+			mOriginMaterialPath = mOriginMaterialPath.removeStart(P_GAME_RESOURCES_PATH);
+			if (!mOriginMaterialPath.endWith("/unity_builtin_extra"))
+			{
+				if (!mOriginMaterialPath.Contains('.'))
+				{
+					logError("材质文件需要带后缀:" + mOriginMaterialPath + ",GameObject:" + mName);
+				}
+				setMaterialName(mOriginMaterialPath, !mShaderManager.isSingleShader(mOriginMaterial.shader.name), true);
+			}
+		}
 	}
 }

@@ -1,0 +1,212 @@
+﻿using System.Collections.Generic;
+using UnityEngine;
+using static UnityUtility;
+using static FrameUtility;
+
+// Sprite的序列帧
+public class mySpriteRendererAnim : mySpriteRenderer, IUIAnimation
+{
+	protected List<BoolCallback> mPlayEndCallbackList;      // 一个序列播放完时的回调函数,只在非循环播放状态下有效
+	protected List<BoolCallback> mPlayingCallbackList;      // 一个序列正在播放时的回调函数
+	protected List<Vector2> mTexturePosList;                // 每一帧的位置偏移列表
+	protected List<Sprite> mSpriteList = new();             // 序列帧图片列表
+	protected AnimControl mControl;							// 序列帧控制器
+	protected string mTextureSetName;                       // 序列帧名字
+	protected EFFECT_ALIGN mEffectAlign;                    // 图片的位置对齐方式
+	public mySpriteRendererAnim()
+	{
+		CLASS(out mControl);
+	}
+	protected override void initSpriteRenderer()
+	{
+		base.initSpriteRenderer();
+		mControl.setPlayEndCallback(onPlayEnd);
+		mControl.setPlayingCallback(onPlaying);
+		setTextureSet(generateOriginSpriteName());
+	}
+	public override void destroy()
+	{
+		base.destroy();
+		mSpriteList.Clear();
+		mTextureSetName = null;
+		UN_CLASS(ref mControl);
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mPlayEndCallbackList?.Clear();
+		mPlayingCallbackList?.Clear();
+		mTexturePosList?.Clear();
+		mSpriteList.Clear();
+		mControl = null;
+		mTextureSetName = null;
+		mEffectAlign = EFFECT_ALIGN.NONE;
+	}
+	public override void update(float elapsedTime)
+	{
+		base.update(elapsedTime);
+		if (mSpriteList.Count == 0)
+		{
+			setSpriteName(null);
+		}
+		mControl.update(elapsedTime);
+	}
+	public override void setAtlas(AtlasRef atlas, bool clearSprite = false, bool force = false)
+	{
+		if (!force && atlas?.getAtlas() == getAtlas()?.getAtlas())
+		{
+			return;
+		}
+		// 改变图集时先停止播放
+		stop();
+		base.setAtlas(atlas, clearSprite, force);
+		// 图集改变后清空当前序列帧列表
+		setTextureSet(null);
+	}
+	public void setTexturePosList(List<Vector2> posList)
+	{
+		mTexturePosList = posList;
+		if (mTexturePosList != null)
+		{
+			setEffectAlign(EFFECT_ALIGN.POSITION_LIST);
+		}
+	}
+	public void setTextureSet(string textureSetName)
+	{
+		if (mTextureSetName == textureSetName)
+		{
+			return;
+		}
+		mSpriteList.Clear();
+		mTextureSetName = textureSetName;
+		if (mAtlasPtr != null && mAtlasPtr.isValid() && !mTextureSetName.isEmpty())
+		{
+			int index = 0;
+			while (mSpriteList.addNotNull(mAtlasPtr.getSprite(mTextureSetName + "_" + index++.IToS())))
+			{ }
+			if (getTextureFrameCount() == 0)
+			{
+				logError("invalid sprite anim! atlas : " + mAtlasPtr.getFilePath() + ", anim set : " + textureSetName);
+			}
+		}
+		mControl.setFrameCount(getTextureFrameCount());
+	}
+	public string getTextureSet() { return mTextureSetName; }
+	public int getTextureFrameCount() { return mSpriteList.Count; }
+	public List<Vector2> getTexturePosList() { return mTexturePosList; }
+	public LOOP_MODE getLoop() { return mControl.getLoop(); }
+	public float getInterval() { return mControl.getInterval(); }
+	public float getSpeed() { return mControl.getSpeed(); }
+	public int getStartIndex() { return mControl.getStartIndex(); }
+	public float getLength() { return mControl.getLength(); }
+	public PLAY_STATE getPlayState() { return mControl.getPlayState(); }
+	public bool getPlayDirection() { return mControl.getPlayDirection(); }
+	public int getEndIndex() { return mControl.getEndIndex(); }
+	public bool isAutoHide() { return mControl.isAutoResetIndex(); }
+	// 获得实际的终止下标,如果是自动获得,则返回最后一张的下标
+	public int getRealEndIndex() { return mControl.getRealEndIndex(); }
+	public int getCurFrameIndex() { return mControl.getCurFrameIndex(); }
+	public void setEffectAlign(EFFECT_ALIGN align) { mEffectAlign = align; }
+	public void setLoop(LOOP_MODE loop) { mControl.setLoop(loop); }
+	public void setInterval(float interval) { mControl.setInterval(interval); }
+	public void setSpeed(float speed) { mControl.setSpeed(speed); }
+	public void setPlayDirection(bool direction) { mControl.setPlayDirection(direction); }
+	public void setAutoHide(bool autoHide) { mControl.setAutoHide(autoHide); }
+	public void setStartIndex(int startIndex) { mControl.setStartIndex(startIndex); }
+	public void setEndIndex(int endIndex) { mControl.setEndIndex(endIndex); }
+	public void stop(bool resetStartIndex = true, bool callback = true, bool isBreak = true) { mControl.stop(resetStartIndex, callback, isBreak); }
+	public void play() { mControl.play(); }
+	public void pause() { mControl.pause(); }
+	public void setCurFrameIndex(int index) { mControl.setCurFrameIndex(index); }
+	public void setUseTextureSize(bool useSize) { }
+	// 由于每次播放结束后都会将回调列表清空,所以需要在stop后和play前去添加回调
+	public void addPlayEndCallback(BoolCallback callback, bool clear = true)
+	{
+		if (clear && !mPlayEndCallbackList.isEmpty())
+		{
+			using var a = new ListScope<BoolCallback>(out var tempList);
+			// 如果回调函数当前不为空,则是中断了更新
+			foreach (BoolCallback item in mPlayEndCallbackList.moveTo(tempList))
+			{
+				item(true);
+			}
+		}
+		if (callback != null)
+		{
+			mPlayEndCallbackList ??= new();
+			mPlayEndCallbackList.Add(callback);
+		}
+	}
+	public void addPlayingCallback(BoolCallback callback, bool clear = true)
+	{
+		if (clear)
+		{
+			mPlayingCallbackList?.Clear();
+		}
+		if (callback != null)
+		{
+			mPlayingCallbackList ??= new();
+			mPlayingCallbackList.Add(callback);
+		}
+	}
+	public void clearCallback()
+	{
+		mPlayEndCallbackList?.Clear();
+		mPlayingCallbackList?.Clear();
+	}
+	//------------------------------------------------------------------------------------------------------------------------------
+	protected void onPlaying(int frame, bool isPlaying)
+	{
+		int spriteCount = mSpriteList.Count;
+		if (frame >= spriteCount)
+		{
+			return;
+		}
+		setSprite(mSpriteList[frame]);
+		// 使用位置列表进行校正
+		if (mEffectAlign == EFFECT_ALIGN.POSITION_LIST)
+		{
+			if (mTexturePosList.count() == spriteCount)
+			{
+				setPosition(mTexturePosList[frame]);
+			}
+		}
+		// 对齐父节点的底部,这里只支持父节点是RectTransform
+		else if (mEffectAlign == EFFECT_ALIGN.PARENT_BOTTOM)
+		{
+			RectTransform parent = mTransform.parent as RectTransform;
+			if (parent != null)
+			{
+				setPositionY((getSize().y - parent.getSize().y) * 0.5f);
+			}
+		}
+		foreach (BoolCallback item in mPlayingCallbackList.safe())
+		{
+			item(false);
+		}
+	}
+	protected void onPlayEnd(bool callback, bool isBreak)
+	{
+		// 正常播放完毕后根据是否重置下标来判断是否自动隐藏
+		if (!isBreak && mControl.isAutoResetIndex())
+		{
+			setActive(false);
+		}
+		if (mPlayEndCallbackList.isEmpty())
+		{
+			return;
+		}
+		if (callback)
+		{
+			using var a = new ListScope<BoolCallback>(out var tempList);
+			foreach (BoolCallback item in mPlayEndCallbackList.moveTo(tempList))
+			{
+				item(isBreak);
+			}
+		}
+		else
+		{
+			mPlayEndCallbackList.Clear();
+		}
+	}
+}

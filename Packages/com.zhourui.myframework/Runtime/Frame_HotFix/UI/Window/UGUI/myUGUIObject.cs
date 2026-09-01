@@ -277,12 +277,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	}
 	public virtual Vector2 getSize(bool transformed = false)
 	{
-		Vector2 windowSize = mRectTransform.rect.size;
-		if (transformed)
-		{
-			windowSize = windowSize.multi(getWorldScale());
-		}
-		return windowSize;
+		return mRectTransform.getSize(transformed);
 	}
 	public override void setAlpha(float alpha){}
 	public virtual void setAlphaWithChild(float alpha)

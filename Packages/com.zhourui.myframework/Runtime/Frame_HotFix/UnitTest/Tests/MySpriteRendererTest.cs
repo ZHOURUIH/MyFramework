@@ -38,7 +38,7 @@ public static class MySpriteRendererTest
 		// 默认材质 "Sprites-Default" 会触发 init 的材质路径检查(logError+removeStart NRE) → 置 null 跳过
 		renderer.sharedMaterial = null;
 		mySpriteRenderer spriteWindow = new mySpriteRenderer();
-		spriteWindow.init(renderer);
+		spriteWindow.setObject(go);
 		tex = new Texture2D(32, 64);
 		return spriteWindow;
 	}

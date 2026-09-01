@@ -272,10 +272,19 @@ public static class RectTransformExtension
 		vector.y = size.y - parentSize.y * (anchorMax.y - anchorMin.y);
 		rectTransform.sizeDelta = vector;
 	}
-	public static Vector2 getParentSize(this RectTransform rectTrans)
+	public static Vector2 getParentSize(this RectTransform rectTrans, bool transformed = false)
 	{
 		var rectTransform = rectTrans.parent as RectTransform;
-		return rectTransform != null ? rectTransform.rect.size : Vector2.zero;
+		return rectTransform != null ? rectTransform.getSize() : Vector2.zero;
+	}
+	public static Vector2 getSize(this RectTransform rectTransform, bool transformed = false)
+	{
+		Vector2 windowSize = rectTransform.rect.size;
+		if (transformed)
+		{
+			windowSize = windowSize.multi(rectTransform.lossyScale);
+		}
+		return windowSize;
 	}
 	// 设置RectTransform大小后按比例调整子Text/TMP的字体大小
 	public static void setRectSizeWithFontSize(this RectTransform rectTransform, Vector2 size, int minFontSize)
