@@ -10,7 +10,7 @@ public class mySpriteRendererAnim : mySpriteRenderer, IUIAnimation
 	protected List<BoolCallback> mPlayingCallbackList;      // 一个序列正在播放时的回调函数
 	protected List<Vector2> mTexturePosList;                // 每一帧的位置偏移列表
 	protected List<Sprite> mSpriteList = new();             // 序列帧图片列表
-	protected AnimControl mControl;							// 序列帧控制器
+	protected AnimControl mControl;                         // 序列帧控制器
 	protected string mTextureSetName;                       // 序列帧名字
 	protected EFFECT_ALIGN mEffectAlign;                    // 图片的位置对齐方式
 	public mySpriteRendererAnim()
@@ -22,7 +22,11 @@ public class mySpriteRendererAnim : mySpriteRenderer, IUIAnimation
 		base.initSpriteRenderer();
 		mControl.setPlayEndCallback(onPlayEnd);
 		mControl.setPlayingCallback(onPlaying);
-		setTextureSet(generateOriginSpriteName());
+		string spriteName = getSpriteName();
+		if (!spriteName.isEmpty() && spriteName.contains('_'))
+		{
+			setTextureSet(spriteName.rangeToLast('_'));
+		}
 	}
 	public override void destroy()
 	{
