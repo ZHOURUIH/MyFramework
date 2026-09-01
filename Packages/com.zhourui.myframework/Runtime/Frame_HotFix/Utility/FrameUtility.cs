@@ -1799,7 +1799,7 @@ public class FrameUtility
             assetPath = projectPathToFullPath(assetPath);
         }
         // 如果是属于一个SpriteAtlas的图片,则不进行压缩
-        return isFileExist(getFilePath(assetPath, true) + getFolderName(assetPath) + ".spriteatlasv2");
+        return isFileExist(getFilePath(assetPath, true) + getFolderName(assetPath) + SPRITE_ATLAS_SUFFIX);
     }
 #if !UNITY_WEBGL
     // 压缩为zip文件,路径为绝对路径

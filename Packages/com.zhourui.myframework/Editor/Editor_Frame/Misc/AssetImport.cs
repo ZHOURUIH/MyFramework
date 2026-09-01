@@ -39,7 +39,7 @@ public class AssetsImport : AssetPostprocessor
 			}
 		}
 
-		foreach (string fullPath in findFilesNonAlloc(F_GAME_RESOURCES_PATH, ".spriteatlasv2"))
+		foreach (string fullPath in findFilesNonAlloc(F_GAME_RESOURCES_PATH, SPRITE_ATLAS_SUFFIX))
 		{
 			var atlas = loadAsset<SpriteAtlas>(fullPath);
 			if (atlas == null)

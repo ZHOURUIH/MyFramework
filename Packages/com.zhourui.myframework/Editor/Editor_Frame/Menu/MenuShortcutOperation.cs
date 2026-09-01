@@ -269,7 +269,7 @@ public class MenuShortcutOperation
 		// Value中第二个是Sprite的路径,是GameResources下的相对路径,用于方便查询Sprite的路径
 		Dictionary<string, string> atlasMap = new();
 		// SpriteAtlas
-		foreach (string file in findFilesNonAlloc(F_GAME_RESOURCES_PATH, ".spriteatlasv2"))
+		foreach (string file in findFilesNonAlloc(F_GAME_RESOURCES_PATH, SPRITE_ATLAS_SUFFIX))
 		{
 			string assetPath = fullPathToProjectPath(file);
 			var atlas = loadAssetAtPath<SpriteAtlas>(assetPath);

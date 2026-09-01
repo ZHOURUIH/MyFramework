@@ -56,7 +56,7 @@ public class MenuAssets
 				continue;
 			}
 			string folderName = getFileNameNoSuffixNoDir(assetPath);
-			string atlasPath = assetPath + "/" + folderName + ".spriteatlasv2";
+			string atlasPath = assetPath + "/" + folderName + SPRITE_ATLAS_SUFFIX;
 			SpriteAtlasAsset atlasAsset = SpriteAtlasAsset.Load(atlasPath);
 			if (atlasAsset == null)
 			{
