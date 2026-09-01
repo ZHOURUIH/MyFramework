@@ -9,13 +9,12 @@ public class SequenceImagePreview : SequenceSpritePreviewBase
 {
 #if UNITY_EDITOR
 	protected Image mImage;
-	public override void Awake()
+	protected override Component getSpriteComponent()
 	{
-		base.Awake();
-		mImage = GetComponentInChildren<Image>();
-    }
-    protected override Component getSpriteComponent()
-	{
+		if (mImage == null)
+		{
+			mImage = GetComponentInChildren<Image>();
+		}
 		return mImage;
 	}
 #endif

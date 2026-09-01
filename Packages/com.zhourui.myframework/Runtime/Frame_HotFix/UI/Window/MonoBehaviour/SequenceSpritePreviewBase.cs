@@ -29,9 +29,12 @@ public abstract class SequenceSpritePreviewBase : MonoBehaviour
 		{
 			return;
 		}
-		if (mCurSprite != getImage())
+		if (mCurSprite != getSprite())
 		{
+			mCurSprite = getSprite();
 			reloadFrames();
+			mCurFrame = mFrames.find(mCurSprite);
+			syncSliderByCurFrame();
 			refreshImage();
 		}
 	}
@@ -101,7 +104,7 @@ public abstract class SequenceSpritePreviewBase : MonoBehaviour
 			EditorUtility.SetDirty(renderer);
 		}
 	}
-	public Sprite getImage()
+	public Sprite getSprite()
 	{
 		return getImage(getSpriteComponent());
 	}
@@ -151,7 +154,7 @@ public abstract class SequenceSpritePreviewBase : MonoBehaviour
 	}
 	private void reloadFrames()
 	{
-		Sprite curSprite = getImage();
+		Sprite curSprite = getSprite();
 		if (curSprite == null)
 		{
 			return;
