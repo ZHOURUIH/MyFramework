@@ -87,12 +87,9 @@ public class AvatarRenderer : FrameSystem
 		// 创建一个新的摄像机
 		else
 		{
-			GameObject goPost = cloneObject(mCameraPostTemplate.getGameObject(), "CameraPost");
-			goPost.transform.SetParent(mCameraPostTemplate.getTransform().parent);
+			GameObject goPost = cloneObject(mCameraPostTemplate.getGameObject(), mCameraPostTemplate.getTransform().parent, "CameraPost");
 			postCamera = mCameraManager.createCamera(goPost, 0, true, false);
-
-			GameObject goNoPost = cloneObject(mCameraNoPostTemplate.getGameObject(), "CameraNoPost");
-			goNoPost.transform.SetParent(mCameraNoPostTemplate.getTransform().parent);
+			GameObject goNoPost = cloneObject(mCameraNoPostTemplate.getGameObject(), mCameraNoPostTemplate.getTransform().parent, "CameraNoPost");
 			noPostCamera = mCameraManager.createCamera(goNoPost, 0, true, false);
 		}
 		mPostCameraUsedList.Add(postCamera);

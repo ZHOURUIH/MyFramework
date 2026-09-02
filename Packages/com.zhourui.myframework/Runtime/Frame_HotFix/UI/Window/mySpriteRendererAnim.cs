@@ -13,13 +13,11 @@ public class mySpriteRendererAnim : mySpriteRenderer, IUIAnimation
 	protected AnimControl mControl;                         // 序列帧控制器
 	protected string mTextureSetName;                       // 序列帧名字
 	protected EFFECT_ALIGN mEffectAlign;                    // 图片的位置对齐方式
-	public mySpriteRendererAnim()
-	{
-		CLASS(out mControl);
-	}
+	public mySpriteRendererAnim() { }
 	protected override void initSpriteRenderer()
 	{
 		base.initSpriteRenderer();
+		CLASS(out mControl);
 		mControl.setPlayEndCallback(onPlayEnd);
 		mControl.setPlayingCallback(onPlaying);
 		string spriteName = getSpriteName();

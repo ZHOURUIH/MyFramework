@@ -59,8 +59,8 @@ public class mySpriteRenderer : Transformable
 		setMaterial(mOriginMaterial);
 		setAlpha(1.0f);
 		mAtlasPtr = null;
-		mAtlasManager.unloadAtlas(ref mOriginAtlasPtr);
-		mResourceManager.unload(ref mCurMaterial);
+		mAtlasManager?.unloadAtlas(ref mOriginAtlasPtr);
+		mResourceManager?.unload(ref mCurMaterial);
 	}
 	// 是否剔除渲染
 	public void cull(bool isCull)

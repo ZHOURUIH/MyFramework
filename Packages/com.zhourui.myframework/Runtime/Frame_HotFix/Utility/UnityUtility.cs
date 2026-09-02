@@ -296,6 +296,17 @@ public class UnityUtility
 		obj.name = name;
 		return obj;
 	}
+	public static GameObject cloneObject(GameObject oriObj, GameObject parent, string name)
+	{
+		return cloneObject(oriObj, parent.transform, name);
+	}
+	public static GameObject cloneObject(GameObject oriObj, Transform parent, string name)
+	{
+		GameObject obj = UObject.Instantiate(oriObj);
+		obj.name = name;
+		obj.transform.SetParent(parent.transform, false);
+		return obj;
+	}
 	public static void cloneObjectAsync(GameObject oriObj, string name, GameObjectCallback callback)
 	{
 		GameEntryBase.startCoroutine(instantiateCoroutine(oriObj, name, callback));
