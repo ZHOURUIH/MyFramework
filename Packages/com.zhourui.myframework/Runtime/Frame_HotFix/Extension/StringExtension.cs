@@ -1053,22 +1053,41 @@ public static class StringExtension
         {
             initIntToString();
         }
-        return mStringToInt.TryGetValue(str, out int value) ? value : int.Parse(str);
+		if (!mStringToInt.TryGetValue(str, out int value))
+		{
+			int.TryParse(str, out value);
+		}
+		return value;
     }
     public static uint SToUInt(this string str)
     {
         checkUIntString(str);
-        return !str.isEmpty() ? uint.Parse(str) : 0;
+		if (str.isEmpty())
+		{
+			return 0;
+		}
+		uint.TryParse(str, out uint value);
+		return value;
     }
     public static long SToL(this string str)
     {
         checkIntString(str);
-        return !str.isEmpty() ? long.Parse(str) : 0;
+		if (str.isEmpty())
+		{
+			return 0;
+		}
+		long.TryParse(str, out long value);
+		return value;
     }
     public static ulong SToUL(this string str)
     {
         checkUIntString(str);
-        return !str.isEmpty() ? ulong.Parse(str) : 0;
+		if (str.isEmpty())
+		{
+			return 0;
+		}
+		ulong.TryParse(str, out ulong value);
+		return value;
     }
     public static float SToF(this string str)
     {
@@ -1077,7 +1096,8 @@ public static class StringExtension
         {
             return 0.0f;
         }
-        return float.Parse(str);
+		float.TryParse(str, out float value);
+		return value;
     }
     public static Vector2 SToV2(this string str, char separate = ',')
     {
