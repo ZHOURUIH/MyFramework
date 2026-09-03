@@ -334,12 +334,14 @@ public class FrameHotFixTest
         Register("CameraManagerTest", CameraManagerTest.Run);
         Register("DictionaryPoolTest", DictionaryPoolTest.Run);
         Register("MySpriteRendererTest", MySpriteRendererTest.Run);
-        //Register("AssetBundleLoaderUpdateBenchmark", AssetBundleLoaderUpdateBenchmark.Run);
-        //Register("MouseCastWindowSetBenchmark", MouseCastWindowSetBenchmark.Run);
-        //Register("TouchInfoStationaryRaycastBenchmark", TouchInfoStationaryRaycastBenchmark.Run);
-        //Register("ComponentOwnerUpdateBenchmark", ComponentOwnerUpdateBenchmark.Run);
-        //Register("SafeListFastPathBenchmark", SafeListFastPathBenchmark.Run);
-        //Register("SafeListEnumeratorBenchmark", SafeListEnumeratorBenchmark.Run);
+		//Register("AssetBundleLoaderUpdateBenchmark", AssetBundleLoaderUpdateBenchmark.Run);
+		//Register("MouseCastWindowSetBenchmark", MouseCastWindowSetBenchmark.Run);
+		//Register("TouchInfoStationaryRaycastBenchmark", TouchInfoStationaryRaycastBenchmark.Run);
+		//Register("ComponentOwnerUpdateBenchmark", ComponentOwnerUpdateBenchmark.Run);
+		//Register("SafeListFastPathBenchmark", SafeListFastPathBenchmark.Run);
+		//Register("SafeListEnumeratorBenchmark", SafeListEnumeratorBenchmark.Run);
+        Register("SerializeBitCompatibilityTest", SerializeBitCompatibilityTest.Run);
+		Register("SerializeBitExtremeTest", SerializeBitExtremeTest.Run);
 		doRunAll(sTests);
     }
     public static void Register(string name, Action run)

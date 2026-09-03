@@ -129,9 +129,11 @@ public class SerializeBitUtility
 			success = true;
 			return 0;
 		}
-		// 因为写入时最高位固定为1,不会进行写入,所以读取需要少读一位,然后读完再加上这一位
-		// 但是如果写入位的数量到达最大位数时,就不能再去掉最高位了,否则会混淆
-		if (bitCount < (1 << typeSize) - 1)
+		// 32位及以下保持原协议规则,64位则以完整64bit作为不能省略最高位的边界。
+		// ulong的长度字段用63同时表示63/64bit,读取到63后会被还原为64,此时必须读取完整64bit数据。
+		int removeHighBitLimit = typeSize == sizeof(ulong) ? typeSize << 3 : (1 << typeSize) - 1;
+		bool removeHighBit = bitCount < removeHighBitLimit;
+		if (removeHighBit)
 		{
 			--bitCount;
 		}
@@ -145,7 +147,7 @@ public class SerializeBitUtility
 		if (bitCount > 0)
 		{
 			value = readUnsignedValueBit(buffer, ref bitIndex, bitCount);
-			if (bitCount < (1 << typeSize) - 1)
+			if (removeHighBit)
 			{
 				setBitOne(ref value, bitCount);
 			}
@@ -1152,6 +1154,11 @@ public class SerializeBitUtility
 	}
 	public static bool writeListBit(byte[] buffer, int bufferSize, ref int bitIndex, List<byte> list)
 	{
+		// 动态列表的数量使用ushort存储,超过上限时必须在写入任何数据前直接失败,不能静默截断。
+		if (list.Count > ushort.MaxValue)
+		{
+			return false;
+		}
 		// 写入长度
 		ushort count = (ushort)list.Count;
 		if (!writeBit(buffer, bufferSize, ref bitIndex, count))
@@ -1240,6 +1247,11 @@ public class SerializeBitUtility
 	}
 	public static bool writeListBit(byte[] buffer, int bufferSize, ref int bitIndex, List<sbyte> list, bool needWriteSign)
 	{
+		// 动态列表的数量使用ushort存储,超过上限时必须在写入任何数据前直接失败,不能静默截断。
+		if (list.Count > ushort.MaxValue)
+		{
+			return false;
+		}
 		// 写入长度
 		ushort count = (ushort)list.Count;
 		if (!writeBit(buffer, bufferSize, ref bitIndex, count))
@@ -1328,6 +1340,11 @@ public class SerializeBitUtility
 	}
 	public static bool writeListBit(byte[] buffer, int bufferSize, ref int bitIndex, List<short> list, bool needWriteSign)
 	{
+		// 动态列表的数量使用ushort存储,超过上限时必须在写入任何数据前直接失败,不能静默截断。
+		if (list.Count > ushort.MaxValue)
+		{
+			return false;
+		}
 		// 写入长度
 		ushort count = (ushort)list.Count;
 		if (!writeBit(buffer, bufferSize, ref bitIndex, count))
@@ -1416,6 +1433,11 @@ public class SerializeBitUtility
 	}
 	public static bool writeListBit(byte[] buffer, int bufferSize, ref int bitIndex, List<ushort> list)
 	{
+		// 动态列表的数量使用ushort存储,超过上限时必须在写入任何数据前直接失败,不能静默截断。
+		if (list.Count > ushort.MaxValue)
+		{
+			return false;
+		}
 		// 写入长度
 		ushort count = (ushort)list.Count;
 		if (!writeBit(buffer, bufferSize, ref bitIndex, count))
@@ -1504,6 +1526,11 @@ public class SerializeBitUtility
 	}
 	public static bool writeListBit(byte[] buffer, int bufferSize, ref int bitIndex, List<int> list, bool needWriteSign)
 	{
+		// 动态列表的数量使用ushort存储,超过上限时必须在写入任何数据前直接失败,不能静默截断。
+		if (list.Count > ushort.MaxValue)
+		{
+			return false;
+		}
 		// 写入长度
 		ushort count = (ushort)list.Count;
 		if (!writeBit(buffer, bufferSize, ref bitIndex, count))
@@ -1592,6 +1619,11 @@ public class SerializeBitUtility
 	}
 	public static bool writeListBit(byte[] buffer, int bufferSize, ref int bitIndex, List<uint> list)
 	{
+		// 动态列表的数量使用ushort存储,超过上限时必须在写入任何数据前直接失败,不能静默截断。
+		if (list.Count > ushort.MaxValue)
+		{
+			return false;
+		}
 		// 写入长度
 		ushort count = (ushort)list.Count;
 		if (!writeBit(buffer, bufferSize, ref bitIndex, count))
@@ -1680,6 +1712,11 @@ public class SerializeBitUtility
 	}
 	public static bool writeListBit(byte[] buffer, int bufferSize, ref int bitIndex, List<long> list, bool needWriteSign)
 	{
+		// 动态列表的数量使用ushort存储,超过上限时必须在写入任何数据前直接失败,不能静默截断。
+		if (list.Count > ushort.MaxValue)
+		{
+			return false;
+		}
 		// 写入长度
 		ushort count = (ushort)list.Count;
 		if (!writeBit(buffer, bufferSize, ref bitIndex, count))
@@ -1768,6 +1805,11 @@ public class SerializeBitUtility
 	}
 	public static bool writeListBit(byte[] buffer, int bufferSize, ref int bitIndex, List<ulong> list)
 	{
+		// 动态列表的数量使用ushort存储,超过上限时必须在写入任何数据前直接失败,不能静默截断。
+		if (list.Count > ushort.MaxValue)
+		{
+			return false;
+		}
 		// 写入长度
 		ushort count = (ushort)list.Count;
 		if (!writeBit(buffer, bufferSize, ref bitIndex, count))
@@ -1861,6 +1903,11 @@ public class SerializeBitUtility
 	// 浮点数会扩大一定倍数转换为整数来写入
 	public static bool writeListBit(byte[] buffer, int bufferSize, ref int bitIndex, List<float> list, bool needWriteSign, int precision = 3)
 	{
+		// 动态列表的数量使用ushort存储,超过上限时必须在写入任何数据前直接失败,不能静默截断。
+		if (list.Count > ushort.MaxValue)
+		{
+			return false;
+		}
 		// 写入长度
 		ushort count = (ushort)list.Count;
 		if (!writeBit(buffer, bufferSize, ref bitIndex, count))
@@ -1958,7 +2005,11 @@ public class SerializeBitUtility
 	// 浮点数会扩大一定倍数转换为整数来写入
 	public static bool writeListBit(byte[] buffer, int bufferSize, ref int bitIndex, List<double> list, bool needWriteSign, int precision = 4)
 	{
-		// 写入长度,为了尽量节省空间,这里只支持65535的最大列表长度
+		// 写入长度,为了尽量节省空间,这里只支持65535的最大列表长度。
+		if (list.Count > ushort.MaxValue)
+		{
+			return false;
+		}
 		ushort count = (ushort)list.Count;
 		if (!writeBit(buffer, bufferSize, ref bitIndex, count))
 		{
@@ -2191,8 +2242,10 @@ public class SerializeBitUtility
 		{
 			return true;
 		}
-		// 如果写入位的数量到达最大位数时,就不能再去掉最高位了,否则会混淆
-		bool reallyDropHighestOne = dropHighestOne && bitCount < (1 << typeSize) - 1;
+		// 32位及以下保持原协议规则,64位达到完整64bit时不能再省略最高位。
+		// ulong的63bit长度会被writeUnsignedLengthBit扩展为64,因此这里必须按64bit边界判断。
+		int removeHighBitLimit = typeSize == sizeof(ulong) ? typeSize << 3 : (1 << typeSize) - 1;
+		bool reallyDropHighestOne = dropHighestOne && bitCount < removeHighBitLimit;
 		int writeBitCount = bitCount - (reallyDropHighestOne ? 1 : 0);
 		if (bitCountToByteCount(bitIndex + writeBitCount) > bufferSize)
 		{
