@@ -39,10 +39,10 @@ public static class UnityUtilityTest
 		testContentAndMisc();
 		testGetScreenAspect();
 		testIsPointInBoxCollider();
-	testFindMaterial();
-	testFindMaterialShader();
-	testScreenAndWindowConversion();
-}
+		testFindMaterial();
+		testFindMaterialShader();
+		testScreenAndWindowConversion();
+	}
 
 	// ─── setGameObjectLayer ────────────────────────────────────────
 	private static void testSetGameObjectLayer()
@@ -671,7 +671,9 @@ public static class UnityUtilityTest
 		setNormalProperty(go, parent);
 		setNormalProperty(go, parent, "Child");
 
+		Vector2Int screenSize = getScreenSize();
 		setScreenSize(new Vector2(1920, 1080), false);
+		setScreenSize(screenSize, false);
 
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR
 		getLastError();

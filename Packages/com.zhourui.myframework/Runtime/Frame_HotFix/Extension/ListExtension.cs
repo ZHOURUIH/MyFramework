@@ -96,7 +96,6 @@ public static class ListExtension
 		}
 		return false;
 	}
-	// 注意：遍历中删除元素可能导致跳过相邻匹配项（RemoveAt后索引i未回退）
 	// 如果需要删除所有匹配项，请用removeAll
 	public static int removeAll<T>(this List<T> list, Predicate<T> condition)
 	{
@@ -109,7 +108,7 @@ public static class ListExtension
 		{
 			if (condition(list[i]))
 			{
-				list.RemoveAt(i);
+				list.RemoveAt(i--);
 				++count;
 			}
 		}
