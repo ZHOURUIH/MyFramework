@@ -282,7 +282,7 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 	}
 	public void setMaterial(Material mat) 
 	{
-		mSpriteRenderer.material = mat;
+		mSpriteRenderer.sharedMaterial = mat;
 		mMaterialNameDirty = true;
 	}
 	public void setShader(Shader shader)
@@ -317,7 +317,7 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		if (mMaterialNameDirty)
 		{
 			mMaterialNameDirty = false;
-			mMaterialName = mSpriteRenderer.material != null ? mSpriteRenderer.material.name : null;
+			mMaterialName = mSpriteRenderer.sharedMaterial != null ? mSpriteRenderer.sharedMaterial.name : null;
 		}
 		return mMaterialName; 
 	}

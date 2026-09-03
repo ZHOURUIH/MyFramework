@@ -224,7 +224,7 @@ public class mySpriteRenderer : Transformable
 	}
 	public void setMaterial(Material mat) 
 	{
-		mSpriteRenderer.material = mat;
+		mSpriteRenderer.sharedMaterial = mat;
 		mMaterialNameDirty = true;
 	}
 	public string getSpriteName()
@@ -249,7 +249,7 @@ public class mySpriteRenderer : Transformable
 		if (mMaterialNameDirty)
 		{
 			mMaterialNameDirty = false;
-			mMaterialName = mSpriteRenderer.material != null ? mSpriteRenderer.material.name : null;
+			mMaterialName = mSpriteRenderer.sharedMaterial != null ? mSpriteRenderer.sharedMaterial.name : null;
 		}
 		return mMaterialName; 
 	}

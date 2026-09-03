@@ -382,18 +382,29 @@ public class UnityUtility
 	}
 	public static void findShaders(GameObject go)
 	{
-		// 普通渲染器
+		// findMaterialShader本身只在编辑器中有实际作用。
+		// 非编辑器下直接返回,避免无意义地遍历Renderer和材质。
+		if (!isEditor() || go == null)
+		{
+			return;
+		}
+
+		// Renderer.material/materials的getter会让Renderer获得独立材质实例。
+		// 这里的目的只是重新绑定Shader,不能因此破坏原本共享的Material引用。
 		using var a = new ListScope<Renderer>(out var renderers);
+		using var b = new ListScope<Material>(out var materials);
 		go.GetComponentsInChildren(true, renderers);
 		foreach (Renderer renderer in renderers)
 		{
-			foreach (Material item in renderer.materials)
+			materials.Clear();
+			renderer.GetSharedMaterials(materials);
+			foreach (Material item in materials)
 			{
 				findMaterialShader(item);
 			}
 		}
 		// 可能会用到材质的组件
-		using var b = new ListScope<Projector>(out var projectors);
+		using var c = new ListScope<Projector>(out var projectors);
 		go.GetComponentsInChildren(true, projectors);
 		foreach (Projector projector in projectors)
 		{
@@ -1480,8 +1491,8 @@ public class UnityUtility
 		yield return ret;
 		GameObject go = ret.Result.get(0);
 #else
-        GameObject go = UObject.Instantiate(origin);
-        yield return null;
+		GameObject go = UObject.Instantiate(origin);
+		yield return null;
 #endif
 		if (go != null)
 		{

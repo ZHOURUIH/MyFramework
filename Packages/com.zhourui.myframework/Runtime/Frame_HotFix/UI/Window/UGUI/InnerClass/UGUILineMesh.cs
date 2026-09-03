@@ -40,7 +40,7 @@ public class UGUILineMesh : ClassObject
 			mObject.SetActive(false);
 		}
 	}
-	public Material getMaterial() { return mMeshRenderer.material; }
+	public Material getMaterial() { return mMeshRenderer.sharedMaterial; }
 	public void setActive(bool active) { mObject.SetActive(active); }
 	public void setWidth(float width) { mWidth = width; }
 	public void setPointList(List<Vector3> list)
