@@ -54,7 +54,11 @@ public class Transformable : ComponentOwner, ITransformable
 		if (mObject != null)
 		{
 			mTransform = mObject.transform;
-			if (mObject.name != mName)
+			if (mName.isEmpty())
+			{
+				mName = mObject.name;
+			}
+			else if (mObject.name != mName)
 			{
 				mObject.name = mName;
 			}
