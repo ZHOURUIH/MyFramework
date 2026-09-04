@@ -338,7 +338,7 @@ public class COMCharacterAvatar : GameComponent
 		if (mRelationship == AVATAR_RELATIONSHIP.AVATAR_AS_CHARACTER)
 		{
 			mCharacter.setObject(go);
-			setNormalProperty(go, mCharacterManager.getObject(), null, lastScale, lastRotation, lastPosition);
+			setNormalProperty(go, mCharacterManager.getGameObject(), null, lastScale, lastRotation, lastPosition);
 		}
 		// 将模型节点挂接在角色节点下
 		else if (mRelationship == AVATAR_RELATIONSHIP.AVATAR_AS_CHILD)

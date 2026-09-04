@@ -190,7 +190,7 @@ public static class FrameSystemTest
 		FrameSystem sys = new FrameSystem();
 		try
 		{
-			assertNull(sys.getObject(), "未 init 时 getObject 应返回 null");
+			assertNull(sys.getGameObject(), "未 init 时 getObject 应返回 null");
 		}
 		finally
 		{

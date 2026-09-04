@@ -48,7 +48,7 @@ public class FrameSystem : ComponentOwner
 	public void setUpdateOrder(int order) { mUpdateOrder = order; }
 	public void setDestroyOrder(int order) { mDestroyOrder = order; }
 	public void setCreateObject(bool create) { mCreateObject = create; }
-	public GameObject getObject() { return mObject; }
+	public GameObject getGameObject() { return mObject; }
 	public virtual void onDrawGizmos() { }
 	// a小于b返回-1, a等于b返回0, a大于b返回1,升序排序
 	public static int compareInit(FrameSystem a, FrameSystem b) { return sign(a.mInitOrder - b.mInitOrder); }

@@ -21,7 +21,7 @@ public abstract class GameScene : ComponentOwner
 	public virtual void init()
 	{
 		// 创建场景对应的物体,并挂接到场景管理器下
-		mObject = createGameObject(mName, mGameSceneManager.getObject());
+		mObject = createGameObject(mName, mGameSceneManager.getGameObject());
 		if (isEditor())
 		{
 			mObject.AddComponent<GameSceneDebug>().setGameScene(this);

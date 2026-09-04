@@ -508,14 +508,14 @@ public class EffectManager : FrameSystem
 
 		mEffectList.remove(effect);
 		// 该特效支持移动到远处来隐藏,并且父节点是Prefab对象池的节点时,才能进行移动隐藏
-		if (effect.isMoveToHide() && effect.getGameObject().transform.parent == mPrefabPoolManager.getObject().transform)
+		if (effect.isMoveToHide() && effect.getGameObject().transform.parent == mPrefabPoolManager.getGameObject().transform)
 		{
 			effect.stopAndMove(FAR_POSITION);
 		}
 		else
 		{
 			effect.setActive(false);
-			effect.setParent(mPrefabPoolManager.getObject());
+			effect.setParent(mPrefabPoolManager.getGameObject());
 		}
 		effect = null;
 	}

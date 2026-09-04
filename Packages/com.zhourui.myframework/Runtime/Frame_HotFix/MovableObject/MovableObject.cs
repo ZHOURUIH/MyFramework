@@ -74,7 +74,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 	{
 		if (parent == null)
 		{
-			parent = mGameObjectPool.getObject();
+			parent = mGameObjectPool.getGameObject();
 		}
 		setObject(mGameObjectPool.newObject(name ?? mName, parent));
 		mSelfCreatedObject = true;
