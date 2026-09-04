@@ -15,15 +15,15 @@ using static LT;
 // 布局管理器
 public class LayoutManager : FrameSystem
 {
-	protected Dictionary<Type, LayoutRegisteInfo> mLayoutRegisteList = new(128);	// 布局注册信息列表
-	protected SafeDictionary<Type, GameLayout> mLayoutList = new();					// 所有布局的列表
-	protected Dictionary<Type, string> mLayoutTypeToPath = new(128);				// 根据布局ID查找布局路径
-	protected Dictionary<string, Type> mLayoutPathToType = new(128);				// 根据布局路径查找布局ID
-	protected HashSet<string> mLoadingLayoutList = new();							// 正在加载的布局列表,用于避免在异步加载时又同步加载
-	protected List<GameLayout> mBackBlurLayoutList = new(128);						// 需要背景模糊的布局的列表
-	protected COMLayoutManagerEscHide mCOMEscHide;									// Esc按键事件传递逻辑的组件
-	protected myUGUICanvas mUGUIRoot;												// 所有UI的根节点
-	protected bool mUseAnchor = true;												// 是否启用锚点来自动调节窗口的大小和位置
+	protected Dictionary<Type, LayoutRegisteInfo> mLayoutRegisteList = new(128);    // 布局注册信息列表
+	protected SafeDictionary<Type, GameLayout> mLayoutList = new();                 // 所有布局的列表
+	protected Dictionary<Type, string> mLayoutTypeToPath = new(128);                // 根据布局ID查找布局路径
+	protected Dictionary<string, Type> mLayoutPathToType = new(128);                // 根据布局路径查找布局ID
+	protected HashSet<string> mLoadingLayoutList = new();                           // 正在加载的布局列表,用于避免在异步加载时又同步加载
+	protected List<GameLayout> mBackBlurLayoutList = new(128);                      // 需要背景模糊的布局的列表
+	protected COMLayoutManagerEscHide mCOMEscHide;                                  // Esc按键事件传递逻辑的组件
+	protected myUGUICanvas mUGUIRoot;                                               // 所有UI的根节点
+	protected bool mUseAnchor = true;                                               // 是否启用锚点来自动调节窗口的大小和位置
 	public LayoutManager()
 	{
 		// 在构造中获取UI根节点,确保其他组件能在任意时刻正常访问
@@ -71,7 +71,7 @@ public class LayoutManager : FrameSystem
 			}
 			catch (Exception e)
 			{
-				logException(e,"界面:" + layout.getName());
+				logException(e, "界面:" + layout.getName());
 			}
 		}
 	}
@@ -88,7 +88,7 @@ public class LayoutManager : FrameSystem
 			{
 				item.Value.lateUpdate(elapsedTime);
 			}
-			catch(Exception e)
+			catch (Exception e)
 			{
 				logException(e, "layout:" + item.Value.getName());
 			}
@@ -166,10 +166,10 @@ public class LayoutManager : FrameSystem
 		info.addCallback(callback);
 		info.mName = getFileNameNoSuffixNoDir(path);
 		mLoadingLayoutList.Add(info.mName);
-		mResourceManager.loadGameResourceAsync<GameObject>(path, (asset) => 
+		mResourceManager.loadGameResourceAsync<GameObject>(path, (asset) =>
 		{
 			mLoadingLayoutList.Remove(info.mName);
-			info.callAll(newLayout(info, asset)); 
+			info.callAll(newLayout(info, asset));
 		});
 	}
 	public void destroyLayout(Type type)
@@ -207,7 +207,7 @@ public class LayoutManager : FrameSystem
 	public int getTopLayoutOrder(GameLayout exceptLayout, bool alwaysTop)
 	{
 		int maxOrder = 0;
-		foreach (var item in mLayoutList)
+		foreach (var item in mLayoutList.getMainList())
 		{
 			GameLayout layout = item.Value;
 			if (exceptLayout == layout)
@@ -232,11 +232,26 @@ public class LayoutManager : FrameSystem
 	// 卸载所有非常驻的布局
 	public void unloadAllPartLayout()
 	{
-		foreach (var type in mLayoutList)
+		if (mLayoutManager.getLayoutList().isForeaching())
 		{
-			if (mLayoutRegisteList.get(type.Key).mLifeCycle == LAYOUT_LIFE_CYCLE.PART_USE)
+			using var a = new DicScope<Type, GameLayout>(out var tempList);
+			tempList.addRange(mLayoutManager.getLayoutList().getMainList());
+			foreach (var item in tempList)
 			{
-				destroyLayout(type.Key);
+				if (mLayoutRegisteList.get(item.Key).mLifeCycle == LAYOUT_LIFE_CYCLE.PART_USE)
+				{
+					destroyLayout(item.Key);
+				}
+			}
+		}
+		else
+		{
+			foreach (var type in mLayoutList)
+			{
+				if (mLayoutRegisteList.get(type.Key).mLifeCycle == LAYOUT_LIFE_CYCLE.PART_USE)
+				{
+					destroyLayout(type.Key);
+				}
 			}
 		}
 	}
