@@ -41,7 +41,7 @@ public class myUGUISpriteAnim : myUGUISprite, IUIAnimation
 		{
 			setSpriteName(null);
 		}
-		mControl.update(elapsedTime);
+		mControl?.update(elapsedTime);
 	}
 	public override void setAtlas(AtlasRef atlas, bool clearSprite = false, bool force = false)
 	{

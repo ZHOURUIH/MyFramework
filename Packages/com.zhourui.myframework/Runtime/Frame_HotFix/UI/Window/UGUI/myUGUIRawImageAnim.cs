@@ -49,7 +49,7 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 		{
 			setTexture(null, false);
 		}
-		mControl.update(elapsedTime);
+		mControl?.update(elapsedTime);
 	}
 	// texturePath是GameResource下的相对路径,以/结尾
 	// texturePreName是图片序列的前缀名,不带_
