@@ -17,7 +17,8 @@ public class GameDownload
 	protected string mDownloadWritePath = F_PERSISTENT_ASSETS_PATH; // 默认下载到PersistentPath中
 	protected int mDownloadedCount;									// 已经下载的文件数量
 	protected int mDownloadSpeed;                                   // 下载速度
-	protected int mRemainRetryCount = 3;							// 文件下载失败的剩余自动重试次数,没有剩余次数时才会提示玩家是否重试
+	protected int mAutoRetryCount = 3;								// 单个文件允许的自动重试次数
+	protected int mRemainRetryCount = 3;							// 当前文件剩余自动重试次数,没有剩余次数时才会提示玩家是否重试
 	protected bool mAllFinish = true;								// 是否已经全部完成
 	protected bool mNeedWritePersistentFileList;					// 是否在完成时写入Persist的文件列表
 	public GameDownload()
@@ -38,9 +39,19 @@ public class GameDownload
 	}
 	public void setErrorCallback(GameDownloadTipCallback callback) { mTipCallback = callback; }
 	public void setProgressCallback(GameDownloadCallback callback) { mProgressCallback = callback; }
-	public void setAutoRetryCount(int count) { mRemainRetryCount = count; }
+	public void setAutoRetryCount(int count)
+	{
+		mAutoRetryCount = Math.Max(0, count);
+		mRemainRetryCount = mAutoRetryCount;
+	}
 	public void start()
 	{
+		// start既可能是首次启动,也可能是玩家点击“重试”后重新开始。
+		// 每次都必须重新建立任务列表和索引,不能沿用上一次失败流程的状态。
+		mNeedDownloadFileList.Clear();
+		mDownloadedCount = 0;
+		mDownloadSpeed = 0;
+		mRemainRetryCount = mAutoRetryCount;
 		// 未启用热更时可以不进行下载
 		if (isEditor() || !isEnableHotFix())
 		{
@@ -149,11 +160,12 @@ public class GameDownload
 			if (bytes == null)
 			{
 				logWarningBase("下载失败! " + fileName);
-				// 还有次数就直接重试
+				// 单个文件失败时只重试当前文件,不要重新进入startCheckVersion。
+				// 否则旧下载回调和新流程可能同时推进,并且任务列表/索引会互相污染。
 				if (mRemainRetryCount > 0)
 				{
 					--mRemainRetryCount;
-					startCheckVersion();
+					downloadFile(index);
 				}
 				else
 				{
@@ -162,12 +174,8 @@ public class GameDownload
 				return;
 			}
 			mAssetVersionSystem.addDownloadedInfo(bytes.Length, getFileNameWithSuffix(fileName));
-			// 将文件保存到本地
-			writeFile(mDownloadWritePath + fileName, bytes, bytes.Length);
-			// 只要有下载完成的,就需要在最后重新写入Persistent的FileList
-			mNeedWritePersistentFileList = true;
 
-			// 检查下载的文件是否正确
+			// 先检查下载内容,校验通过以后才能写正式文件和更新Persistent文件表。
 			if (!mAssetVersionSystem.getRemoteAssetsFile().TryGetValue(fileName, out GameFileInfo remoteInfo))
 			{
 				logWarningBase("已下载的文件不存在与远端文件列表, 下载的文件:" + fileName);
@@ -179,24 +187,31 @@ public class GameDownload
 			localInfo.mFileName = fileName;
 			localInfo.mFileSize = bytes.Length;
 			localInfo.mMD5 = generateFileMD5(bytes);
-			mAssetVersionSystem.getPersistentAssetsFile().set(fileName, localInfo);
 			if (remoteInfo.mFileName != localInfo.mFileName ||
 				remoteInfo.mFileSize != localInfo.mFileSize ||
 				remoteInfo.mMD5 != localInfo.mMD5)
 			{
 				logWarningBase("下载的文件信息与远端的信息不一致:下载的信息:" + localInfo.mFileName + ", " + localInfo.mFileSize + ", " + localInfo.mMD5 +
 						", 远端的信息:" + remoteInfo.mFileName + ", " + remoteInfo.mFileSize + ", " + remoteInfo.mMD5);
-				// 还有次数就直接重试
 				if (mRemainRetryCount > 0)
 				{
 					--mRemainRetryCount;
-					startCheckVersion();
+					downloadFile(index);
 				}
 				else
 				{
 					mTipCallback?.Invoke(DOWNLOAD_ERROR.VERIFY_FAILED);
 				}
+				// 校验失败后必须结束旧回调,绝对不能继续++mDownloadedCount。
+				return;
 			}
+
+			// 校验通过以后再覆盖正式文件,避免坏数据先破坏本地可用版本。
+			writeFile(mDownloadWritePath + fileName, bytes, bytes.Length);
+			mAssetVersionSystem.getPersistentAssetsFile().set(fileName, localInfo);
+			mNeedWritePersistentFileList = true;
+			// 每个文件都拥有完整的自动重试次数。
+			mRemainRetryCount = mAutoRetryCount;
 
 			// 所有文件已经下载完毕
 			if (++mDownloadedCount >= mNeedDownloadFileList.Count)
@@ -213,6 +228,7 @@ public class GameDownload
 			mDownloadSpeed = (int)(downloadDelta * 1000 / (float)deltaTimeMillis);
 			if ((DateTime.Now - mDownloadingTimer).TotalSeconds > 1.0f)
 			{
+				mDownloadingTimer = DateTime.Now;
 				downloadProgress(fileName, index, progress);
 			}
 		});

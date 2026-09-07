@@ -19,7 +19,7 @@ public class ResourceUtility
 	{
 		// 这里由于需要计算下载进度,就不再支持小游戏上读取本地文件了
 		if ((isByteDance() || isWeiXin()) &&
-			url.startWith(F_ASSET_BUNDLE_PATH) || url.startWith(F_PERSISTENT_ASSETS_PATH))
+			(url.startWith(F_ASSET_BUNDLE_PATH) || url.startWith(F_PERSISTENT_ASSETS_PATH)))
 		{
 			logErrorBase("小游戏上不支持使用loadFileWithURL读取本地文件");
 			callback?.Invoke(null, null, null, url);
@@ -31,7 +31,8 @@ public class ResourceUtility
 		using var www = unityWebRequest(url);
 		www.timeout = 0;
 		www.SendWebRequest();
-		DateTime startTime = DateTime.Now;
+		DateTime lastProgressTime = DateTime.Now;
+		bool timeout = false;
 		while (!www.isDone)
 		{
 			// 累计每秒下载的字节数,计算下载速度
@@ -48,17 +49,21 @@ public class ResourceUtility
 				// 默认30秒超时
 				if (timer >= 30)
 				{
-					logBase("下载超时");
+					logBase("下载超时:" + url);
+					timeout = true;
+					www.Abort();
 					break;
 				}
 			}
-			double deltaTimeMillis = (DateTime.Now - startTime).TotalMilliseconds;
+			DateTime now = DateTime.Now;
+			double deltaTimeMillis = Math.Max(1.0, (now - lastProgressTime).TotalMilliseconds);
+			lastProgressTime = now;
 			downloadingCallback?.Invoke(www.downloadedBytes, downloadDelta, deltaTimeMillis, www.downloadProgress);
 			yield return null;
 		}
 		try
 		{
-			if (www.error != null || www.downloadHandler?.data == null)
+			if (timeout || www.result != UnityEngine.Networking.UnityWebRequest.Result.Success || www.downloadHandler?.data == null)
 			{
 				logBase("下载失败 : " + url + ", info : " + www.error);
 				callback?.Invoke(null, null, null, url);

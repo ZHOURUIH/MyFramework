@@ -42,7 +42,9 @@ public class AssetVersionSystem : FrameSystem
 		base.update(elapsedTime);
 		if (mPersistentDone && mStreamingDone && mRemoteDone && !mCheckFileListFailed)
 		{
-			mSuccessCallback?.Invoke();
+			Action callback = mSuccessCallback;
+			mSuccessCallback = null;
+			callback?.Invoke();
 		}
 	}
 	public long getTotalDownloadedByteCount() { return mTotalDownloadByteCount; }
@@ -189,6 +191,12 @@ public class AssetVersionSystem : FrameSystem
 			return;
 		}
 
+		if (remoteFileListMD5.isEmpty())
+		{
+			notifyRemoteFileListFailed("远端FileList MD5为空");
+			return;
+		}
+
 		logBase("开始获取所有文件列表");
 		// 获取StreamingAssets,PersistentPath的所有文件信息
 		openFileList(F_ASSET_BUNDLE_PATH, () =>
@@ -208,18 +216,30 @@ public class AssetVersionSystem : FrameSystem
 		// 减少流量消耗以及时间消耗,下载一次可能会需要消耗500毫秒
 		string prefsKey = "FileListRemote";
 		string content = UnityEngine.PlayerPrefs.GetString(prefsKey);
-		if (content == null || remoteFileListMD5 != generateFileMD5(stringToBytes(content)))
+		if (content.isEmpty() || !string.Equals(remoteFileListMD5, generateFileMD5(stringToBytes(content)), StringComparison.OrdinalIgnoreCase))
 		{
+			if (remoteFileListCallback == null)
+			{
+				notifyRemoteFileListFailed("远端FileList下载回调为空");
+				return;
+			}
 			remoteFileListCallback((string content0) =>
 			{
 				if (content0.isEmpty())
 				{
-					mRemoteFileListFailCallback?.Invoke();
+					notifyRemoteFileListFailed("下载到的远端FileList为空");
 					return;
 				}
-				// 写到本地
-				UnityEngine.PlayerPrefs.SetString(prefsKey, content0);
-				checkRemoteList(content0);
+				string downloadedMD5 = generateFileMD5(stringToBytes(content0));
+				if (!string.Equals(downloadedMD5, remoteFileListMD5, StringComparison.OrdinalIgnoreCase))
+				{
+					notifyRemoteFileListFailed("远端FileList MD5校验失败,target:" + remoteFileListMD5 + ", local:" + downloadedMD5);
+					return;
+				}
+				if (checkRemoteList(content0))
+				{
+					UnityEngine.PlayerPrefs.SetString(prefsKey, content0);
+				}
 			});
 		}
 		else
@@ -347,21 +367,26 @@ public class AssetVersionSystem : FrameSystem
 		DateTime start = DateTime.Now;
 		Dictionary<string, GameFileInfo> fileInfoList = new();
 		// 打开所有文件
+		int finishCount = 0;
 		openFileListAsync(fileList, true, (string fileName, byte[] bytes) =>
 		{
-			if (bytes == null)
+			if (bytes != null)
 			{
-				return;
+				string relativeFileName = fileName.removeStartCount(path.Length);
+				GameFileInfo info = new()
+				{
+					mFileName = relativeFileName,
+					mFileSize = bytes.Length,
+					mMD5 = generateFileMD5(bytes)
+				};
+				fileInfoList[relativeFileName] = info;
 			}
-			string relativeFileName = fileName.removeStartCount(path.Length);
-			GameFileInfo info = new()
+			else
 			{
-				mFileName = relativeFileName,
-				mFileSize = bytes.Length,
-				mMD5 = generateFileMD5(bytes)
-			};
-			fileInfoList.Add(relativeFileName, info);
-			if (fileInfoList.Count == fileList.Count)
+				logWarningBase("读取本地资源失败,将按本地缺失处理:" + fileName);
+			}
+
+			if (++finishCount == fileList.Count)
 			{
 				setFileListToAssetSystem(path, fileInfoList);
 				// PersistentPath中的FileList需要更新写入文件
@@ -374,17 +399,24 @@ public class AssetVersionSystem : FrameSystem
 			}
 		});
 	}
-	protected void checkRemoteList(string content)
+	protected bool checkRemoteList(string content)
 	{
 		Dictionary<string, GameFileInfo> remoteFileList = new();
 		DateTime start0 = DateTime.Now;
-		// 先检查本地的文件信息是否有效
-		parseFileList(content, remoteFileList);
+		try
+		{
+			parseFileList(content, remoteFileList);
+		}
+		catch (Exception e)
+		{
+			logExceptionBase(e);
+			notifyRemoteFileListFailed("远端FileList解析异常");
+			return false;
+		}
 		if (remoteFileList.isEmpty())
 		{
-			mCheckFileListFailed = true;
-			mRemoteFileListFailCallback?.Invoke();
-			return;
+			notifyRemoteFileListFailed("远端FileList没有有效文件记录");
+			return false;
 		}
 		logBase("获取远端文件列表耗时:" + (int)(DateTime.Now - start0).TotalMilliseconds + "毫秒");
 		remoteFileList.Remove(VERSION);
@@ -392,7 +424,20 @@ public class AssetVersionSystem : FrameSystem
 		setRemoteAssetsFile(remoteFileList);
 		logBase("远端资源文件数量:" + remoteFileList.Count);
 		mRemoteDone = true;
+		return true;
 	}
+	protected void notifyRemoteFileListFailed(string reason)
+	{
+		if (mCheckFileListFailed)
+		{
+			return;
+		}
+		logWarningBase("获取远端FileList失败:" + reason);
+		mCheckFileListFailed = true;
+		mRemoteDone = false;
+		mRemoteFileListFailCallback?.Invoke();
+	}
+
 	protected void setFileListToAssetSystem(string path, Dictionary<string, GameFileInfo> fileInfoList)
 	{
 		if (path == F_ASSET_BUNDLE_PATH)

@@ -4,6 +4,7 @@ using System.IO;
 using System.Xml;
 using UnityEngine.Networking;
 using static HttpUtility;
+using static FrameBaseUtility;
 
 // 用于执行华为云OBS文件存储服务器的访问逻辑,只用于获取远端文件信息
 public class ObsSystem
@@ -19,25 +20,44 @@ public class ObsSystem
 		Dictionary<string, string> paramList = new() { { "prefix", fileName } };
 		httpGetAsyncWebGL(url, paramList, (string result, UnityWebRequest.Result status, long code) =>
 		{
-			List<GameFileInfo> fileList = new();
-			parseFileList(result, fileList, out _);
-			GameFileInfo file = null;
-			foreach (GameFileInfo info in fileList)
+			if (status != UnityWebRequest.Result.Success || code < 200 || code >= 300 || string.IsNullOrEmpty(result))
 			{
-				if (info.mFileName == fileName)
-				{
-					file = info;
-					break;
-				}
+				logWarningBase("OBS获取文件信息失败,file:" + fileName + ", status:" + status + ", code:" + code);
+				callback?.Invoke(null);
+				return;
 			}
-			callback?.Invoke(file);
+			try
+			{
+				List<GameFileInfo> fileList = new();
+				parseFileList(result, fileList, out _);
+				GameFileInfo file = null;
+				foreach (GameFileInfo info in fileList)
+				{
+					if (info.mFileName == fileName)
+					{
+						file = info;
+						break;
+					}
+				}
+				callback?.Invoke(file);
+			}
+			catch (Exception e)
+			{
+				logExceptionBase(e);
+				callback?.Invoke(null);
+			}
 		});
+
 	}
 	// 返回值表示是否已经获取了全部的文件信息,如果没有获取全,nextMarker则会返回下一次获取所需的标记
 	protected static bool parseFileList(string str, List<GameFileInfo> fileList, out string nextMarker)
 	{
 		bool fetchFinish = false;
 		nextMarker = null;
+		if (string.IsNullOrEmpty(str))
+		{
+			return false;
+		}
 		using StringReader strReader = new(str);
 		using var reader = XmlReader.Create(strReader);
 		while (reader.Read())
@@ -61,7 +81,7 @@ public class ObsSystem
 					{
 						info.mFileName = reader.Value;
 						// 以/结尾的是目录,不需要放入列表
-						if (reader.Value[^1] == '/')
+						if (!string.IsNullOrEmpty(reader.Value) && reader.Value[^1] == '/')
 						{
 							break;
 						}

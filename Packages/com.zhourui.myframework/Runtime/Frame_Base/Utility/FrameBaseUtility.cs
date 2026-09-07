@@ -523,20 +523,31 @@ public class FrameBaseUtility
 		{
 			return VERSION_COMPARE.EQUAL;
 		}
-		const long MaxMiddleVersion = 100000000000;
-		long[] source = new long[3] { long.Parse(sourceFormatStr[0]), long.Parse(sourceFormatStr[1]), long.Parse(sourceFormatStr[2]) };
-		long[] target = new long[3] { long.Parse(targetFormatStr[0]), long.Parse(targetFormatStr[1]), long.Parse(targetFormatStr[2]) };
-		long sourceFullVersion = source[0] * MaxMiddleVersion * MaxMiddleVersion + source[1] * MaxMiddleVersion + source[2];
-		long targetFullVersion = target[0] * MaxMiddleVersion * MaxMiddleVersion + target[1] * MaxMiddleVersion + target[2];
-		long sourceBigVersion = source[0] * MaxMiddleVersion + source[1];
-		long targetBigVersion = target[0] * MaxMiddleVersion + target[1];
-		if (sourceBigVersion > targetBigVersion)
+		int[] source = new int[3];
+		int[] target = new int[3];
+		for (int i = 0; i < 3; ++i)
 		{
-			higherVersion = VERSION_COMPARE.LOCAL_LOWER;
+			if (!int.TryParse(sourceFormatStr[i], out source[i]))
+			{
+				lowerVersion = VERSION_COMPARE.REMOTE_LOWER;
+				higherVersion = VERSION_COMPARE.REMOTE_LOWER;
+				return VERSION_COMPARE.REMOTE_LOWER;
+			}
+			if (!int.TryParse(targetFormatStr[i], out target[i]))
+			{
+				lowerVersion = VERSION_COMPARE.LOCAL_LOWER;
+				higherVersion = VERSION_COMPARE.LOCAL_LOWER;
+				return VERSION_COMPARE.LOCAL_LOWER;
+			}
 		}
-		else if (sourceBigVersion < targetBigVersion)
+
+		if (source[0] != target[0])
 		{
-			higherVersion = VERSION_COMPARE.REMOTE_LOWER;
+			higherVersion = source[0] > target[0] ? VERSION_COMPARE.LOCAL_LOWER : VERSION_COMPARE.REMOTE_LOWER;
+		}
+		else if (source[1] != target[1])
+		{
+			higherVersion = source[1] > target[1] ? VERSION_COMPARE.LOCAL_LOWER : VERSION_COMPARE.REMOTE_LOWER;
 		}
 		else
 		{
@@ -554,18 +565,19 @@ public class FrameBaseUtility
 		{
 			lowerVersion = VERSION_COMPARE.EQUAL;
 		}
-		if (sourceFullVersion > targetFullVersion)
+
+		for (int i = 0; i < 3; ++i)
 		{
-			return VERSION_COMPARE.LOCAL_LOWER;
+			if (source[i] > target[i])
+			{
+				return VERSION_COMPARE.LOCAL_LOWER;
+			}
+			if (source[i] < target[i])
+			{
+				return VERSION_COMPARE.REMOTE_LOWER;
+			}
 		}
-		else if (sourceFullVersion < targetFullVersion)
-		{
-			return VERSION_COMPARE.REMOTE_LOWER;
-		}
-		else
-		{
-			return VERSION_COMPARE.EQUAL;
-		}
+		return VERSION_COMPARE.EQUAL;
 	}
 	public static string checkValidVersion(string version)
 	{

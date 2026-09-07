@@ -14,6 +14,7 @@ using static FrameBase;
 // HybridCLR系统,用于启动HybridCLR热更
 public class HybridCLRSystem
 {
+	protected static bool mHotFixLaunching;
 	protected static bool mHotFixLaunched;
 	public static void launchHotFix(Action errorCallback = null)
 	{
@@ -22,7 +23,12 @@ public class HybridCLRSystem
 			logErrorBase("已经启动了热更逻辑,无法再次启动");
 			return;
 		}
-		mHotFixLaunched = true;
+		if (mHotFixLaunching)
+		{
+			logErrorBase("热更逻辑正在启动中,无法重复启动");
+			return;
+		}
+		mHotFixLaunching = true;
 
 		// 启动之前需要确认拷贝一下混淆密钥
 		preLaunch(() =>
@@ -44,11 +50,12 @@ public class HybridCLRSystem
 			catch (Exception e)
 			{
 				logExceptionBase(e);
+				notifyLaunchFailed(errorCallback);
 			}
-		});
+		}, errorCallback);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected static void preLaunch(Action callback)
+	protected static void preLaunch(Action callback, Action errorCallback)
 	{
 		if (isEditor())
 		{
@@ -71,11 +78,27 @@ public class HybridCLRSystem
 			callback?.Invoke();
 			return;
 		}
+		GameFileInfo streamingInfo = mAssetVersionSystem.getStreamingAssetsFile().get(DYNAMIC_SECRET_FILE);
+		if (streamingInfo == null)
+		{
+			logErrorBase("StreamingAssets中找不到混淆密钥文件信息:" + DYNAMIC_SECRET_FILE);
+			notifyLaunchFailed(errorCallback);
+			return;
+		}
 		copyFileAsync(F_ASSET_BUNDLE_PATH + DYNAMIC_SECRET_FILE, F_PERSISTENT_ASSETS_PATH + DYNAMIC_SECRET_FILE, () =>
 		{
-			GameFileInfo streamingInfo = mAssetVersionSystem.getStreamingAssetsFile().get(DYNAMIC_SECRET_FILE);
-			if (streamingInfo != null)
+			try
 			{
+				// copyFileAsync没有返回拷贝结果,所以回调后必须重新读取目标文件确认拷贝确实成功.
+				byte[] copiedBytes = openFileSync(F_PERSISTENT_ASSETS_PATH + DYNAMIC_SECRET_FILE, false);
+				if (copiedBytes == null || copiedBytes.LongLength != streamingInfo.mFileSize ||
+					!string.Equals(generateFileMD5(copiedBytes), streamingInfo.mMD5, StringComparison.OrdinalIgnoreCase))
+				{
+					logErrorBase("混淆密钥文件拷贝后校验失败:" + DYNAMIC_SECRET_FILE);
+					notifyLaunchFailed(errorCallback);
+					return;
+				}
+
 				var persistAssetsFiles = mAssetVersionSystem.getPersistentAssetsFile();
 				GameFileInfo persistInfo = persistAssetsFiles.get(DYNAMIC_SECRET_FILE);
 				if (persistInfo == null)
@@ -86,10 +109,15 @@ public class HybridCLRSystem
 				persistInfo.mFileName = streamingInfo.mFileName;
 				persistInfo.mFileSize = streamingInfo.mFileSize;
 				persistInfo.mMD5 = streamingInfo.mMD5;
-				// 拷贝完以后更新FileList
+				// 拷贝完并校验通过以后才更新FileList
 				writeFileList(F_PERSISTENT_ASSETS_PATH, mAssetVersionSystem.generatePersistentAssetFileList());
+				callback?.Invoke();
 			}
-			callback?.Invoke();
+			catch (Exception e)
+			{
+				logExceptionBase(e);
+				notifyLaunchFailed(errorCallback);
+			}
 		});
 	}
 	protected static void backupFrameParam()
@@ -110,177 +138,208 @@ public class HybridCLRSystem
 	protected static void loadMetaDataForAOT(Action callback, Action errorCallback)
 	{
 #if USE_HYBRID_CLR
-		Dictionary<string, byte[]> downloadFilesResource = new();
-		foreach (string aotFile in AOTGenericReferences.PatchedAOTAssemblyList)
+		try
 		{
-			downloadFilesResource.Add(aotFile + ".bytes", null);
-		}
-		int finishCount = 0;
-		foreach (string item in new List<string>(downloadFilesResource.Keys))
-		{
-			byte[] bytes = openFileSync(availableReadPath(item), true);
-			if (onAOTDownloaded(downloadFilesResource, ref finishCount, item, bytes, errorCallback))
+			Dictionary<string, byte[]> downloadFilesResource = new();
+			foreach (string aotFile in AOTGenericReferences.PatchedAOTAssemblyList)
 			{
-				callback?.Invoke();
+				string fileName = aotFile + ".bytes";
+				byte[] bytes = openFileSync(availableReadPath(fileName), true);
+				if (bytes == null)
+				{
+					logErrorBase("读取AOT补充元数据文件失败:" + fileName);
+					notifyLaunchFailed(errorCallback);
+					return;
+				}
+				downloadFilesResource.add(fileName, bytes);
 			}
+
+			foreach (string aotFile in AOTGenericReferences.PatchedAOTAssemblyList)
+			{
+				// 为aot assembly加载原始metadata
+				// 一旦加载后，如果AOT泛型函数对应native实现不存在，则自动替换为解释模式执行
+				// 加载assembly对应的dll，会自动为它hook。一旦aot泛型函数的native函数不存在，用解释器版本代码
+				// 注意，补充元数据是给AOT dll补充元数据，而不是给热更新dll补充元数据。
+				// 热更新dll不缺元数据，不需要补充，如果调用LoadMetadataForAOTAssembly会返回错误
+				LoadImageErrorCode err = RuntimeApi.LoadMetadataForAOTAssembly(downloadFilesResource.get(aotFile + ".bytes"), HomologousImageMode.SuperSet);
+				if (err != LoadImageErrorCode.OK)
+				{
+					logErrorBase("LoadMetadataForAOTAssembly失败:" + aotFile + ", " + err);
+					notifyLaunchFailed(errorCallback);
+					return;
+				}
+			}
+			callback?.Invoke();
+		}
+		catch (Exception e)
+		{
+			logExceptionBase(e);
+			notifyLaunchFailed(errorCallback);
 		}
 #else
 		callback?.Invoke();
 #endif
 	}
-	// 返回值表示是否已经全部下载完成
-	protected static bool onAOTDownloaded(Dictionary<string, byte[]> downloadFilesResource, ref int finishCount, string fileDllName, byte[] bytes, Action errorCallback)
-	{
-		if (bytes == null)
-		{
-			downloadFilesResource = null;
-			errorCallback?.Invoke();
-			return false;
-		}
-		if (downloadFilesResource == null)
-		{
-			return false;
-		}
-		downloadFilesResource.set(fileDllName, bytes);
-		if (++finishCount < downloadFilesResource.Count)
-		{
-			return false;
-		}
-#if USE_HYBRID_CLR
-		foreach (string aotFile in AOTGenericReferences.PatchedAOTAssemblyList)
-		{
-			// 为aot assembly加载原始metadata
-			// 一旦加载后，如果AOT泛型函数对应native实现不存在，则自动替换为解释模式执行
-			// 加载assembly对应的dll，会自动为它hook。一旦aot泛型函数的native函数不存在，用解释器版本代码
-			// 注意，补充元数据是给AOT dll补充元数据，而不是给热更新dll补充元数据。
-			// 热更新dll不缺元数据，不需要补充，如果调用LoadMetadataForAOTAssembly会返回错误
-			LoadImageErrorCode err = RuntimeApi.LoadMetadataForAOTAssembly(downloadFilesResource.get(aotFile + ".bytes"), HomologousImageMode.SuperSet);
-			if (err != LoadImageErrorCode.OK)
-			{
-				logBase("LoadMetadataForAOTAssembly失败:" + aotFile + ", " + err);
-				errorCallback?.Invoke();
-				return false;
-			}
-		}
-#endif
-		return true;
-	}
 	protected static void launchRuntime(Action errorCallback)
 	{
 		loadMetaDataForAOT(() =>
 		{
-			Dictionary<string, byte[]> downloadFiles = new();
-			foreach (string name in FrameSettings.getHotFixList())
+			try
 			{
-				downloadFiles.add(name + ".dll.bytes", null);
+				Dictionary<string, byte[]> downloadFiles = new();
+				foreach (string name in FrameSettings.getHotFixList())
+				{
+					string fileDllName = name + ".dll.bytes";
+					byte[] bytes = openFileSync(availableReadPath(fileDllName), true);
+					if (bytes == null)
+					{
+						logErrorBase("读取热更程序集失败:" + fileDllName);
+						notifyLaunchFailed(errorCallback);
+						return;
+					}
+					downloadFiles.add(fileDllName, bytes);
+				}
+
+				// 加载以后不再卸载
+				Assembly hotfix = null;
+				foreach (var item in downloadFiles)
+				{
+					Assembly assembly = Assembly.Load(decryptAES(item.Value, FrameSettings.getAESKey(), FrameSettings.getAESIV()));
+					if (item.Key == "HotFix.dll.bytes")
+					{
+						hotfix = assembly;
+					}
+				}
+				launchInternal(hotfix, errorCallback);
 			}
-			int finishCount = 0;
-			foreach (string item in new List<string>(downloadFiles.Keys))
+			catch (Exception e)
 			{
-				string fileDllName = item;
-				byte[] bytes = openFileSync(availableReadPath(fileDllName), true);
-				onHotFixDllLoaded(downloadFiles, ref finishCount, fileDllName, bytes, errorCallback);
+				logExceptionBase(e);
+				notifyLaunchFailed(errorCallback);
 			}
 		}, errorCallback);
 	}
-	protected static void onHotFixDllLoaded(Dictionary<string, byte[]> downloadFiles, ref int finishCount, string fileDllName, byte[] bytes, Action errorCallback)
-	{
-		if (bytes == null)
-		{
-			downloadFiles = null;
-			errorCallback?.Invoke();
-			return;
-		}
-		if (downloadFiles == null)
-		{
-			return;
-		}
-		downloadFiles.set(fileDllName, bytes);
-		if (++finishCount < downloadFiles.Count)
-		{
-			return;
-		}
-		// 加载以后不再卸载
-		Assembly hotfix = null;
-		foreach (var item in downloadFiles)
-		{
-			Assembly assmebly = Assembly.Load(decryptAES(item.Value, FrameSettings.getAESKey(), FrameSettings.getAESIV()));
-			if (item.Key == "HotFix.dll.bytes")
-			{
-				hotfix = assmebly;
-			}
-		}
-		launchInternal(hotfix);
-	}
 	protected static void launchEditor(Action errorCallback)
 	{
-		Assembly hotFixAssembly = null;
-		foreach (Assembly item in AppDomain.CurrentDomain.GetAssemblies())
+		try
 		{
-			if (item.GetName().Name == "HotFix")
+			Assembly hotFixAssembly = null;
+			foreach (Assembly item in AppDomain.CurrentDomain.GetAssemblies())
 			{
-				hotFixAssembly = item;
-				break;
+				if (item.GetName().Name == "HotFix")
+				{
+					hotFixAssembly = item;
+					break;
+				}
 			}
+			if (hotFixAssembly == null)
+			{
+				logErrorBase("编辑器中找不到HotFix程序集");
+				notifyLaunchFailed(errorCallback);
+				return;
+			}
+			launchInternal(hotFixAssembly, errorCallback);
 		}
-		if (hotFixAssembly == null)
+		catch (Exception e)
 		{
-			errorCallback?.Invoke();
-			return;
+			logExceptionBase(e);
+			notifyLaunchFailed(errorCallback);
 		}
-		launchInternal(hotFixAssembly);
 	}
-	protected static void launchInternal(Assembly hotFixAssembly)
+	protected static void launchInternal(Assembly hotFixAssembly, Action errorCallback)
 	{
 		if (hotFixAssembly == null)
 		{
 			logErrorBase("加载热更程序集失败:" + "HotFix");
+			notifyLaunchFailed(errorCallback);
 			return;
 		}
 		Type type = hotFixAssembly.GetType("GameHotFix");
 		if (type == null)
 		{
 			logErrorBase("在热更程序集中找不到GameHotFix类");
+			notifyLaunchFailed(errorCallback);
 			return;
 		}
 		if (type.BaseType?.Name != "GameHotFixBase`1")
 		{
 			logErrorBase("GameHotFix类需要继承自GameHotFixBase");
+			notifyLaunchFailed(errorCallback);
 			return;
 		}
 		Action preStartCallback = () =>
 		{
-			// 由于createHotFixInstance是在基类中的,而查找静态函数是不会自动去基类中查找的,所以这里需要手动去基类中查找
-			MethodInfo methodCreate = type.BaseType.GetMethod("createHotFixInstance");
-			if (methodCreate == null)
+			try
 			{
-				logErrorBase("在GameHotFix类中找不到静态函数createHotFixInstance");
-				return;
+				// 由于createHotFixInstance是在基类中的,而查找静态函数是不会自动去基类中查找的,所以这里需要手动去基类中查找
+				MethodInfo methodCreate = type.BaseType.GetMethod("createHotFixInstance");
+				if (methodCreate == null)
+				{
+					logErrorBase("在GameHotFix类中找不到静态函数createHotFixInstance");
+					notifyLaunchFailed(errorCallback);
+					return;
+				}
+				// 查找start函数,会自动从基类中查找
+				MethodInfo methodStart = type.GetMethod("start");
+				if (methodStart == null)
+				{
+					logErrorBase("在GameHotFix类中找不到函数start");
+					notifyLaunchFailed(errorCallback);
+					return;
+				}
+				// 执行热更的启动函数
+				Action callback = () =>
+				{
+					logBase("热更初始化完毕");
+					// 到这里才表示热更真正启动成功
+					mHotFixLaunching = false;
+					mHotFixLaunched = true;
+					// 热更初始化完毕后将非热更层加载的所有资源都清除,这样避免中间的黑屏
+					GameEntryBase.getInstance().getFrameworkAOT().destroy();
+					GameEntryBase.getInstance().setFrameworkAOT(null);
+				};
+				// 使用createHotFixInstance创建一个HotFix的实例,然后调用此实例的start函数
+				object hotFixInstance = methodCreate.Invoke(null, null);
+				if (hotFixInstance == null)
+				{
+					logErrorBase("createHotFixInstance创建热更实例失败");
+					notifyLaunchFailed(errorCallback);
+					return;
+				}
+				methodStart.Invoke(hotFixInstance, new object[1] { callback });
 			}
-			// 查找start函数,会自动从基类中查找
-			MethodInfo methodStart = type.GetMethod("start");
-			if (methodStart == null)
+			catch (Exception e)
 			{
-				logErrorBase("在GameHotFix类中找不到函数start");
-				return;
+				logExceptionBase(e);
+				notifyLaunchFailed(errorCallback);
 			}
-			// 执行热更的启动函数
-			Action callback = () =>
-			{
-				logBase("热更初始化完毕");
-				// 热更初始化完毕后将非热更层加载的所有资源都清除,这样避免中间的黑屏
-				GameEntryBase.getInstance().getFrameworkAOT().destroy();
-				GameEntryBase.getInstance().setFrameworkAOT(null);
-			};
-			// 使用createHotFixInstance创建一个HotFix的实例,然后调用此实例的start函数
-			methodStart.Invoke(methodCreate.Invoke(null, null), new object[1] { callback });
 		};
-		MethodInfo methodPreStart = getMethodRecursive(type, "preStart", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-		if (methodPreStart == null)
+		try
 		{
-			logErrorBase("在GameHotFix类或者父类中找不到静态函数preStart");
+			MethodInfo methodPreStart = getMethodRecursive(type, "preStart", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+			if (methodPreStart == null)
+			{
+				logErrorBase("在GameHotFix类或者父类中找不到静态函数preStart");
+				notifyLaunchFailed(errorCallback);
+				return;
+			}
+			methodPreStart.Invoke(null, new object[1] { preStartCallback });
+		}
+		catch (Exception e)
+		{
+			logExceptionBase(e);
+			notifyLaunchFailed(errorCallback);
+		}
+	}
+	protected static void notifyLaunchFailed(Action errorCallback)
+	{
+		// 同一轮启动可能存在多个后续回调,失败以后只允许通知一次
+		if (!mHotFixLaunching)
+		{
 			return;
 		}
-		methodPreStart.Invoke(null, new object[1] { preStartCallback });
+		mHotFixLaunching = false;
+		mHotFixLaunched = false;
+		errorCallback?.Invoke();
 	}
 }

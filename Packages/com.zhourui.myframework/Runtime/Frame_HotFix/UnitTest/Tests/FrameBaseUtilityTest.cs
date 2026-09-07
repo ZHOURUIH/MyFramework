@@ -11,6 +11,8 @@ public static class FrameBaseUtilityTest
 		testCompareLocalHigher();
 		testCompareRemoteEmpty();
 		testCompareLocalEmpty();
+		testCompareLargeMajorVersion();
+		testCompareLargeMinorVersion();
 		testCheckValidNormal();
 		testCheckValidEmpty();
 	}
@@ -45,6 +47,20 @@ public static class FrameBaseUtilityTest
 	{
 		VERSION_COMPARE result = compareVersion3("1.0.0", "", out var l, out var h);
 		AssertEqual((int)VERSION_COMPARE.LOCAL_LOWER, (int)result);
+	}
+
+	private static void testCompareLargeMajorVersion()
+	{
+		VERSION_COMPARE result = compareVersion3("5.0.0", "4.999999999.999999999", out var l, out var h);
+		AssertEqual((int)VERSION_COMPARE.LOCAL_LOWER, (int)result);
+		AssertEqual((int)VERSION_COMPARE.LOCAL_LOWER, (int)h);
+	}
+
+	private static void testCompareLargeMinorVersion()
+	{
+		VERSION_COMPARE result = compareVersion3("1.1000000000.0", "1.999999999.999999999", out var l, out var h);
+		AssertEqual((int)VERSION_COMPARE.LOCAL_LOWER, (int)result);
+		AssertEqual((int)VERSION_COMPARE.LOCAL_LOWER, (int)h);
 	}
 
 	private static void testCheckValidNormal()
