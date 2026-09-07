@@ -177,6 +177,152 @@ public class FileUtility
 			}
 		}
 	}
+	// 获取文件大小,fileName为绝对路径,不存在或获取失败返回-1
+	public static long getFileSize(string fileName)
+	{
+		if (fileName.isEmpty() || !isFileExist(fileName))
+		{
+			return -1;
+		}
+		try
+		{
+			if (isEditor() || isIOS() || isWindows())
+			{
+				return new FileInfo(fileName).Length;
+			}
+			if (isAndroid())
+			{
+				return AndroidAssetLoader.getFileSize(fileName);
+			}
+			if (isWebGL())
+			{
+				byte[] bytes = openFileSync(fileName, false);
+				return bytes?.LongLength ?? -1;
+			}
+		}
+		catch (Exception e)
+		{
+			logWarningBase("获取文件大小失败:" + fileName + ", " + e.Message);
+		}
+		return -1;
+	}
+	// 将已经完整写好的临时文件替换为正式文件。
+	// 普通文件系统优先使用File.Replace,不支持时退化为带备份的Move;小游戏平台退化为重新写正式文件。
+	public static bool replaceFileFromTemp(string tempFile, string finalFile)
+	{
+		if (!isFileExist(tempFile))
+		{
+			return false;
+		}
+		try
+		{
+			createDir(getFilePath(finalFile));
+			if (isEditor() || isIOS() || isWindows() || isAndroid())
+			{
+				string backupFile = tempFile + ".backup";
+				if (File.Exists(backupFile))
+				{
+					File.Delete(backupFile);
+				}
+				if (File.Exists(finalFile))
+				{
+					try
+					{
+						File.Replace(tempFile, finalFile, backupFile);
+					}
+					catch
+					{
+						// 某些运行时不支持File.Replace,退化为先备份旧文件再移动新文件。
+						if (File.Exists(backupFile))
+						{
+							File.Delete(backupFile);
+						}
+						File.Move(finalFile, backupFile);
+						try
+						{
+							File.Move(tempFile, finalFile);
+						}
+						catch
+						{
+							if (!File.Exists(finalFile) && File.Exists(backupFile))
+							{
+								File.Move(backupFile, finalFile);
+							}
+							throw;
+						}
+					}
+				}
+				else
+				{
+					File.Move(tempFile, finalFile);
+				}
+				if (File.Exists(backupFile))
+				{
+					File.Delete(backupFile);
+				}
+				return File.Exists(finalFile);
+			}
+			if (isWebGL())
+			{
+				byte[] bytes = openFileSync(tempFile, false);
+				if (bytes == null)
+				{
+					return false;
+				}
+				writeFile(finalFile, bytes, bytes.Length);
+				if (getFileSize(finalFile) != bytes.LongLength)
+				{
+					return false;
+				}
+				deleteFile(tempFile);
+				return true;
+			}
+		}
+		catch (Exception e)
+		{
+			logWarningBase("替换文件失败,temp:" + tempFile + ", final:" + finalFile + ", " + e.Message);
+		}
+		return false;
+	}
+	// 先写临时文件,确认写入长度正确以后再替换正式文件,避免进程中断后留下半个正式文件。
+	public static bool writeFileSafe(string fileName, byte[] buffer, int size)
+	{
+		if (fileName.isEmpty() || buffer == null || size < 0 || size > buffer.Length)
+		{
+			return false;
+		}
+		string tempFile = getFilePath(fileName) + "temp/" + getFileNameWithSuffix(fileName) + ".download";
+		if (isFileExist(tempFile))
+		{
+			deleteFile(tempFile);
+		}
+		try
+		{
+			writeFile(tempFile, buffer, size);
+		}
+		catch (Exception e)
+		{
+			logWarningBase("写临时文件失败:" + tempFile + ", " + e.Message);
+			return false;
+		}
+		if (getFileSize(tempFile) != size)
+		{
+			logWarningBase("临时文件大小校验失败:" + tempFile + ", expected:" + size + ", actual:" + getFileSize(tempFile));
+			deleteFile(tempFile);
+			return false;
+		}
+		if (!replaceFileFromTemp(tempFile, fileName))
+		{
+			deleteFile(tempFile);
+			return false;
+		}
+		return getFileSize(fileName) == size;
+	}
+	public static bool writeTxtFileSafe(string fileName, string content)
+	{
+		byte[] bytes = stringToBytes(content);
+		return bytes != null && writeFileSafe(fileName, bytes, bytes.Length);
+	}
 	// 删除文件,参数为绝对路径
 	public static bool deleteFile(string path)
 	{
@@ -671,9 +817,9 @@ public class FileUtility
 			}
 		}
 	}
-	public static void writeFileList(string path, string content)
+	public static bool writeFileList(string path, string content)
 	{
-		writeTxtFile(path + FILE_LIST, content);
+		return writeTxtFileSafe(path + FILE_LIST, content);
 	}
 	// 获得一个合适的文件加载路径,fileName是StreamingAssets下的相对路径,带后缀
 	public static string availableReadPath(string fileName)

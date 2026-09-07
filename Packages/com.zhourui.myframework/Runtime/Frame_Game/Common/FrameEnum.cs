@@ -15,6 +15,8 @@ public enum DOWNLOAD_ERROR : byte
 	DOWNLOAD_FAILED,            // 文件下载失败
 	NOT_IN_REMOTE_FILE_LIST,    // 已经下载的文件不存在于远端的文件列表中,一般不会有这个错误
 	VERIFY_FAILED,              // 文件校验失败
+	WRITE_FAILED,               // 更新文件写入本地失败
+	LOCAL_VERSION_HIGHER,       // 本地版本高于远端且安装包不是全量资源包,无法启动
 }
 
 // x方向上要停靠的边界

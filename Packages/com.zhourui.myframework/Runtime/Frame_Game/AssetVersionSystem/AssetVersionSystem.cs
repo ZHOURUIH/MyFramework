@@ -24,6 +24,7 @@ public class AssetVersionSystem : FrameSystem
 	protected bool mStreamingDone;                          // 是否完成获取StreamingAssets中的文件列表
 	protected bool mRemoteDone;                             // 是否完成获取远端服务器中的文件列表
 	protected bool mCheckFileListFailed;                    // 是否获取文件列表失败,如果失败了就不进入游戏了,因为没有正确的文件列表就无法正确加载资源
+	protected int mCheckFileListGeneration;                 // 文件列表检查代数,用于让重试前遗留的异步回调失效
 	public override void init()
 	{
 		base.init();
@@ -160,6 +161,8 @@ public class AssetVersionSystem : FrameSystem
 	// remoteFileListCallback是获取到最新的远端文件列表
 	public void startCheckFileList(string remoteFileListMD5, List<string> ignorePath, List<string> ignoreFile, Action successCallback, Action failCallback, DownloadFileListCallback remoteFileListCallback)
 	{
+		// 每次重新检查都生成新的代数。上一轮尚未返回的本地扫描/远端下载回调全部作废。
+		int generation = ++mCheckFileListGeneration;
 		logBase("Remote Version:" + mRemoteVersion +
 				", Local Version:" + getLocalVersion() +
 				", streamingAssetsVersion:" + mStreamingAssetsVersion +
@@ -193,20 +196,28 @@ public class AssetVersionSystem : FrameSystem
 
 		if (remoteFileListMD5.isEmpty())
 		{
-			notifyRemoteFileListFailed("远端FileList MD5为空");
+			notifyRemoteFileListFailed("远端FileList MD5为空", generation);
 			return;
 		}
 
 		logBase("开始获取所有文件列表");
 		// 获取StreamingAssets,PersistentPath的所有文件信息
-		openFileList(F_ASSET_BUNDLE_PATH, () =>
+		openFileList(F_ASSET_BUNDLE_PATH, generation, () =>
 		{
+			if (generation != mCheckFileListGeneration)
+			{
+				return;
+			}
 			logBase("获取StreamingAssets文件列表完成");
 			mStreamingDone = true;
 		}, ignorePath, ignoreFile);
 
-		openFileList(F_PERSISTENT_ASSETS_PATH, () =>
+		openFileList(F_PERSISTENT_ASSETS_PATH, generation, () =>
 		{
+			if (generation != mCheckFileListGeneration)
+			{
+				return;
+			}
 			logBase("获取PersistentPath文件列表完成");
 			mPersistentDone = true;
 		}, ignorePath, ignoreFile);
@@ -220,23 +231,27 @@ public class AssetVersionSystem : FrameSystem
 		{
 			if (remoteFileListCallback == null)
 			{
-				notifyRemoteFileListFailed("远端FileList下载回调为空");
+				notifyRemoteFileListFailed("远端FileList下载回调为空", generation);
 				return;
 			}
 			remoteFileListCallback((string content0) =>
 			{
+				if (generation != mCheckFileListGeneration)
+				{
+					return;
+				}
 				if (content0.isEmpty())
 				{
-					notifyRemoteFileListFailed("下载到的远端FileList为空");
+					notifyRemoteFileListFailed("下载到的远端FileList为空", generation);
 					return;
 				}
 				string downloadedMD5 = generateFileMD5(stringToBytes(content0));
 				if (!string.Equals(downloadedMD5, remoteFileListMD5, StringComparison.OrdinalIgnoreCase))
 				{
-					notifyRemoteFileListFailed("远端FileList MD5校验失败,target:" + remoteFileListMD5 + ", local:" + downloadedMD5);
+					notifyRemoteFileListFailed("远端FileList MD5校验失败,target:" + remoteFileListMD5 + ", local:" + downloadedMD5, generation);
 					return;
 				}
-				if (checkRemoteList(content0))
+				if (checkRemoteList(content0, generation))
 				{
 					UnityEngine.PlayerPrefs.SetString(prefsKey, content0);
 				}
@@ -244,17 +259,26 @@ public class AssetVersionSystem : FrameSystem
 		}
 		else
 		{
-			checkRemoteList(content);
+			checkRemoteList(content, generation);
 		}
+
 	}
 	// path为绝对路径
-	protected void openFileList(string path, Action callback, List<string> ignorePath, List<string> ignoreFile)
+	protected void openFileList(string path, int generation, Action callback, List<string> ignorePath, List<string> ignoreFile)
 	{
+		if (generation != mCheckFileListGeneration)
+		{
+			return;
+		}
 		DateTime start = DateTime.Now;
 		string fileListFullPath = path + FILE_LIST;
 		// 本地已经有生成好的FileList文件,不过即使读取的是已经生成好的文件信息,也要再获取所有文件的文件名和大小进行校验,避免记录错误的信息
 		openTxtFileAsync(fileListFullPath, false, (string content) =>
 		{
+			if (generation != mCheckFileListGeneration)
+			{
+				return;
+			}
 			if (!content.isEmpty())
 			{
 				Dictionary<string, GameFileInfo> fileInfoList = new();
@@ -294,6 +318,22 @@ public class AssetVersionSystem : FrameSystem
 							}
 						}
 					}
+					// 仅对Persistent做真实文件大小校验。大小检查成本很低,但能发现写盘中断/文件截断。
+					// 只有发现不一致时才进入后面的完整扫描并重新计算MD5,避免每次启动都读取所有AB。
+					if (isSame)
+					{
+						foreach (var item in fileInfoList)
+						{
+							long realSize = getFileSize(path + item.Key);
+							if (realSize != item.Value.mFileSize)
+							{
+								logBase("因为文件实际大小与FileList记录不一致,所以重新扫描:" + item.Key +
+									", record:" + item.Value.mFileSize + ", real:" + realSize);
+								isSame = false;
+								break;
+							}
+						}
+					}
 					else
 					{
 						logBase("因为文件列表中文件数量与实际的不一致,所以重新扫描:" + fileListFullPath + ", fileInfoList.Count:" + fileInfoList.Count + ", fileList.Count:" + fileList.Count);
@@ -311,7 +351,7 @@ public class AssetVersionSystem : FrameSystem
 					{
 						fileList[i] = path + fileList[i];
 					}
-					generateLocalFileList(path, fileList, callback);
+					generateLocalFileList(path, fileList, generation, callback);
 				}
 			}
 			// 本地没有FileList,则查找所有文件,生成文件信息列表
@@ -346,16 +386,19 @@ public class AssetVersionSystem : FrameSystem
 				{
 					logBase("本地文件为空,path:" + path);
 				}
-				generateLocalFileList(path, fileList, callback);
+				generateLocalFileList(path, fileList, generation, callback);
 			}
 		});
 	}
-	protected void generateLocalFileList(string path, List<string> fileList, Action callback)
+	protected void generateLocalFileList(string path, List<string> fileList, int generation, Action callback)
 	{
+		if (generation != mCheckFileListGeneration)
+		{
+			return;
+		}
 		if (fileList.isEmpty())
 		{
 			setFileListToAssetSystem(path, null);
-			// PersistentPath中的FileList需要更新写入文件
 			if (path == F_PERSISTENT_ASSETS_PATH)
 			{
 				writeFileList(path, generatePersistentAssetFileList());
@@ -366,10 +409,13 @@ public class AssetVersionSystem : FrameSystem
 
 		DateTime start = DateTime.Now;
 		Dictionary<string, GameFileInfo> fileInfoList = new();
-		// 打开所有文件
 		int finishCount = 0;
 		openFileListAsync(fileList, true, (string fileName, byte[] bytes) =>
 		{
+			if (generation != mCheckFileListGeneration)
+			{
+				return;
+			}
 			if (bytes != null)
 			{
 				string relativeFileName = fileName.removeStartCount(path.Length);
@@ -389,7 +435,6 @@ public class AssetVersionSystem : FrameSystem
 			if (++finishCount == fileList.Count)
 			{
 				setFileListToAssetSystem(path, fileInfoList);
-				// PersistentPath中的FileList需要更新写入文件
 				if (path == F_PERSISTENT_ASSETS_PATH)
 				{
 					writeFileList(path, generatePersistentAssetFileList());
@@ -399,8 +444,13 @@ public class AssetVersionSystem : FrameSystem
 			}
 		});
 	}
-	protected bool checkRemoteList(string content)
+
+	protected bool checkRemoteList(string content, int generation)
 	{
+		if (generation != mCheckFileListGeneration)
+		{
+			return false;
+		}
 		Dictionary<string, GameFileInfo> remoteFileList = new();
 		DateTime start0 = DateTime.Now;
 		try
@@ -410,12 +460,16 @@ public class AssetVersionSystem : FrameSystem
 		catch (Exception e)
 		{
 			logExceptionBase(e);
-			notifyRemoteFileListFailed("远端FileList解析异常");
+			notifyRemoteFileListFailed("远端FileList解析异常", generation);
 			return false;
 		}
 		if (remoteFileList.isEmpty())
 		{
-			notifyRemoteFileListFailed("远端FileList没有有效文件记录");
+			notifyRemoteFileListFailed("远端FileList没有有效文件记录", generation);
+			return false;
+		}
+		if (generation != mCheckFileListGeneration)
+		{
 			return false;
 		}
 		logBase("获取远端文件列表耗时:" + (int)(DateTime.Now - start0).TotalMilliseconds + "毫秒");
@@ -426,9 +480,9 @@ public class AssetVersionSystem : FrameSystem
 		mRemoteDone = true;
 		return true;
 	}
-	protected void notifyRemoteFileListFailed(string reason)
+	protected void notifyRemoteFileListFailed(string reason, int generation)
 	{
-		if (mCheckFileListFailed)
+		if (generation != mCheckFileListGeneration || mCheckFileListFailed)
 		{
 			return;
 		}

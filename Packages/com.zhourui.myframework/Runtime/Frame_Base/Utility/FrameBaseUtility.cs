@@ -523,17 +523,17 @@ public class FrameBaseUtility
 		{
 			return VERSION_COMPARE.EQUAL;
 		}
-		int[] source = new int[3];
-		int[] target = new int[3];
+		long[] source = new long[3];
+		long[] target = new long[3];
 		for (int i = 0; i < 3; ++i)
 		{
-			if (!int.TryParse(sourceFormatStr[i], out source[i]))
+			if (!long.TryParse(sourceFormatStr[i], out source[i]))
 			{
 				lowerVersion = VERSION_COMPARE.REMOTE_LOWER;
 				higherVersion = VERSION_COMPARE.REMOTE_LOWER;
 				return VERSION_COMPARE.REMOTE_LOWER;
 			}
-			if (!int.TryParse(targetFormatStr[i], out target[i]))
+			if (!long.TryParse(targetFormatStr[i], out target[i]))
 			{
 				lowerVersion = VERSION_COMPARE.LOCAL_LOWER;
 				higherVersion = VERSION_COMPARE.LOCAL_LOWER;

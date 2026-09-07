@@ -58,7 +58,7 @@ public static class FrameBaseUtilityTest
 
 	private static void testCompareLargeMinorVersion()
 	{
-		VERSION_COMPARE result = compareVersion3("1.1000000000.0", "1.999999999.999999999", out var l, out var h);
+		VERSION_COMPARE result = compareVersion3("1.100000000000.0", "1.99999999999.999999999", out var l, out var h);
 		AssertEqual((int)VERSION_COMPARE.LOCAL_LOWER, (int)result);
 		AssertEqual((int)VERSION_COMPARE.LOCAL_LOWER, (int)h);
 	}
