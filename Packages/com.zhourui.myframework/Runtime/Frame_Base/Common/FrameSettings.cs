@@ -15,6 +15,8 @@ public class FrameSettings : ScriptableObject
 	public Vector2Int UISizeMobile = new(1920, 1080);
 	[Tooltip("允许动态下载的目录列表,GameResources下的相对路径,此列表中的文件不会打包到包体中,也不会在游戏启动时从服务器下载,而是在加载资源时才会进行下载")]
 	public List<string> DynamicDownloadList = new();
+	[Tooltip("需要热更的asmdef列表,需要注意顺序,被依赖的asmdef需要排在前面,启动的主要程序集名字固定为HotFix")]
+	public List<string> HotFixList = new() { "Frame_HotFix", "HotFix" };
 	[Tooltip("安卓插件的包名,也就是自己的安卓工程代码中定义的包名,用于在C#中访问java代码")]
 	public string AndroidPluginBundleName = "com.your.packagename";
 	[Tooltip("热更dll加密的Key,实际上会再处理一次计算出最终的Key,是一个16个byte的十六进制形式的字符串,比如FFAE4F表示3个byte:0xFF,0xAE,0x4F,所以这里字符串的长度必须等于16*2=32")]
@@ -62,9 +64,18 @@ public class FrameSettings : ScriptableObject
 			return get().UISizeStandalone;
 		}
 	}
-	public static List<string> getDynamicDownloadList() 
+	public static List<string> getDynamicDownloadList()
 	{
-		return get().DynamicDownloadList; 
+		return get().DynamicDownloadList;
+	}
+	public static List<string> getHotFixList()
+	{
+		FrameSettings instance = get();
+		if (isEditor() && (instance.HotFixList.Count == 0 || instance.HotFixList[^1] != HOTFIX))
+		{
+			Debug.LogError("热更程序集列表的最后一项必须为" + HOTFIX);
+		}
+		return instance.HotFixList;
 	}
 	public static string getAndroidPluginBundleName() { return get().AndroidPluginBundleName; }
 	public static byte[] getAESKey()

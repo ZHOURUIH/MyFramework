@@ -167,13 +167,13 @@ public class HybridCLRSystem
 	}
 	protected static void launchRuntime(Action errorCallback)
 	{
-		loadMetaDataForAOT(()=>
+		loadMetaDataForAOT(() =>
 		{
-			Dictionary<string, byte[]> downloadFiles = new()
+			Dictionary<string, byte[]> downloadFiles = new();
+			foreach (string name in FrameSettings.getHotFixList())
 			{
-				{ HOTFIX_FRAME_BYTES_FILE, null },
-				{ HOTFIX_BYTES_FILE, null }
-			};
+				downloadFiles.add(name + ".dll.bytes", null);
+			}
 			int finishCount = 0;
 			foreach (string item in new List<string>(downloadFiles.Keys))
 			{
@@ -201,16 +201,23 @@ public class HybridCLRSystem
 			return;
 		}
 		// 加载以后不再卸载
-		Assembly.Load(decryptAES(downloadFiles.get(HOTFIX_FRAME_BYTES_FILE), FrameSettings.getAESKey(), FrameSettings.getAESIV()));
-		launchInternal(Assembly.Load(decryptAES(downloadFiles.get(HOTFIX_BYTES_FILE), FrameSettings.getAESKey(), FrameSettings.getAESIV())));
+		Assembly hotfix = null;
+		foreach (var item in downloadFiles)
+		{
+			Assembly assmebly = Assembly.Load(decryptAES(item.Value, FrameSettings.getAESKey(), FrameSettings.getAESIV()));
+			if (item.Key == "HotFix.dll.bytes")
+			{
+				hotfix = assmebly;
+			}
+		}
+		launchInternal(hotfix);
 	}
 	protected static void launchEditor(Action errorCallback)
 	{
 		Assembly hotFixAssembly = null;
-		string dllName = getFileNameNoSuffixNoDir(HOTFIX_FILE);
 		foreach (Assembly item in AppDomain.CurrentDomain.GetAssemblies())
 		{
-			if (item.GetName().Name == dllName)
+			if (item.GetName().Name == "HotFix")
 			{
 				hotFixAssembly = item;
 				break;
@@ -227,7 +234,7 @@ public class HybridCLRSystem
 	{
 		if (hotFixAssembly == null)
 		{
-			logErrorBase("加载热更程序集失败:" + HOTFIX_FILE);
+			logErrorBase("加载热更程序集失败:" + "HotFix");
 			return;
 		}
 		Type type = hotFixAssembly.GetType("GameHotFix");

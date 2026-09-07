@@ -19,7 +19,7 @@ public class MenuAssetBundle
 	[MenuItem(MENU_NAME + "打包AssetBundle", false, 0)]
 	public static void packAssetBundleMenu()
 	{
-		packAssetBundle(getBuildTarget(), getAssetBundlePath(true), true);
+		packAssetBundle(getBuildTarget(), F_ASSET_BUNDLE_PATH, true);
 	}
 	[MenuItem(MENU_NAME + "刷新AssetBundle名字", false, 1)]
 	public static void refreshAllAssetBundleName()
@@ -48,7 +48,7 @@ public class MenuAssetBundle
 			showInfo("需要选中一个" + ASSET_BUNDLE_SUFFIX, true, true);
 			return;
 		}
-		findAllDependencies(selection.removeStart(P_ASSET_BUNDLE_ANDROID_PATH));
+		findAllDependencies(selection.removeStart(fullPathToProjectPath(F_ASSET_BUNDLE_PATH)));
 	}
 	[MenuItem(MENU_NAME + "清除AssetBundle名称", false, 4)]
 	public static void clearAllAssetBundleName()
@@ -162,7 +162,7 @@ public class MenuAssetBundle
 	{
 		Debug.Log("开始查找" + assetBundleName + "的依赖项");
 		Dictionary<string, HashSet<string>> dependencyList = new();
-		if (!loadAndReadAssetBundleManifest(getAssetBundlePath(true), null, dependencyList, true, false))
+		if (!loadAndReadAssetBundleManifest(F_ASSET_BUNDLE_PATH, null, dependencyList, true, false))
 		{
 			showInfo("加载资源清单文件失败", true, true);
 			return;

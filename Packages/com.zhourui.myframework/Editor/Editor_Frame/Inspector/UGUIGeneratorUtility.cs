@@ -47,11 +47,11 @@ public class UGUIGeneratorUtility
 		}
 		if (generator is UGUISubGenerator subGenerator)
 		{
-            using (new GUILayout.HorizontalScope(GUILayout.Width(200)))
-            {
-                drawRootMemberLine(subGenerator);
-            }
-        }
+			using (new GUILayout.HorizontalScope(GUILayout.Width(200)))
+			{
+				drawRootMemberLine(subGenerator);
+			}
+		}
 		List<MemberData> tempNeedRemoveData = null;
 		for (int i = 0; i < generator.mMemberList.Count; ++i)
 		{
@@ -96,50 +96,50 @@ public class UGUIGeneratorUtility
 			generator.addEmptyMember();
 		}
 	}
-    public static void drawDragDrop(UGUIGeneratorBase generator)
-    {
-        // 绘制一个可拖拽区域
-        Rect dropRect = GUILayoutUtility.GetRect(0.0f, 50.0f, GUILayout.ExpandWidth(true));
-        GUI.Box(dropRect, "拖拽Hierarchy中的节点到这里添加成员", EditorStyles.helpBox);
-        Event curEvent = Event.current;
-        // 鼠标不在指定区域内,不处理
-        if (!dropRect.Contains(curEvent.mousePosition))
-        {
-            return;
-        }
+	public static void drawDragDrop(UGUIGeneratorBase generator)
+	{
+		// 绘制一个可拖拽区域
+		Rect dropRect = GUILayoutUtility.GetRect(0.0f, 50.0f, GUILayout.ExpandWidth(true));
+		GUI.Box(dropRect, "拖拽Hierarchy中的节点到这里添加成员", EditorStyles.helpBox);
+		Event curEvent = Event.current;
+		// 鼠标不在指定区域内,不处理
+		if (!dropRect.Contains(curEvent.mousePosition))
+		{
+			return;
+		}
 
-        // 拖拽悬停在区域上
-        if (curEvent.type == EventType.DragUpdated)
-        {
-            bool hasGameObject = DragAndDrop.objectReferences.contains(obj=> obj is GameObject || obj is Component);
-            DragAndDrop.visualMode = hasGameObject ? DragAndDropVisualMode.Copy : DragAndDropVisualMode.Rejected;
-            curEvent.Use();
-        }
-        // 拖拽释放
-        else if (curEvent.type == EventType.DragPerform)
-        {
-            DragAndDrop.AcceptDrag();
-            foreach (UObject obj in DragAndDrop.objectReferences)
-            {
-                GameObject go = null;
-                if (obj is GameObject gameObject)
-                {
-                    go = gameObject;
-                }
-                else if (obj is Component component)
-                {
-                    go = component.gameObject;
-                }
-                if (go == null)
-                {
-                    continue;
-                }
-                generator.addMember(go);
-            }
-            curEvent.Use();
-        }
-    }
-    protected static void drawMemberLine(UGUIGeneratorBase generator, MemberData item, ref List<MemberData> tempNeedRemoveData)
+		// 拖拽悬停在区域上
+		if (curEvent.type == EventType.DragUpdated)
+		{
+			bool hasGameObject = DragAndDrop.objectReferences.contains(obj => obj is GameObject || obj is Component);
+			DragAndDrop.visualMode = hasGameObject ? DragAndDropVisualMode.Copy : DragAndDropVisualMode.Rejected;
+			curEvent.Use();
+		}
+		// 拖拽释放
+		else if (curEvent.type == EventType.DragPerform)
+		{
+			DragAndDrop.AcceptDrag();
+			foreach (UObject obj in DragAndDrop.objectReferences)
+			{
+				GameObject go = null;
+				if (obj is GameObject gameObject)
+				{
+					go = gameObject;
+				}
+				else if (obj is Component component)
+				{
+					go = component.gameObject;
+				}
+				if (go == null)
+				{
+					continue;
+				}
+				generator.addMember(go);
+			}
+			curEvent.Use();
+		}
+	}
+	protected static void drawMemberLine(UGUIGeneratorBase generator, MemberData item, ref List<MemberData> tempNeedRemoveData)
 	{
 		if (button("X", 32))
 		{
@@ -247,24 +247,24 @@ public class UGUIGeneratorUtility
 			toggle(ref item.mHideError, "不显示错误");
 		}
 	}
-    protected static void drawRootMemberLine(UGUISubGenerator generator)
-    {
+	protected static void drawRootMemberLine(UGUISubGenerator generator)
+	{
 		label("Root");
-        objectField(generator.gameObject, 160);
-        if (toggle(ref generator.mRootRegisterCollider, "注册点击") && generator.mRootRegisterCollider)
-        {
-            generator.mRootHasClickEvent = true;
-        }
-        if (generator.mRootRegisterCollider)
-        {
-            toggle(ref generator.mRootHasClickEvent, "点击事件");
-        }
-        else
-        {
-            generator.mRootHasClickEvent = false;
-        }
-    }
-    protected static void drawTemplateParamUGUIDragViewLoop(MemberData data)
+		objectField(generator.gameObject, 160);
+		if (toggle(ref generator.mRootRegisterCollider, "注册点击") && generator.mRootRegisterCollider)
+		{
+			generator.mRootHasClickEvent = true;
+		}
+		if (generator.mRootRegisterCollider)
+		{
+			toggle(ref generator.mRootHasClickEvent, "点击事件");
+		}
+		else
+		{
+			generator.mRootHasClickEvent = false;
+		}
+	}
+	protected static void drawTemplateParamUGUIDragViewLoop(MemberData data)
 	{
 		using (new GUILayout.HorizontalScope(GUILayout.Width(200)))
 		{
@@ -338,8 +338,7 @@ public class UGUIGeneratorUtility
 		}
 		if (mSubUIParentList.Count == 0)
 		{
-			mSubUIParentList.AddRange(getTypesWithAttributeInFrameHotFixDll<CommonWindowObjectAttribute>());
-			mSubUIParentList.AddRange(getTypesWithAttributeInHotFixDll<CommonWindowObjectAttribute>());
+			mSubUIParentList.AddRange(getTypesWithAttributeInAllHotFixDll<CommonWindowObjectAttribute>());
 		}
 		return mSubUIParentList;
 	}
@@ -351,8 +350,7 @@ public class UGUIGeneratorUtility
 		}
 		if (mUIParentList.Count == 0)
 		{
-			mUIParentList.AddRange(getTypesWithAttributeInFrameHotFixDll<LayoutScriptBaseAttribute>());
-			mUIParentList.AddRange(getTypesWithAttributeInHotFixDll<LayoutScriptBaseAttribute>());
+			mUIParentList.AddRange(getTypesWithAttributeInAllHotFixDll<LayoutScriptBaseAttribute>());
 		}
 		return mUIParentList;
 	}
@@ -376,8 +374,7 @@ public class UGUIGeneratorUtility
 		}
 		if (mPoolTypeList.Count == 0)
 		{
-			mPoolTypeList.AddRange(getTypesWithAttributeInFrameHotFixDll<CommonWindowPoolAttribute>());
-			mPoolTypeList.AddRange(getTypesWithAttributeInHotFixDll<CommonWindowPoolAttribute>());
+			mPoolTypeList.AddRange(getTypesWithAttributeInAllHotFixDll<CommonWindowPoolAttribute>());
 		}
 		return mPoolTypeList;
 	}
@@ -389,8 +386,7 @@ public class UGUIGeneratorUtility
 		}
 		if (mCommonSubUITypeList.Count == 0)
 		{
-			mCommonSubUITypeList.AddRange(getTypesWithAttributeInFrameHotFixDll<CommonControlAttribute>());
-			mCommonSubUITypeList.AddRange(getTypesWithAttributeInHotFixDll<CommonControlAttribute>());
+			mCommonSubUITypeList.AddRange(getTypesWithAttributeInAllHotFixDll<CommonControlAttribute>());
 		}
 		return mCommonSubUITypeList;
 	}
@@ -407,7 +403,7 @@ public class UGUIGeneratorUtility
 		// 删掉空节点再进行排序
 		for (int i = 0; i < generator.mMemberList.Count; ++i)
 		{
-			if (generator.mMemberList[i].mObject == null && 
+			if (generator.mMemberList[i].mObject == null &&
 				generator.mMemberList[i].mWindowType != WINDOW_TYPE.POOL &&
 				generator.mMemberList[i].mWindowType != WINDOW_TYPE.SCROLL_LIST)
 			{
@@ -835,20 +831,19 @@ public class UGUIGeneratorUtility
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 从 DLL 文件中筛选实现指定接口的非抽象类
-	protected static List<string> getTypesWithAttributeInHotFixDll<T>() where T : Attribute
+	protected static List<string> getTypesWithAttributeInAllHotFixDll<T>() where T : Attribute
 	{
-		return getTypesWithAttributeInDll(F_PROJECT_PATH + "Library/ScriptAssemblies/" + HOTFIX_FILE, typeof(T));
-	}
-	// 从 DLL 文件中筛选实现指定接口的非抽象类
-	protected static List<string> getTypesWithAttributeInFrameHotFixDll<T>() where T : Attribute
-	{
-		return getTypesWithAttributeInDll(F_PROJECT_PATH + "Library/ScriptAssemblies/" + HOTFIX_FRAME_FILE, typeof(T));
+		List<string> list = new();
+		foreach (string name in FrameSettings.getHotFixList())
+		{
+			getTypesWithAttributeInDll(list, F_PROJECT_PATH + "Library/ScriptAssemblies/" + name + ".dll", typeof(T));
+		}
+		return list;
 	}
 	// 从 DLL 文件中筛选实现指定接口的非抽象类,keepGenericMark是否保留模板参数类型显示,默认不保留,只获取类名本身
-	protected static List<string> getTypesWithAttributeInDll(string dllFullPath, Type attribute, bool keepGenericMark = false)
+	protected static void getTypesWithAttributeInDll(List<string> list, string dllFullPath, Type attribute, bool keepGenericMark = false)
 	{
 		// 获取所有类型（捕获加载异常）
-		List<string> typeList = new();
 		foreach (Type type in Assembly.LoadFrom(dllFullPath).GetTypes())
 		{
 			// 跳过无法加载的类型、接口和抽象类
@@ -860,11 +855,10 @@ public class UGUIGeneratorUtility
 			{
 				if (item.AttributeType == attribute)
 				{
-					typeList.Add(keepGenericMark ? type.ToString() : type.ToString().rangeToFirst('`'));
+					list.Add(keepGenericMark ? type.ToString() : type.ToString().rangeToFirst('`'));
 					break;
 				}
 			}
 		}
-		return typeList;
 	}
 }

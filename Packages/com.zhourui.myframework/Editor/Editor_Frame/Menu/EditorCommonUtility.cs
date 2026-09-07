@@ -1160,45 +1160,6 @@ public class EditorCommonUtility
 			}
 		}
 	}
-	// 根据名称获取程序集
-	public static Assembly getAssembly(string assemblyName)
-	{
-		// 获取Assembly集合
-		foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
-		{
-			if (assembly.GetName().Name == assemblyName)
-			{
-				return assembly;
-			}
-		}
-		return null;
-	}
-	// 加载热更程序集
-	public static Assembly loadHotFixAssembly()
-	{
-#if USE_HYBRID_CLR
-		string dllFileName = F_ASSET_BUNDLE_PATH + HOTFIX_BYTES_FILE;
-#else
-		string dllFileName = null;
-#endif
-		if (!isFileExist(dllFileName))
-		{
-			return null;
-		}
-		return Assembly.LoadFile(dllFileName);
-	}
-	public static Type findClass(Assembly assembly, string className)
-	{
-		// 获取到类型
-		foreach (Type type in (assembly?.GetTypes()).safe())
-		{
-			if (type.Name == className)
-			{
-				return type;
-			}
-		}
-		return null;
-	}
 	// 检测命令命名规范
 	public static void doCheckCommandName(string filePath, string[] lines)
 	{
@@ -3148,34 +3109,6 @@ public class EditorCommonUtility
 			return BuildTargetGroup.iOS;
 		}
 		return BuildTargetGroup.Unknown;
-	}
-	public static string getAssetBundlePath(bool fullOrInProject, BuildTarget target = BuildTarget.NoTarget)
-	{
-		if (target == BuildTarget.NoTarget)
-		{
-			target = getBuildTarget();
-		}
-		if (target == BuildTarget.Android)
-		{
-			return fullOrInProject ? F_ASSET_BUNDLE_ANDROID_PATH : P_ASSET_BUNDLE_ANDROID_PATH;
-		}
-		else if (target == BuildTarget.WebGL)
-		{
-			return fullOrInProject ? F_ASSET_BUNDLE_WEBGL_PATH : P_ASSET_BUNDLE_WEBGL_PATH;
-		}
-		else if (target == BuildTarget.iOS)
-		{
-			return fullOrInProject ? F_ASSET_BUNDLE_IOS_PATH : P_ASSET_BUNDLE_IOS_PATH;
-		}
-		else if (target == BuildTarget.StandaloneWindows || target == BuildTarget.StandaloneWindows64)
-		{
-			return fullOrInProject ? F_ASSET_BUNDLE_WINDOWS_PATH : P_ASSET_BUNDLE_WINDOWS_PATH;
-		}
-		else if (target == BuildTarget.StandaloneOSX)
-		{
-			return fullOrInProject ? F_ASSET_BUNDLE_MACOS_PATH : P_ASSET_BUNDLE_MACOS_PATH;
-		}
-		return null;
 	}
 	public static bool multiSpriteToSpritePNG(Texture2D tex2D, string outputPath)
 	{
