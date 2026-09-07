@@ -4034,6 +4034,22 @@ namespace ECSSourceGenerator
 		}
 		return mCapacity;
 	}
+	public void EnsureCount(int count)
+	{
+		EnsureCount(count, default);
+	}
+	public void EnsureCount(int count, __ECS_TYPE__ value)
+	{
+		if (count <= Count)
+		{
+			return;
+		}
+		EnsureCapacity(count);
+		while (Count < count)
+		{
+			Add(value);
+		}
+	}
 	public void TrimExcess()
 	{
 		if (mDisposed)
