@@ -1,0 +1,80 @@
+#pragma kernel CSMain
+
+struct FastSpriteGPUMatrixPatch
+{
+    int slot;
+    int padding0;
+    int padding1;
+    int padding2;
+    float4x4 value;
+};
+
+struct FastSpriteGPUColorPatch
+{
+    int slot;
+    int padding0;
+    int padding1;
+    int padding2;
+    float4 value;
+};
+
+struct FastSpriteGPUScalarPatch
+{
+    int slot;
+    int value;
+};
+
+
+StructuredBuffer<FastSpriteGPUMatrixPatch> _FastSpriteMatrixPatches;
+StructuredBuffer<FastSpriteGPUColorPatch> _FastSpriteColorPatches;
+StructuredBuffer<FastSpriteGPUScalarPatch> _FastSpriteGeometryPatches;
+StructuredBuffer<FastSpriteGPUScalarPatch> _FastSpriteRootPatches;
+StructuredBuffer<FastSpriteGPUScalarPatch> _FastSpriteFlagsPatches;
+StructuredBuffer<int> _FastSpriteScatterCounts;
+
+RWStructuredBuffer<float4x4> _FastSpriteLocalMatrices;
+RWStructuredBuffer<float4> _FastSpriteColors;
+RWStructuredBuffer<int> _FastSpriteGeometryOffsets;
+RWStructuredBuffer<int> _FastSpriteRootIndices;
+RWStructuredBuffer<int> _FastSpriteFlags;
+
+[numthreads(64, 1, 1)]
+void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    uint index = dispatchThreadID.x;
+
+    uint matrixCount = (uint)_FastSpriteScatterCounts[0];
+    if (index < matrixCount)
+    {
+        FastSpriteGPUMatrixPatch patch = _FastSpriteMatrixPatches[index];
+        _FastSpriteLocalMatrices[patch.slot] = patch.value;
+    }
+
+    uint colorCount = (uint)_FastSpriteScatterCounts[1];
+    if (index < colorCount)
+    {
+        FastSpriteGPUColorPatch patch = _FastSpriteColorPatches[index];
+        _FastSpriteColors[patch.slot] = patch.value;
+    }
+
+    uint geometryCount = (uint)_FastSpriteScatterCounts[2];
+    if (index < geometryCount)
+    {
+        FastSpriteGPUScalarPatch patch = _FastSpriteGeometryPatches[index];
+        _FastSpriteGeometryOffsets[patch.slot] = patch.value;
+    }
+
+    uint rootCount = (uint)_FastSpriteScatterCounts[3];
+    if (index < rootCount)
+    {
+        FastSpriteGPUScalarPatch patch = _FastSpriteRootPatches[index];
+        _FastSpriteRootIndices[patch.slot] = patch.value;
+    }
+
+    uint flagsCount = (uint)_FastSpriteScatterCounts[4];
+    if (index < flagsCount)
+    {
+        FastSpriteGPUScalarPatch patch = _FastSpriteFlagsPatches[index];
+        _FastSpriteFlags[patch.slot] = patch.value;
+    }
+}
