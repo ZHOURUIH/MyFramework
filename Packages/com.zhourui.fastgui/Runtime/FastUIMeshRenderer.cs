@@ -19,6 +19,7 @@ public enum FastUIVertexUploadBackend
 // 负责Unity Mesh/MeshRenderer生命周期，并组合VertexStream、Batch和DrawOrder三个独立子系统。
 // 外部通过该类访问底层渲染能力，具体算法状态由各子系统自己持有。
 [DisallowMultipleComponent]
+[AddComponentMenu("")]
 public class FastUIMeshRenderer : MonoBehaviour
 {
 #if UNITY_EDITOR

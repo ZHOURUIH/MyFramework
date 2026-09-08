@@ -33,6 +33,7 @@ public enum FastUIDirtyFlags : byte
 // Texture、UVRect、Sprite、Text/Glyph等具体数据仍由各自类型持有，只有真正类型相关的渲染/几何行为保留多态。
 [ExecuteAlways]
 [RequireComponent(typeof(RectTransform))]
+[AddComponentMenu("")]
 public abstract class FastUIRenderElement : MonoBehaviour
 {
 	[SerializeField] protected Material mMaterial;

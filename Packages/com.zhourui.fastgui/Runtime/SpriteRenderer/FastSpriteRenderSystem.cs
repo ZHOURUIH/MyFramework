@@ -93,6 +93,7 @@ public struct FastSpriteFrameProfile
 [ExecuteAlways]
 [DefaultExecutionOrder(10000)]
 [DisallowMultipleComponent]
+[AddComponentMenu("")]
 public sealed class FastSpriteRenderSystem : MonoBehaviour
 {
 	private const int TRANSFORM_JOB_MIN_COUNT = 256;

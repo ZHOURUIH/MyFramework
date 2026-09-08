@@ -1,7 +1,7 @@
 {
   "name": "com.zhourui.fastgui",
   "displayName": "FastGUI",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "High-performance Unity game UI renderer with centralized incremental rendering, EasyECS SoA hot paths, TMP text, masking, direct GPU buffer updates, and a UGUI-like editor workflow.",
   "keywords": [
     "unity",
