@@ -905,7 +905,7 @@ internal sealed class FastSpriteChunkedSortManager
 		{
 			return left.getSortingOrder() < right.getSortingOrder() ? -1 : 1;
 		}
-		return left.GetInstanceID().CompareTo(right.GetInstanceID());
+		return FastUnityObjectIDUtility.compare(left, right);
 	}
 
 	public bool tryGetOrderRank(FastSpriteSortGroup group, out int layerValue, out int rank)
