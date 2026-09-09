@@ -53,7 +53,7 @@ public static class FastSOAEditorAdvisor
 		Undo.undoRedoPerformed += scheduleScan;
 		scheduleScan();
 	}
-	[MenuItem("Tools/FastGUI/Scan SOA Suggestions")]
+	[MenuItem("FastGUI/Scan SOA Suggestions")]
 	public static void scanFromMenu()
 	{
 		mWarnedCandidates.Clear();
