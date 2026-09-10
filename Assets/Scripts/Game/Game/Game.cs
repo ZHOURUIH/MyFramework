@@ -10,7 +10,7 @@ public class Game : GameFramework
 
 		base.init();
 
-		if (isDevOrEditor())
+		if (isEditor())
 		{
 			GameTest.runAll();
 		}
