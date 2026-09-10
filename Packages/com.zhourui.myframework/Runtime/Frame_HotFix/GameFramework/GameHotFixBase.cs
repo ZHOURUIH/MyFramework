@@ -138,10 +138,6 @@ public abstract class GameHotFixBase<T> where T : GameHotFixBase<T>
 
 		// 在这之前需要确保PersistentAssets中的密钥文件是最新的
 		string filePath = F_PERSISTENT_ASSETS_PATH + DYNAMIC_SECRET_FILE;
-		if (!isWebGL())
-		{
-			filePath = "file://" + filePath;
-		}
 		GameEntryBase.startCoroutine(openFileAsyncInternal(filePath, true, (byte[] bytes) =>
 		{
 #if USE_OBFUZ

@@ -143,6 +143,18 @@ public class AssetVersionSystem : FrameSystem
 	public Dictionary<string, GameFileInfo> getStreamingAssetsFile() { return mStreamingAssetsFileList; }
 	public Dictionary<string, GameFileInfo> getPersistentAssetsFile() { return mPersistentAssetsFileList; }
 	public Dictionary<string, GameFileInfo> getRemoteAssetsFile() { return mRemoteAssetsFileList; }
+	public string generatePersistentAssetFileList()
+	{
+		StringBuilder fileString = new();
+		fileString.Append(mPersistentAssetsFileList.Count);
+		fileString.Append("\n");
+		foreach (var item in mPersistentAssetsFileList)
+		{
+			item.Value.toString(fileString);
+			fileString.Append("\n");
+		}
+		return fileString.ToString();
+	}
 	public string getLocalVersion()
 	{
 		if (mStreamingAssetsVersion == null && mPersistentDataVersion == null)
@@ -182,24 +194,6 @@ public class AssetVersionSystem : FrameSystem
 		ignorePath.addUnique("/temp/");
 		mSuccessCallback = successCallback;
 
-		// 编辑器下和不下载更新的版本中不获取远端文件列表和PersistentPath的文件列表
-		// 如果本地版本号大于远端的,则不下载,此时远端资源还未上传,本地可以直接正常运行,认为安装的是全量包
-		if (isEditor() ||
-			!isEnableHotFix() ||
-			compareVersion3(mRemoteVersion, getLocalVersion(), out _, out _) == VERSION_COMPARE.REMOTE_LOWER)
-		{
-			mStreamingDone = true;
-			mPersistentDone = true;
-			mRemoteDone = true;
-			return;
-		}
-
-		if (remoteFileListMD5.isEmpty())
-		{
-			notifyRemoteFileListFailed("远端FileList MD5为空", generation);
-			return;
-		}
-
 		logBase("开始获取所有文件列表");
 		// 获取StreamingAssets,PersistentPath的所有文件信息
 		openFileList(F_ASSET_BUNDLE_PATH, generation, () =>
@@ -211,6 +205,23 @@ public class AssetVersionSystem : FrameSystem
 			logBase("获取StreamingAssets文件列表完成");
 			mStreamingDone = true;
 		}, ignorePath, ignoreFile);
+
+		// 编辑器下和不下载更新的版本中不获取远端文件列表和PersistentPath的文件列表
+		// 如果本地版本号大于远端的,则不下载,此时远端资源还未上传,本地可以直接正常运行,认为安装的是全量包
+		if (isEditor() ||
+			!isEnableHotFix() ||
+			compareVersion3(mRemoteVersion, getLocalVersion(), out _, out _) == VERSION_COMPARE.REMOTE_LOWER)
+		{
+			mPersistentDone = true;
+			mRemoteDone = true;
+			return;
+		}
+
+		if (remoteFileListMD5.isEmpty())
+		{
+			notifyRemoteFileListFailed("远端FileList MD5为空", generation);
+			return;
+		}
 
 		openFileList(F_PERSISTENT_ASSETS_PATH, generation, () =>
 		{
@@ -261,7 +272,6 @@ public class AssetVersionSystem : FrameSystem
 		{
 			checkRemoteList(content, generation);
 		}
-
 	}
 	// path为绝对路径
 	protected void openFileList(string path, int generation, Action callback, List<string> ignorePath, List<string> ignoreFile)
@@ -444,7 +454,6 @@ public class AssetVersionSystem : FrameSystem
 			}
 		});
 	}
-
 	protected bool checkRemoteList(string content, int generation)
 	{
 		if (generation != mCheckFileListGeneration)
@@ -491,7 +500,6 @@ public class AssetVersionSystem : FrameSystem
 		mRemoteDone = false;
 		mRemoteFileListFailCallback?.Invoke();
 	}
-
 	protected void setFileListToAssetSystem(string path, Dictionary<string, GameFileInfo> fileInfoList)
 	{
 		if (path == F_ASSET_BUNDLE_PATH)
@@ -523,18 +531,6 @@ public class AssetVersionSystem : FrameSystem
 			}
 		}
 		return false;
-	}
-	public string generatePersistentAssetFileList()
-	{
-		StringBuilder fileString = new();
-		fileString.Append(mPersistentAssetsFileList.Count);
-		fileString.Append("\n");
-		foreach (var item in mPersistentAssetsFileList)
-		{
-			item.Value.toString(fileString);
-			fileString.Append("\n");
-		}
-		return fileString.ToString();
 	}
 	protected void setStreamingAssetsFile(Dictionary<string, GameFileInfo> infoList) { mStreamingAssetsFileList.setRange(infoList); }
 	protected void setPersistentAssetsFile(Dictionary<string, GameFileInfo> infoList) { mPersistentAssetsFileList.setRange(infoList); }
