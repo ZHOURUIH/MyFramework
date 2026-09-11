@@ -194,18 +194,6 @@ public class AssetVersionSystem : FrameSystem
 		ignorePath.addUnique("/temp/");
 		mSuccessCallback = successCallback;
 
-		logBase("开始获取所有文件列表");
-		// 获取StreamingAssets,PersistentPath的所有文件信息
-		openFileList(F_ASSET_BUNDLE_PATH, generation, () =>
-		{
-			if (generation != mCheckFileListGeneration)
-			{
-				return;
-			}
-			logBase("获取StreamingAssets文件列表完成");
-			mStreamingDone = true;
-		}, ignorePath, ignoreFile);
-
 		// 编辑器下和不下载更新的版本中不获取远端文件列表和PersistentPath的文件列表
 		// 如果本地版本号大于远端的,则不下载,此时远端资源还未上传,本地可以直接正常运行,认为安装的是全量包
 		if (isEditor() ||
@@ -222,6 +210,18 @@ public class AssetVersionSystem : FrameSystem
 			notifyRemoteFileListFailed("远端FileList MD5为空", generation);
 			return;
 		}
+
+		logBase("开始获取所有文件列表");
+		// 获取StreamingAssets,PersistentPath的所有文件信息
+		openFileList(F_ASSET_BUNDLE_PATH, generation, () =>
+		{
+			if (generation != mCheckFileListGeneration)
+			{
+				return;
+			}
+			logBase("获取StreamingAssets文件列表完成");
+			mStreamingDone = true;
+		}, ignorePath, ignoreFile);
 
 		openFileList(F_PERSISTENT_ASSETS_PATH, generation, () =>
 		{
