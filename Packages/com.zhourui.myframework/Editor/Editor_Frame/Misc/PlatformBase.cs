@@ -658,10 +658,12 @@ public abstract class PlatformBase
 			code = mObjectStorageSystem.upload(file, remotePath, noCache);
 		}
 		catch { }
-		if (code != HttpStatusCode.OK)
+		// 只要在200到300之间都算是成功
+		if (code < HttpStatusCode.OK || code >= HttpStatusCode.Ambiguous)
 		{
 			logError("上传失败:" + file + ", 远端路径:" + remotePath + ", code:" + code);
+			return false;
 		}
-		return code == HttpStatusCode.OK;
+		return true;
 	}
 }

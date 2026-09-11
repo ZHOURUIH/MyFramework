@@ -258,18 +258,12 @@ public class PlatformUtility
 		// mac中的路径
 		searchPaths.Add(EditorApplication.applicationPath + "/Contents/Managed/UnityEngine");
 		searchPaths.Add(EditorApplication.applicationPath + "/Contents/Managed");
-		searchPaths.Add(F_ASSET_BUNDLE_PATH);
 		return searchPaths;
 	}
 	public static void obfuscate(string version, bool isTest)
 	{
-		// 重命名dll,因为混淆时需要dll文件,在obfuscate会进行还原
-		foreach (string name in FrameSettings.getHotFixList())
-		{
-			renameFile(F_ASSET_BUNDLE_PATH + name + ".dll.bytes", F_ASSET_BUNDLE_PATH + name + ".dll");
-		}
 		SecretSettings secretSettings = ObfuzSettings.Instance.secretSettings;
-		// 因为只混淆热更程序集,所以也只生成动态的密钥
+		// 动态密钥只应用到Obfuz中实际配置为需要混淆的程序集,不能等同于所有热更程序集
 		secretSettings.defaultDynamicSecretKey = "Code Philosophy-Dynamic" + randomInt(0, 100000000);
 		secretSettings.assembliesUsingDynamicSecretKeys = ObfuzSettings.Instance.assemblySettings.assembliesToObfuscate;
 		secretSettings.randomSeed = (int)(DateTime.Now - new DateTime(1970, 1, 1)).TotalSeconds;
@@ -277,7 +271,19 @@ public class PlatformUtility
 		ObfuzSettings.Save();
 		byte[] dynamicSecretBytes = KeyGenerator.GenerateKey(secretSettings.defaultDynamicSecretKey, VirtualMachine.SecretKeyLength);
 		writeFile(F_ASSET_BUNDLE_PATH + DYNAMIC_SECRET_FILE, dynamicSecretBytes);
-		AssetDatabase.Refresh();
+
+		// 清理旧版混淆流程可能遗留的裸dll。
+		// 新流程不会再把.dll.bytes临时改名为.dll,所以StreamingAssets中不应该出现这些文件。
+		foreach (string name in FrameSettings.getHotFixList())
+		{
+			deleteFile(F_ASSET_BUNDLE_PATH + name + ".dll");
+		}
+#if USE_HYBRID_CLR
+		foreach (string aotFile in AOTGenericReferences.PatchedAOTAssemblyList)
+		{
+			deleteFile(F_ASSET_BUNDLE_PATH + aotFile);
+		}
+#endif
 
 		var obfuscatorBuilder = ObfuscatorBuilder.FromObfuzSettings(ObfuzSettings.Instance, EditorUserBuildSettings.activeBuildTarget, false);
 		var searchPaths = getSearchPath();
@@ -290,12 +296,50 @@ public class PlatformUtility
 		{
 			obfuscatorBuilder.Build().Run();
 			string srcPath = obfuscatorBuilder.CoreSettingsFacade.obfuscatedAssemblyOutputPath;
+
+			// 只覆盖“既是热更程序集、又配置为需要混淆”的dll。
+			// 未配置混淆的热更程序集继续保留buildHotFix前面已经复制好的原始dll.bytes。
 			foreach (string dllName in ObfuzSettings.Instance.assemblySettings.assembliesToObfuscate)
 			{
-				copyFile(srcPath + "/" + dllName + ".dll", F_ASSET_BUNDLE_PATH + dllName + ".dll.bytes", true);
-				// 因为obfuscatorBuilder.Build().Run();中会将原始dll拷贝到SteamingAssets中,所以需要删除一下
-				deleteFile(F_ASSET_BUNDLE_PATH + dllName + ".dll");
+				if (!FrameSettings.getHotFixList().Contains(dllName))
+				{
+					continue;
+				}
+				string srcFile = srcPath + "/" + dllName + ".dll";
+				if (!isFileExist(srcFile))
+				{
+					logError("Obfuz混淆输出不存在:" + srcFile);
+				}
+				copyFile(srcFile, F_ASSET_BUNDLE_PATH + dllName + ".dll.bytes", true);
 			}
+
+			// 防御性检查:StreamingAssets中不能残留热更裸dll和AOT裸dll。
+			foreach (string name in FrameSettings.getHotFixList())
+			{
+				string rawDll = F_ASSET_BUNDLE_PATH + name + ".dll";
+				if (isFileExist(rawDll))
+				{
+					deleteFile(rawDll);
+					if (isFileExist(rawDll))
+					{
+						logError("混淆结束后裸dll清理失败:" + rawDll);
+					}
+				}
+			}
+#if USE_HYBRID_CLR
+			foreach (string aotFile in AOTGenericReferences.PatchedAOTAssemblyList)
+			{
+				string rawDll = F_ASSET_BUNDLE_PATH + aotFile;
+				if (isFileExist(rawDll))
+				{
+					deleteFile(rawDll);
+					if (isFileExist(rawDll))
+					{
+						logError("混淆结束后AOT裸dll清理失败:" + rawDll);
+					}
+				}
+			}
+#endif
 		}
 		catch (Exception e)
 		{
@@ -305,6 +349,7 @@ public class PlatformUtility
 		// 因为Symbol-mapping.xml会在混淆的时候读取,所以尽量不去动这个文件
 		string originMappingFile = F_PROJECT_PATH + ObfuzSettings.Instance.symbolObfusSettings.GetSymbolMappingFile();
 		copyFile(originMappingFile, replaceSuffix(originMappingFile, version + ".xml"));
+		AssetDatabase.Refresh();
 	}
 #endif
 }
