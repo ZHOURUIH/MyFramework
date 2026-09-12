@@ -62,6 +62,11 @@ public class HybridCLRSystem
 			callback?.Invoke();
 			return;
 		}
+		if (!isEnableHotFix())
+		{
+			copyFileAsync(F_ASSET_BUNDLE_PATH + DYNAMIC_SECRET_FILE, F_PERSISTENT_ASSETS_PATH + DYNAMIC_SECRET_FILE, callback);
+			return;
+		}
 		// 在热更全部下载完成后,执行此函数,再启动热更.
 		// 这个函数的目的是确保最新的混淆密钥文件一定存在于PersistenPath中
 		// 因为在启动热更时GameHotFixBase会固定从PersistenPath中加载密钥文件
@@ -91,7 +96,8 @@ public class HybridCLRSystem
 			{
 				// copyFileAsync没有返回拷贝结果,所以回调后必须重新读取目标文件确认拷贝确实成功.
 				byte[] copiedBytes = openFileSync(F_PERSISTENT_ASSETS_PATH + DYNAMIC_SECRET_FILE, false);
-				if (copiedBytes == null || copiedBytes.LongLength != streamingInfo.mFileSize ||
+				if (copiedBytes == null || 
+					copiedBytes.LongLength != streamingInfo.mFileSize ||
 					!string.Equals(generateFileMD5(copiedBytes), streamingInfo.mMD5, StringComparison.OrdinalIgnoreCase))
 				{
 					logErrorBase("混淆密钥文件拷贝后校验失败:" + DYNAMIC_SECRET_FILE);

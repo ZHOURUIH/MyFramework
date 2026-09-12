@@ -272,20 +272,28 @@ public class FrameBaseUtility
 	}
 	public static void logExceptionBase(Exception e, string info = null)
 	{
-		if (info == null || info.Length == 0)
+		if (e == null)
 		{
-			info = "";
+			logErrorBase(info ?? "异常对象为空");
+			return;
 		}
-		else
+
+		string errorInfo = info ?? "";
+		Exception curException = e;
+		int depth = 0;
+		while (curException != null)
 		{
-			info += ", ";
+			errorInfo +=
+				"\nexception[" + depth + "]:" +
+				curException.GetType().FullName +
+				"\nmessage:" + curException.Message +
+				"\nstack:" + curException.StackTrace;
+
+			curException = curException.InnerException;
+			++depth;
 		}
-		info += e.Message + ", stack:" + e.StackTrace;
-		if (e.InnerException != null)
-		{
-			info += "\ninner exception:" + e.InnerException.Message + ", stack:" + e.InnerException.StackTrace;
-		}
-		logErrorBase(info);
+
+		logErrorBase(errorInfo);
 	}
 	public static void logErrorBase(string info)
 	{
