@@ -55,7 +55,7 @@ public abstract class ComponentCurve : ComponentKeyFrame
 		{
 			pos = curPoint.mPosition;
 		}
-		uiObj.setPosition(pos);
+		setValue(pos);
 	}
 	protected abstract void setValue(Vector3 value);
 }
