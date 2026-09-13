@@ -203,7 +203,14 @@ public class GameLayout
 	}
 	public void notifyUIObjectNeedUpdate(myUGUIObject uiObj, bool needUpdate)
 	{
-		mNeedUpdateList.addOrRemove(uiObj, needUpdate);
+		if (needUpdate)
+		{
+			mNeedUpdateList.addUnique(uiObj);
+		}
+		else
+		{
+			mNeedUpdateList.remove(uiObj);
+		}
 	}
 	public void registerUIObject(myUGUIObject uiObj)
 	{
