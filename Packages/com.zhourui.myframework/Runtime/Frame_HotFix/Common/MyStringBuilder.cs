@@ -619,10 +619,10 @@ public class MyStringBuilder : ClassObject
 		}
 		// 如果不是最外层且非数组元素的结构体,则需要加上结构体的名字
 		addRepeat("\t", preTableCount);
-		add('}');
+		add('{');
 		addIf("\r\n", returnLine);
 	}
-	public void jsonEndStruct(bool keepComma= true, int preTableCount = 0, bool returnLine = false)
+	public void jsonEndStruct(bool keepComma = true, int preTableCount = 0, bool returnLine = false)
 	{
 		if (endWith(','))
 		{
