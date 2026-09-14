@@ -426,7 +426,11 @@ public class AssetBundleLoader
 		{
 			yield return openFileAsyncInternal(fullPath, true, (byte[] bytes)=> { assetBundleBytes = bytes; });
 		}
-		AssetBundle assetBundle = AssetBundle.LoadFromMemory(assetBundleBytes);
+		// 文件读取虽然是异步的,但旧实现随后调用LoadFromMemory会在主线程同步创建AssetBundle,
+		// Android地图图集实测会制造130~160ms FrameGap.这里改为真正的异步AssetBundle创建.
+		AssetBundleCreateRequest createRequest = AssetBundle.LoadFromMemoryAsync(assetBundleBytes);
+		yield return createRequest;
+		AssetBundle assetBundle = createRequest.assetBundle;
 		if (isDevOrEditor())
 		{
 			if (assetBundle != null)

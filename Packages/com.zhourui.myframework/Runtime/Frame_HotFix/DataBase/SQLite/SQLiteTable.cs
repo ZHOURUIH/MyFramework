@@ -369,6 +369,10 @@ public class SQLiteTable : ClassObject
 				mConnection.Open();
 			}
 			mCommand = mConnection?.CreateCommand();
+			if (mCommand != null)
+			{
+				onConnectionOpened();
+			}
 		}
 		catch (Exception e)
 		{
@@ -376,5 +380,7 @@ public class SQLiteTable : ClassObject
 			logException(e, "打开数据库失败");
 		}
 	}
+	// SQLite连接创建完成后的扩展点.仅用于表级索引/PRAGMA等一次性初始化,避免业务查询第一次命中时再承担初始化开销.
+	protected virtual void onConnectionOpened() { }
 }
 #endif

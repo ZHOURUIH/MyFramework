@@ -28,6 +28,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	protected bool mReceiveLayoutHide;                              // 布局隐藏时是否会通知此窗口,默认不通知
 	protected bool mChildOrderSorted;								// 子节点的顺序是否已经排序过了
 	protected bool mIsNewObject;                                    // 是否是从空的GameObject创建的,一般都是会确认已经存在了对应组件,而不是要动态添加组件
+	protected bool mNeedEnsureColliderSize;							// 是否需要每帧都检测是否将碰撞体设置为当前窗口大小,为了性能考虑,默认不开启
 	protected int mMouseCastWindowCountInTree;                      // 自己和所有子节点中已注册到GlobalTouchSystem的UI数量,用于只让真正相关的UI变化触发MouseCast缓存失效
 	protected bool mMouseCastTransformCallbackRegisted;             // 是否已经注册Transform变化回调
 	protected static int mDefaultClickSound;						// 默认的点击音效,如果没有为某个对象设置点击音效,则使用这个默认的点击音效
@@ -72,7 +73,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 			addScaleModifyCallback(notifyMouseCastTransformChanged);
 		}
 	}
-	public void onLayoutHide() 
+	public void onLayoutHide()
 	{
 		// 布局隐藏时需要将触点清除
 		mCOMWindowUGUIInteractive?.clearMousePointer();
@@ -313,36 +314,36 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 		}
 	}
 	// 用于兼容UGUI的事件监测,用得比较少
-	public void setUGUIClick(Action<PointerEventData, GameObject> callback) 
+	public void setUGUIClick(Action<PointerEventData, GameObject> callback)
 	{
 		getCOMUGUIInteractive().setUGUIClick(callback);
 	}
 	// 用于兼容UGUI的事件监测,用得比较少
-	public void setUGUIMouseDown(Action<PointerEventData, GameObject> callback) 
+	public void setUGUIMouseDown(Action<PointerEventData, GameObject> callback)
 	{
 		getCOMUGUIInteractive().setUGUIMouseDown(callback);
 		// 因为点击事件会使用触点,为了确保触点的正确状态,所以需要在布局隐藏时清除触点
 		mReceiveLayoutHide = true;
 	}
 	// 用于兼容UGUI的事件监测,用得比较少
-	public void setUGUIMouseUp(Action<PointerEventData, GameObject> callback) 
+	public void setUGUIMouseUp(Action<PointerEventData, GameObject> callback)
 	{
 		getCOMUGUIInteractive().setUGUIMouseUp(callback);
 		// 因为点击事件会使用触点,为了确保触点的正确状态,所以需要在布局隐藏时清除触点
 		mReceiveLayoutHide = true;
 	}
 	// 用于兼容UGUI的事件监测,用得比较少
-	public void setUGUIMouseEnter(Action<PointerEventData, GameObject> callback) 
+	public void setUGUIMouseEnter(Action<PointerEventData, GameObject> callback)
 	{
 		getCOMUGUIInteractive().setUGUIMouseEnter(callback);
 	}
 	// 用于兼容UGUI的事件监测,用得比较少
-	public void setUGUIMouseExit(Action<PointerEventData, GameObject> callback) 
+	public void setUGUIMouseExit(Action<PointerEventData, GameObject> callback)
 	{
 		getCOMUGUIInteractive().setUGUIMouseExit(callback);
 	}
 	// 用于兼容UGUI的事件监测,用得比较少
-	public void setUGUIMouseMove(Action<Vector2, Vector3> callback) 
+	public void setUGUIMouseMove(Action<Vector2, Vector3> callback)
 	{
 		getCOMUGUIInteractive().setUGUIMouseMove(callback);
 		// 如果设置了要监听鼠标移动,则需要激活当前窗口
@@ -413,7 +414,10 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		ensureColliderSize();
+		if (mNeedEnsureColliderSize)
+		{
+			ensureColliderSize();
+		}
 	}
 	public override Collider getCollider(bool addIfNotExist = false)
 	{
