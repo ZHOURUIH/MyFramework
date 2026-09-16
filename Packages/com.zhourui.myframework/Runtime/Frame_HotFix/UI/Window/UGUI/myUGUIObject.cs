@@ -684,36 +684,28 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 		}
 		return RectTransformUtility.RectangleContainsScreenPoint(mRectTransform, screenPos, getUICamera());
 	}
-	// UIScene已经按最终深度顺序显式调用SetSiblingIndex时,不应该再通过Transform.GetChild+字典查询
+	// 界面已经按最终深度顺序显式调用SetSiblingIndex时,不应该再通过Transform.GetChild+字典查询
 	// 把同一批子节点重新同步一次。orderedPrefix就是已经被移动到父节点最前面的最终顺序,其余未参与排序的子节点
-	// 保持原有相对顺序即可。这样后续refreshUIDepth可以直接遍历mChildList,避免怪物密集区根节点单次sortChild达到10~20ms。
+	// 保持原有相对顺序即可。这样后续refreshUIDepth可以直接遍历mChildList,避免节点多时根节点单次sortChild达到10~20ms。
 	public void syncChildOrderPrefix(List<myUGUIObject> orderedPrefix)
 	{
-		if (mChildList == null || mChildList.Count <= 1)
+		if (mChildList.count() <= 1)
 		{
 			mChildOrderSorted = true;
 			return;
 		}
 		using var a = new HashSetScope<myUGUIObject>(out var prefixSet);
 		using var b = new ListScope<myUGUIObject>(out var orderedList);
-		if (orderedPrefix != null)
+		foreach (myUGUIObject child in orderedPrefix.safe())
 		{
-			for (int i = 0; i < orderedPrefix.Count; ++i)
-			{
-				myUGUIObject child = orderedPrefix[i];
-				if (child != null && child.mParent == this && prefixSet.Add(child))
-				{
-					orderedList.Add(child);
-				}
-			}
-		}
-		for (int i = 0; i < mChildList.Count; ++i)
-		{
-			myUGUIObject child = mChildList[i];
-			if (child != null && !prefixSet.Contains(child))
+			if (child != null && child.mParent == this && prefixSet.Add(child))
 			{
 				orderedList.Add(child);
 			}
+		}
+		foreach (myUGUIObject child in mChildList)
+		{
+			orderedList.addIf(child, child != null && !prefixSet.Contains(child));
 		}
 		if (orderedList.Count == mChildList.Count)
 		{
