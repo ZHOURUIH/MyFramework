@@ -124,6 +124,7 @@ public class GlobalTouchSystem : FrameSystem
 		}
 	}
 	public bool isColliderRegisted(IMouseEventCollect obj) { return mAllObjectSet.Contains(obj); }
+	public int getRegisteredColliderCount() { return mAllObjectSet.Count; }
 	// 获取当前射线检测场景版本,同时检查摄像机状态,确保鼠标静止时摄像机变化也会触发Hover刷新
 	public int getRaycastVersion()
 	{

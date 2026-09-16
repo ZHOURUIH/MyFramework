@@ -1,4 +1,4 @@
-﻿#if USE_SQLITE
+#if USE_SQLITE
 using Mono.Data.Sqlite;
 using System;
 using System.Collections.Generic;
@@ -18,11 +18,12 @@ public class SQLiteTable : ClassObject
 	protected Dictionary<int, SQLiteData> mDataMap = new();     // 以数据ID为索引的数据缓存列表
 	protected SqliteConnection mConnection;						// SQLite所需的Connection
 	protected SqliteCommand mCommand;							// SQLite所需的Command
-	protected string mDecryptFileName;							// 解密以后的文件名
+	protected string mDecryptFileName;							// SQLite本地缓存文件名(保留旧字段名兼容现有接口)
 	protected string mTableName;								// 表格名称
 	protected Type mDataClassType;                              // 数据类型
 	protected LOAD_STATE mState;                                // 加载状态
 	protected bool mResourceAvailable;							// 资源文件是否已经可以使用,加载前需要确保资源更新完毕,而不是读取到旧资源
+	protected bool mLoadedFromCache;							// 本次是否直接打开已有明文SQLite文件,没有经过AssetBundle/TextAsset
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -34,8 +35,10 @@ public class SQLiteTable : ClassObject
 		mDataClassType = null;
 		mState = LOAD_STATE.NONE;
 		mResourceAvailable = false;
+		mLoadedFromCache = false;
 	}
-	// 返回值是解析以后生成的文件名
+	// 异步加载SQLite。数据库已经改为明文后,优先直接打开本地版本缓存;
+	// 只有首次安装或资源版本变化时才从AssetBundle取出bytes并落盘一次。
 	public void loadAsync(Action callback)
 	{
 		if (!mResourceAvailable && isPlaying())
@@ -49,23 +52,33 @@ public class SQLiteTable : ClassObject
 			return;
 		}
 		mState = LOAD_STATE.LOADING;
+		mLoadedFromCache = false;
+		prepareDatabaseFileName();
+		if (tryOpenExistingDatabase())
+		{
+			mState = LOAD_STATE.LOADED;
+			mLoadedFromCache = true;
+			callback?.Invoke();
+			return;
+		}
 		if (mResourceManager != null)
 		{
 			mResourceManager.loadGameResourceAsync<TextAsset>(R_SQLITE_PATH + mTableName + ".bytes", (textAsset)=>
 			{
-				mState = LOAD_STATE.LOADED;
 				postLoad(textAsset.get().bytes);
 				mResourceManager?.unload(ref textAsset);
+				mState = mCommand != null ? LOAD_STATE.LOADED : LOAD_STATE.NONE;
 				callback?.Invoke();
 			});
 		}
 		else
 		{
-			mState = LOAD_STATE.LOADED;
+			mState = LOAD_STATE.NONE;
 			callback?.Invoke();
 		}
 	}
-	// 同步加载表格数据,先从资源包加载bytes,再解密并创建SQLite连接
+	// 同步加载SQLite。编辑器直接打开Assets/GameResources/SQLite下的明文数据库;
+	// Player优先使用本地版本缓存,缓存不存在时才从资源包落盘一次。
 	public void load()
 	{
 		if (!mResourceAvailable && isPlaying())
@@ -78,33 +91,40 @@ public class SQLiteTable : ClassObject
 			return;
 		}
 		mState = LOAD_STATE.LOADING;
+		mLoadedFromCache = false;
+		prepareDatabaseFileName();
+		if (tryOpenExistingDatabase())
+		{
+			mState = LOAD_STATE.LOADED;
+			mLoadedFromCache = true;
+			return;
+		}
 		if (mResourceManager != null)
 		{
 			ResourceRef<TextAsset> textAsset = mResourceManager.loadGameResource<TextAsset>(R_SQLITE_PATH + mTableName + ".bytes");
-			mState = LOAD_STATE.LOADED;
 			postLoad(textAsset.get().bytes);
 			mResourceManager.unload(ref textAsset);
+			mState = mCommand != null ? LOAD_STATE.LOADED : LOAD_STATE.NONE;
+		}
+		else if (isEditor())
+		{
+			// 正常情况下编辑器会在tryOpenExistingDatabase中直接打开源文件,这里只是保留兜底。
+			var textAsset = loadAssetAtPath<TextAsset>(P_SQLITE_PATH + mTableName + ".bytes");
+			postLoad(textAsset.bytes);
+			Resources.UnloadAsset(textAsset);
+			mState = mCommand != null ? LOAD_STATE.LOADED : LOAD_STATE.NONE;
 		}
 		else
 		{
-			if (!isEditor())
-			{
-				return;
-			}
-			var textAsset = loadAssetAtPath<TextAsset>(P_SQLITE_PATH + mTableName + ".bytes");
-			mState = LOAD_STATE.LOADED;
-			postLoad(textAsset.bytes);
-			Resources.UnloadAsset(textAsset);
+			mState = LOAD_STATE.NONE;
 		}
 	}
 	public string getDecryptFileName() { return mDecryptFileName; }
+	public bool isLoadedFromCache() { return mLoadedFromCache; }
 	public static string getDecryptFilePath()
 	{
-#if UNITY_EDITOR || UNITY_STANDALONE_WIN
-		return F_TEMPORARY_CACHE_PATH + "../../" + getFolderName(F_PROJECT_PATH) + "/";
-#else
-		return FrameUtility.availableWritePath("temp/");
-#endif
+		// SQLite缓存使用独立目录,不要再复用通用temp目录,避免清理时误删其他临时文件。
+		return FrameUtility.availableWritePath("sqlite/");
 	}
 	public override void destroy()
 	{
@@ -253,18 +273,7 @@ public class SQLiteTable : ClassObject
 	protected void clearAll()
 	{
 		mState = LOAD_STATE.NONE;
-		if (mCommand != null)
-		{
-			mCommand.Cancel();
-			mCommand.Dispose();
-			mCommand = null;
-		}
-		if (mConnection != null)
-		{
-			mConnection.Close();
-			mConnection.Dispose();
-			mConnection = null;
-		}
+		closeConnectionOnly();
 		mDataMap.Clear();
 	}
 	// 从SqliteDataReader中解析单条数据(带类型检查)
@@ -322,61 +331,116 @@ public class SQLiteTable : ClassObject
 		}
 		reader.Close();
 	}
-	// 获取解密后的文件完整路径
-	protected string getDecryptFileFullPath()
+	// 根据当前资源版本生成稳定的SQLite缓存名。资源版本变化时自然切换到新文件,
+	// 不再为了判断文件是否变化而对整个数据库做MD5。
+	protected void prepareDatabaseFileName()
+	{
+		if (!mDecryptFileName.isEmpty())
+		{
+			return;
+		}
+		string version = mAssetVersionSystem?.getPersistentAssetsVersion();
+		if (version.isEmpty())
+		{
+			version = Application.version;
+		}
+		if (version.isEmpty())
+		{
+			version = "default";
+		}
+		version = version.Replace('/', '_').Replace('\\', '_').Replace(':', '_').Replace('*', '_').Replace('?', '_').Replace('"', '_').Replace('<', '_').Replace('>', '_').Replace('|', '_');
+		mDecryptFileName = mTableName + "_" + version + ".db";
+	}
+	// 编辑器直接打开源SQLite文件;Player打开按资源版本缓存到可写目录的明文SQLite文件。
+	protected string getDatabaseFileFullPath()
 	{
 		if (isEditor())
 		{
-			return getDecryptFilePath() + mTableName + "/" + mTableName;
+			return F_GAME_RESOURCES_PATH + SQLITE + "/" + mTableName + ".bytes";
 		}
-		else
+		prepareDatabaseFileName();
+		return getDecryptFilePath() + mDecryptFileName;
+	}
+	// 已有可直接使用的数据库时完全跳过AssetBundle/TextAsset加载。
+	protected bool tryOpenExistingDatabase()
+	{
+		string path = getDatabaseFileFullPath();
+		if (!isFileExist(path))
 		{
-			return getDecryptFilePath() + mDecryptFileName;
+			return false;
+		}
+		try
+		{
+			openDatabase(path);
+			return mCommand != null;
+		}
+		catch (Exception e)
+		{
+			closeConnectionOnly();
+			// Player缓存可能因为上次写入过程中异常退出而损坏,删掉后从资源重新生成。
+			if (!isEditor())
+			{
+				deleteFile(path);
+			}
+			logWarning("SQLite缓存打开失败,将从资源重新生成, table:" + mTableName + ", error:" + e.Message);
+			return false;
 		}
 	}
-	// 加载完成后的后处理:解密数据、写入临时文件、创建SQLite连接
+	protected void closeConnectionOnly()
+	{
+		if (mCommand != null)
+		{
+			mCommand.Cancel();
+			mCommand.Dispose();
+			mCommand = null;
+		}
+		if (mConnection != null)
+		{
+			mConnection.Close();
+			mConnection.Dispose();
+			mConnection = null;
+		}
+	}
+	protected void openDatabase(string path)
+	{
+		mConnection = new("URI=file:" + path);
+		mConnection.Open();
+		mCommand = mConnection.CreateCommand();
+		onConnectionOpened();
+	}
+
+	// 明文SQLite后处理:不解密、不计算整文件MD5。Player只在当前资源版本缓存不存在时写入一次。
 	protected void postLoad(byte[] fileBuffer)
 	{
 		try
 		{
-			// 解密文件,只解密128分之1的数据,减少耗时
-			string suffixKey = "23y35y9832635872349862365274732047chsudhgkshgwshfoweh238c42384fync9388v45982nc3484";
-			byte[] encryptKey = (generateFileMD5(("ASLD" + mTableName).toBytes()).ToUpper() + suffixKey).toBytes();
-			int fileSize = fileBuffer.Length;
-			int index = 0;
-			for (int i = 0; i < fileSize >> 7; ++i)
+			// SQLite明文数据库固定以"SQLite format 3\0"开头。这里保留一个极低成本检查,
+			// 防止资源制作流程还在输出旧的加密文件时把无效数据写入缓存。
+			if (fileBuffer == null || fileBuffer.Length < 16 ||
+				fileBuffer[0] != (byte)'S' || fileBuffer[1] != (byte)'Q' || fileBuffer[2] != (byte)'L' || fileBuffer[3] != (byte)'i' ||
+				fileBuffer[4] != (byte)'t' || fileBuffer[5] != (byte)'e' || fileBuffer[6] != (byte)' ' || fileBuffer[7] != (byte)'f' ||
+				fileBuffer[8] != (byte)'o' || fileBuffer[9] != (byte)'r' || fileBuffer[10] != (byte)'m' || fileBuffer[11] != (byte)'a' ||
+				fileBuffer[12] != (byte)'t' || fileBuffer[13] != (byte)' ' || fileBuffer[14] != (byte)'3' || fileBuffer[15] != 0)
 			{
-				fileBuffer[i] ^= encryptKey[index];
-				if (++index >= encryptKey.Length)
+				logError("SQLite资源不是明文数据库,请确认已关闭SQLite资源加密并重新生成资源, table:" + mTableName);
+				return;
+			}
+			prepareDatabaseFileName();
+			string newPath = getDatabaseFileFullPath();
+			if (!isEditor())
+			{
+				// 正常情况下版本文件不存在才会走到这里。额外比较长度用于修复上一次异常中断留下的残缺文件。
+				if (!isFileExist(newPath) || getFileSize(newPath) != fileBuffer.Length)
 				{
-					index = 0;
+					writeFile(newPath, fileBuffer);
 				}
 			}
-
-			// 将解密后的数据写入新的目录,需要写入临时目录,编辑器中写入固定路径即可
-			mDecryptFileName = generateFileMD5(fileBuffer).ToUpper();
-			string newPath = getDecryptFileFullPath();
-			// 编辑器下每次都写入更新
-			if (isEditor() || !isFileExist(newPath))
-			{
-				writeFile(newPath, fileBuffer);
-			}
-
-			// 创建连接
-			if (isFileExist(newPath))
-			{
-				mConnection = new("URI=file:" + newPath);
-				mConnection.Open();
-			}
-			mCommand = mConnection?.CreateCommand();
-			if (mCommand != null)
-			{
-				onConnectionOpened();
-			}
+			openDatabase(newPath);
 		}
 		catch (Exception e)
 		{
-			destroy();
+			closeConnectionOnly();
+			mState = LOAD_STATE.NONE;
 			logException(e, "打开数据库失败");
 		}
 	}

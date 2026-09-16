@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Profiling;
 using static UnityUtility;
 using static FrameBaseHotFix;
 using static FrameBaseUtility;
@@ -11,13 +12,18 @@ public class GameLayout
 {
 	protected Dictionary<int, myUGUIObject> mGameObjectSearchList = new();	// 用于根据GameObject查找UI,key是GameObject的InstanceID
 	protected SafeList<myUGUIObject> mNeedUpdateList = new();				// mObjectList中需要更新的窗口列表
+	protected HashSet<myUGUIObject> mNeedUpdateSet = new();					// 与mNeedUpdateList同步,用于O(1)判断成员
+	protected SafeList<myUGUIObject> mActiveUpdateList = new();				// 当前真正可以update的窗口列表,仅性能敏感布局使用
+	protected HashSet<myUGUIObject> mActiveUpdateSet = new();				// 与mActiveUpdateList同步
 	protected SafeDictionary<int, myUGUIObject> mObjectList = new();		// 布局中UI物体列表,用于保存所有已获取的UI
+	protected HashSet<myUGUIObject> mLayoutHideNotifyList = new();		// 仅保存真正需要接收布局隐藏通知的窗口,避免隐藏时扫描全部UI对象
 	protected myUGUICanvas mRoot;					// 布局根节点
 	protected LayoutScript mScript;					// 布局脚本
 	protected myUGUIObject mParent;					// 布局父节点,可能是UGUIRoot,也可能为空
 	protected ResourceRef<GameObject> mPrefab;      // 布局预设,布局从该预设实例化
 	protected Type mType;							// 布局的脚本类型
 	protected string mName;							// 布局名称
+	protected ProfilerMarker mUpdateProfilerMarker;	// 缓存Update Marker,避免每帧new ProfilerMarker(string)
 	protected int mDefaultLayer;					// 布局加载时所处的层
 	protected int mRenderOrder;						// 渲染顺序,越大则渲染优先级越高,不能小于0
 	protected bool mDefaultUpdateWindow = true;		// 是否默认就将所有注册的窗口添加到更新列表中,默认是添加的,在某些需要重点优化的布局中可以选择将哪些窗口放入更新列表
@@ -28,6 +34,7 @@ public class GameLayout
 	protected bool mScriptInited;					// 脚本是否已经初始化
 	protected bool mBlurBack;						// 布局显示时是否需要使布局背后(比当前布局层级低)的所有布局模糊显示
 	protected LAYOUT_ORDER mRenderOrderType;		// 布局渲染顺序的计算方式
+	// 对性能敏感布局维护真正可更新的ActiveUpdateList,避免每帧扫描大量inactive对象。
 	public void init()
 	{
 		mScript = mLayoutManager.createScript(this);
@@ -60,6 +67,10 @@ public class GameLayout
 		mAnchorApplied = true;
 		mScript.init();
 		mScript.postInit();
+		if (!mDefaultUpdateWindow)
+		{
+			rebuildNeedUpdateList();
+		}
 		// init后再次设置布局的渲染顺序,这样可以在此处刷新所有窗口的深度,因为是否刷新跟是否注册了碰撞体有关
 		// 所以在assignWindow和init中不需要在创建窗口对象时刷新深度,这样会造成很大的性能浪费
 		setRenderOrder(mRenderOrder);
@@ -77,28 +88,29 @@ public class GameLayout
 		{
 			return;
 		}
-
+		float unscaledTime = mGameFrameworkHotFix.getUnscaledTime();
 		if (mIgnoreTimeScale)
 		{
-			elapsedTime = mGameFrameworkHotFix.getUnscaledTime();
+			elapsedTime = unscaledTime;
 		}
-
-		// 更新所有的UI物体
-		if (mNeedUpdateList.count() > 0)
+		SafeList<myUGUIObject> updateList = mDefaultUpdateWindow ? mNeedUpdateList : mActiveUpdateList;
+		if (updateList.count() > 0)
 		{
 			using var a = new ProfilerScope("UpdateLayout");
-			foreach (myUGUIObject uiObj in mNeedUpdateList)
+			foreach (myUGUIObject uiObj in updateList)
 			{
 				if (uiObj.canUpdate())
 				{
-					uiObj.update(uiObj.isIgnoreTimeScale() ? mGameFrameworkHotFix.getUnscaledTime() : elapsedTime);
+					uiObj.update(uiObj.isIgnoreTimeScale() ? unscaledTime : elapsedTime);
 				}
 			}
 		}
 
-		// 更新脚本逻辑
 		using var b = new ProfilerScope("UpdateScript");
-		mScript.updateAllDragView();
+		if (mScript.hasDragViewLoopUpdate())
+		{
+			mScript.updateAllDragView();
+		}
 		if (mScript.isNeedUpdate())
 		{
 			mScript.update(elapsedTime);
@@ -127,6 +139,10 @@ public class GameLayout
 			mLayoutManager.notifyLayoutChanged(this);
 		}
 		myUGUIObject.destroyWindow(mRoot, true);
+		mNeedUpdateSet.Clear();
+		mActiveUpdateSet.Clear();
+		mActiveUpdateList.clear();
+		mLayoutHideNotifyList.Clear();
 		mRoot = null;
 		mResourceManager.unload(ref mPrefab);
 	}
@@ -163,24 +179,21 @@ public class GameLayout
 		// 显示布局时立即显示
 		if (visible)
 		{
-			mRoot.setActive(visible);
+			mRoot.setActive(true);
 			mScript.onGameState();
 		}
 		// 隐藏布局时需要判断
 		else
 		{
 			// 通知所有会接收布局隐藏的窗口
-			foreach (var item in mObjectList)
+			foreach (myUGUIObject item in mLayoutHideNotifyList)
 			{
-				if (item.Value.isReceiveLayoutHide())
-				{
-					item.Value.onLayoutHide();
-				}
+				item.onLayoutHide();
 			}
 			mScript.onHide();
 			if (!mScriptControlHide)
 			{
-				mRoot.setActive(visible);
+				mRoot.setActive(false);
 			}
 		}
 	}
@@ -192,24 +205,123 @@ public class GameLayout
 		}
 		// 直接设置布局显示或隐藏
 		mRoot.setActive(visible);
-		// 通知所有会接收布局隐藏的窗口
-		foreach (var item in mObjectList)
+		// 通知所有真正需要接收布局隐藏的窗口。
+		foreach (myUGUIObject item in mLayoutHideNotifyList)
 		{
-			if (item.Value.isReceiveLayoutHide())
-			{
-				item.Value.onLayoutHide();
-			}
+			item.onLayoutHide();
 		}
 	}
 	public void notifyUIObjectNeedUpdate(myUGUIObject uiObj, bool needUpdate)
 	{
 		if (needUpdate)
 		{
-			mNeedUpdateList.addUnique(uiObj);
+			addNeedUpdateObject(uiObj);
 		}
 		else
 		{
-			mNeedUpdateList.remove(uiObj);
+			removeNeedUpdateObject(uiObj);
+		}
+	}
+	// 任意UI节点Active变化都会影响自身及其子树的activeInHierarchy。
+	// 只在状态变化时同步这棵子树到ActiveUpdateList,避免每帧对整个NeedUpdateList做Unity native activeInHierarchy查询。
+	public void notifyUIObjectActiveChanged(myUGUIObject uiObj)
+	{
+		if (mDefaultUpdateWindow || uiObj == null)
+		{
+			return;
+		}
+		refreshActiveUpdateTree(uiObj);
+	}
+	// myUGUIObject自身NeedUpdate状态变化时调用。默认全更新布局保持旧语义;
+	// 只有显式关闭默认更新的性能敏感布局才动态维护精简更新列表。
+	public void notifyUIObjectIntrinsicNeedUpdate(myUGUIObject uiObj, bool needUpdate)
+	{
+		if (!mDefaultUpdateWindow)
+		{
+			notifyUIObjectNeedUpdate(uiObj, needUpdate);
+		}
+	}
+	public void notifyUIObjectReceiveLayoutHide(myUGUIObject uiObj, bool receive)
+	{
+		if (receive)
+		{
+			mLayoutHideNotifyList.Add(uiObj);
+		}
+		else
+		{
+			mLayoutHideNotifyList.Remove(uiObj);
+		}
+	}
+	protected void rebuildNeedUpdateList()
+	{
+		mNeedUpdateList.clear();
+		mNeedUpdateSet.Clear();
+		mActiveUpdateList.clear();
+		mActiveUpdateSet.Clear();
+		foreach (var item in mObjectList.getMainList())
+		{
+			myUGUIObject uiObj = item.Value;
+			if (uiObj != null && uiObj.isNeedUpdate())
+			{
+				addNeedUpdateObject(uiObj);
+			}
+		}
+	}
+	protected void addNeedUpdateObject(myUGUIObject uiObj)
+	{
+		if (uiObj == null || !mNeedUpdateSet.Add(uiObj))
+		{
+			return;
+		}
+		mNeedUpdateList.add(uiObj);
+		if (!mDefaultUpdateWindow)
+		{
+			refreshActiveUpdateObject(uiObj);
+		}
+	}
+	protected void removeNeedUpdateObject(myUGUIObject uiObj)
+	{
+		if (uiObj == null || !mNeedUpdateSet.Remove(uiObj))
+		{
+			return;
+		}
+		mNeedUpdateList.remove(uiObj);
+		if (mActiveUpdateSet.Remove(uiObj))
+		{
+			mActiveUpdateList.remove(uiObj);
+		}
+	}
+	protected void refreshActiveUpdateObject(myUGUIObject uiObj)
+	{
+		bool activeUpdate = mNeedUpdateSet.Contains(uiObj) && uiObj.canUpdate();
+		if (activeUpdate)
+		{
+			if (mActiveUpdateSet.Add(uiObj))
+			{
+				mActiveUpdateList.add(uiObj);
+			}
+		}
+		else if (mActiveUpdateSet.Remove(uiObj))
+		{
+			mActiveUpdateList.remove(uiObj);
+		}
+	}
+	protected void refreshActiveUpdateTree(myUGUIObject uiObj)
+	{
+		refreshActiveUpdateObject(uiObj);
+		List<myUGUIObject> childList = uiObj.getChildList();
+		if (childList == null)
+		{
+			return;
+		}
+		int count = childList.Count;
+		for (int i = 0; i < count; ++i)
+		{
+			myUGUIObject child = childList[i];
+			if (child != null)
+			{
+				refreshActiveUpdateTree(child);
+			}
 		}
 	}
 	public void registerUIObject(myUGUIObject uiObj)
@@ -220,12 +332,20 @@ public class GameLayout
 			logError("两个UI窗口的GameObject实例ID一致,UI窗口对象相同:" + (uiObj != obj) + ",GameObject是否相同：" + (obj.getGameObject() == uiObj.getGameObject()) + ", obj name:" + obj.getName() + ", uiObj name:" + uiObj.getName());
 		}
 		mGameObjectSearchList.Add(uiObj.getGameObjectInstanceID(), uiObj);
-		mNeedUpdateList.addIf(uiObj, mDefaultUpdateWindow || uiObj.isNeedUpdate());
+		if (mDefaultUpdateWindow || uiObj.isNeedUpdate())
+		{
+			addNeedUpdateObject(uiObj);
+		}
+		if (uiObj.isReceiveLayoutHide())
+		{
+			mLayoutHideNotifyList.Add(uiObj);
+		}
 	}
 	public void unregisterUIObject(myUGUIObject uiObj)
 	{
 		mObjectList.remove(uiObj.getID());
-		mNeedUpdateList.remove(uiObj);
+		removeNeedUpdateObject(uiObj);
+		mLayoutHideNotifyList.Remove(uiObj);
 		mGameObjectSearchList.Remove(uiObj.getGameObjectInstanceID());
 	}
 	// 有节点删除或者增加,或者节点在当前父节点中的位置有改变,parent表示有变动的节点的父节点
@@ -240,6 +360,7 @@ public class GameLayout
 	// get
 	public myUGUIObject getUIObject(GameObject go)			{ return mGameObjectSearchList.get(getGameObjectID(go)); }
 	public Dictionary<int, myUGUIObject> getUIObjectList()	{ return mGameObjectSearchList; }
+	public int getNeedUpdateCount()							{ return mNeedUpdateList.count(); }
 	public myUGUICanvas getRoot()							{ return mRoot; }
 	public LayoutScript getScript()							{ return mScript; }
 	// 手动注入布局脚本(默认由 init 通过 mLayoutManager.createScript 设置, 测试/特殊复用场景可注入)
@@ -263,12 +384,45 @@ public class GameLayout
 	public void setScriptControlHide(bool control)			{ mScriptControlHide = control; }
 	public void setCheckBoxAnchor(bool check)				{ mCheckBoxAnchor = check; }
 	public void setIgnoreTimeScale(bool ignore)				{ mIgnoreTimeScale = ignore; }
-	public void setDefaultUpdateWindow(bool defaultUpdate)	{ mDefaultUpdateWindow = defaultUpdate; }
+	public void setDefaultUpdateWindow(bool defaultUpdate)
+	{
+		if (mDefaultUpdateWindow == defaultUpdate)
+		{
+			return;
+		}
+		mDefaultUpdateWindow = defaultUpdate;
+		if (mScriptInited)
+		{
+			if (mDefaultUpdateWindow)
+			{
+				mNeedUpdateList.clear();
+				mNeedUpdateSet.Clear();
+				mActiveUpdateList.clear();
+				mActiveUpdateSet.Clear();
+				foreach (var item in mObjectList.getMainList())
+				{
+					addNeedUpdateObject(item.Value);
+				}
+			}
+			else
+			{
+				rebuildNeedUpdateList();
+			}
+		}
+	}
 	public void setLayer(int layer)							{ setGameObjectLayer(mRoot.getGameObject(), layer); }
 	public void setBlurBack(bool blurBack)					{ mBlurBack = blurBack; }
 	public void setParent(myUGUIObject parent)				{ mParent = parent; }
 	public void setType(Type type)							{ mType = type; }
-	public void setName(string name)						{ mName = name; }
+	public void setName(string name)
+	{
+		mName = name;
+		if (isDevOrEditor())
+		{
+			mUpdateProfilerMarker = new ProfilerMarker(name);
+		}
+	}
+	public ProfilerMarker getUpdateProfilerMarker()			{ return mUpdateProfilerMarker; }
 	//------------------------------------------------------------------------------------------------------------------------------
 	// ignoreInactive表示是否忽略未启用的节点,当includeSelf为true时orderInParent才会生效
 	protected void setUIDepth(myUGUIObject window, int orderInParent, bool includeSelf = true, bool ignoreInactive = false)

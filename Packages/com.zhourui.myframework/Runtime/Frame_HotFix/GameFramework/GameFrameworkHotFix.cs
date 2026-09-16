@@ -79,7 +79,7 @@ public class GameFrameworkHotFix : IFramework
 				return;
 			}
 			FrameSystem com = mFrameComponentUpdate[i];
-			if (com.isValid())
+			if (com != null && com.isValid())
 			{
 				using var a = new ProfilerScope(com.getName());
 				com.update(elapsedTime);
@@ -102,7 +102,7 @@ public class GameFrameworkHotFix : IFramework
 				return;
 			}
 			FrameSystem com = mFrameComponentUpdate[i];
-			if (com.isValid())
+			if (com != null && com.isValid())
 			{
 				using var a = new ProfilerScope(com.getName());
 				com.fixedUpdate(elapsedTime);
@@ -125,7 +125,7 @@ public class GameFrameworkHotFix : IFramework
 				return;
 			}
 			FrameSystem com = mFrameComponentUpdate[i];
-			if (com.isValid())
+			if (com != null && com.isValid())
 			{
 				using var a = new ProfilerScope(com.getName());
 				com.lateUpdate(elapsedTime);

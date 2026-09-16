@@ -169,7 +169,7 @@ public abstract class NetConnectTCP : NetConnect
 				{
 					continue;
 				}
-				using var b = new ProfilerScope(packet.GetType().ToString());
+				using var b = new ProfilerScope(packet.GetType().Name);
 				packet.execute();
 				mNetPacketFactory.destroyPacket(packet);
 			}

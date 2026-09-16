@@ -103,6 +103,7 @@ public class MenuAssetBundle
 			// 打包
 			// 使用LZMA压缩,并且不写入资源类型信息
 			var option = BuildAssetBundleOptions.StrictMode;
+			option |= BuildAssetBundleOptions.ChunkBasedCompression;
 #if WEIXINMINIGAME
 			// 微信的AssetBundle需要添加hash
 			option |= BuildAssetBundleOptions.AppendHashToAssetBundleName;
@@ -328,13 +329,13 @@ public class MenuAssetBundle
 	// 判断一个路径是否是不需要打包的路径
 	protected static bool isUnpackPath(string path, List<string> unpackList)
 	{
-		string pathUnderResources = (path.removeStart(P_GAME_RESOURCES_PATH, false) + "/").rightToLeft();
+		string pathUnderResources = path.removeStart(P_GAME_RESOURCES_PATH, false).ensureSuffix("/").rightToLeft();
 		return unpackList.contains(name => pathUnderResources.startWith(name, false));
 	}
 	// 判断一个路径是否是不需要打包的路径
 	protected static bool isForceSinglePath(string path, List<string> singlePathList)
 	{
-		return singlePathList.contains((path.removeStart(P_GAME_RESOURCES_PATH, false) + "/").rightToLeft());
+		return singlePathList.contains(path.removeStart(P_GAME_RESOURCES_PATH, false).ensureSuffix("/").rightToLeft());
 	}
 	// fullPath是以Asset开头的路径
 	protected static bool refreshAssetBundleNames(string fullPath, Dictionary<string, BuildAssetBundleInfo> assetBundleMap, bool showErrorMessageBox)

@@ -9,6 +9,10 @@ using static UnityUtility;
 public class myUGUITextTMP : myUGUIObject, IUGUIText
 {
 	protected TextMeshProUGUI mText;	// TextMeshPro的Text组件
+	// 大型中文Dynamic主字体在运行时补字代价很高。已预烘焙常用字符的主字体在首次使用时冻结为Static，
+	// 避免运行时继续扩张大Atlas；小字体和图标字体保持原配置。
+	protected const int STATIC_PRIMARY_MIN_GLYPHS = 2048;
+	protected static readonly HashSet<TMP_FontAsset> mStaticProcessedFonts = new();
 	public override void init()
 	{
 		base.init();
@@ -22,6 +26,21 @@ public class myUGUITextTMP : myUGUIObject, IUGUIText
 			// 添加UGUI组件后需要重新获取RectTransform
 			mObject.TryGetComponent(out mRectTransform);
 			mTransform = mRectTransform;
+		}
+		freezeLargeDynamicFont();
+	}
+	protected void freezeLargeDynamicFont()
+	{
+		TMP_FontAsset font = mText?.font;
+		if (font == null || !mStaticProcessedFonts.Add(font))
+		{
+			return;
+		}
+		int glyphCount = font.glyphTable?.Count ?? 0;
+		if (font.atlasPopulationMode == AtlasPopulationMode.Dynamic &&
+			(glyphCount >= STATIC_PRIMARY_MIN_GLYPHS || font.atlasTextureCount > 1))
+		{
+			font.atlasPopulationMode = AtlasPopulationMode.Static;
 		}
 	}
 	public void setText(string text)

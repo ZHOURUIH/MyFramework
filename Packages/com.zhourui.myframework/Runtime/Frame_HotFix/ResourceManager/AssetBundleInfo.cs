@@ -197,7 +197,7 @@ public class AssetBundleInfo : ClassObject
 			item.Value?.loadAssetBundle();
 		}
 		byte[] bytes = openFileSync(availableReadPath(mBundleFileName), true);
-		mAssetBundle = AssetBundle.LoadFromMemory(bytes);
+		mAssetBundle = bytes != null ? AssetBundle.LoadFromMemory(bytes) : null;
 		if (mAssetBundle == null)
 		{
 			logError("can not load asset bundle : " + mBundleFileName);
@@ -254,7 +254,7 @@ public class AssetBundleInfo : ClassObject
 			loadAssetBundle();
 		}
 		AssetInfo info = mAssetList.get(fileNameWithSuffix);
-		T asset = info.loadAsset<T>();
+		T asset = info?.loadAsset<T>();
 		if (asset != null)
 		{
 			mObjectToAsset.TryAdd(asset, info);

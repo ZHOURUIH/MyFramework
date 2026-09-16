@@ -12,6 +12,7 @@ public struct ProfilerScope : IDisposable
 {
 	private static readonly bool mValid = isDevOrEditor();
 	private ProfilerMarker.AutoScope mScope;
+	private bool mActive;
 	private static class LineMarkerCache
 	{
 		private const int MARKER_COUNT = 30000;
@@ -37,19 +38,23 @@ public struct ProfilerScope : IDisposable
 	}
 	public ProfilerScope(string name)
 	{
-		mScope = mValid ? new ProfilerMarker(name).Auto() : default;
+		// Development包并不代表Profiler一定正在使用。Profiler关闭时不要创建Marker，
+		// 尤其string版本会new ProfilerMarker(name)，在高频循环中成本明显。
+		mActive = mValid && UnityEngine.Profiling.Profiler.enabled;
+		mScope = mActive ? new ProfilerMarker(name).Auto() : default;
 	}
 	// id固定填0即可,用于避免直接调用默认构造
 	public ProfilerScope(int id, [CallerMemberName] string callerName = null, [CallerLineNumber] int line = 0, [CallerFilePath] string file = null)
 	{
+		mActive = mValid && UnityEngine.Profiling.Profiler.enabled;
 		// 如果想要更详细的信息,则可以使用下面被注释的那一行
-		mScope = mValid ? LineMarkerCache.getMarker(line).Auto() : default;
+		mScope = mActive ? LineMarkerCache.getMarker(line).Auto() : default;
 		// 更加准确的信息显示,但是会有额外的GC和性能消耗,这里使用Path.GetFileName是为了能够在多线程调用
-		//mScope = mValid ? new ProfilerMarker(callerName + "," + Path.GetFileName(file) + ":" + IToS(line)).Auto() : default;
+		//mScope = mActive ? new ProfilerMarker(callerName + "," + Path.GetFileName(file) + ":" + IToS(line)).Auto() : default;
 	}
 	public void Dispose()
 	{
-		if (mValid)
+		if (mActive)
 		{
 			mScope.Dispose();
 		}

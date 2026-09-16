@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
@@ -24,10 +24,8 @@ public static class ArrayExtension
 		{
 			return;
 		}
-		for (int i = 0; i < list.Length; ++i)
-		{
-			list[i] = default;
-		}
+		// Array.Clear由运行时执行批量清零,在IL2CPP下明显优于托管逐元素循环。
+		Array.Clear(list, 0, list.Length);
 	}
 	public static void setAllValue<T>(this T[] list, T value)
 	{
@@ -35,10 +33,8 @@ public static class ArrayExtension
 		{
 			return;
 		}
-		for (int i = 0; i < list.Length; ++i)
-		{
-			list[i] = value;
-		}
+		// 保留原API语义,但避免百万级数组在C#层逐元素赋值。
+		Array.Fill(list, value);
 	}
 	public static T[] setRange<T>(this T[] list, List<T> other)
 	{

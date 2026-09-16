@@ -26,6 +26,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 	protected bool mEscHide;                                        // 按Esc键时是否关闭此界面,仅在PC端使用
 	protected bool mUnuseAllWhenHide = true;                        // 是否在隐藏时将引用的对象池中的对象全部回收
 	protected bool mNeedResetAllChild = true;						// 是否在调用onGameState时,去调用所有一级子节点的reset,默认为true
+	protected bool mHasDragViewLoopUpdate;                          // 是否存在需要每帧驱动的循环滚动列表,postInit后一次性计算
 	public override void destroy()
 	{
 		base.destroy();
@@ -63,6 +64,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		mEscHide = false;
 		mUnuseAllWhenHide = true;
 		mNeedResetAllChild = true;
+		mHasDragViewLoopUpdate = false;
 	}
 	public virtual void setLayout(GameLayout layout) { mLayout = layout; }
 	public virtual bool onESCDown()
@@ -76,6 +78,27 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 	public bool isNeedUpdate() { return mNeedUpdate; }
 	public bool isVisible() { return mLayout.isVisible(); }
 	public GameLayout getLayout() { return mLayout; }
+	public int getRootPoolCount() { return (mPoolRootList?.Count ?? 0) + (mWindowPoolRootList?.Count ?? 0); }
+	public int getRootWindowObjectCount() { return mWindowObjectRootList?.Count ?? 0; }
+	public int getRootPoolInUseCount()
+	{
+		int count = 0;
+		if (mPoolRootList != null)
+		{
+			foreach (WindowStructPoolBase item in mPoolRootList)
+			{
+				count += item.getInUseCount();
+			}
+		}
+		if (mWindowPoolRootList != null)
+		{
+			foreach (WindowPoolBase item in mWindowPoolRootList)
+			{
+				count += item.getInUseCount();
+			}
+		}
+		return count;
+	}
 	public void setRoot(myUGUIObject root) { mRoot = root; }
 	public myUGUIObject getRoot() { return mRoot; }
 	public void notifyUIObjectNeedUpdate(myUGUIObject uiObj, bool needUpdate)
@@ -187,6 +210,20 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		}
 		// 调用所有根对象的初始化
 		mWindowObjectRootList.For(item => item.postInit());
+		// 滚动列表结构在初始化阶段已经固定。多数普通界面没有循环滚动列表,
+		// 后续每帧可直接跳过root WindowObject树的递归扫描。
+		mHasDragViewLoopUpdate = mDragViewLoopList?.Count > 0;
+		if (!mHasDragViewLoopUpdate && mWindowObjectRootList != null)
+		{
+			foreach (WindowObjectBase item in mWindowObjectRootList)
+			{
+				if (item?.hasDragViewLoop() == true)
+				{
+					mHasDragViewLoopUpdate = true;
+					break;
+				}
+			}
+		}
 
 		// 自动注册所有的InputField
 		foreach (var item in mLayout.getUIObjectList())
@@ -197,8 +234,13 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 			}
 		}
 	}
+	public bool hasDragViewLoopUpdate() { return mHasDragViewLoopUpdate; }
 	public void updateAllDragView()
 	{
+		if (!mHasDragViewLoopUpdate)
+		{
+			return;
+		}
 		// 更新UI直接创建的滚动列表
 		foreach (IDragViewLoop item in mDragViewLoopList.safe())
 		{
@@ -414,7 +456,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 			if (obj == null)
 			{
 				logError("已经创建了相同GameObject的UI对象,但是两次创建的类型不一致,第一次创建的类型:" + existUIObj.GetType().ToString() + 
-						", 第二次创建的类型:" + typeof(T).ToString() + ", name:" + name + ", layout:" + mLayout.getName());
+					", 第二次创建的类型:" + typeof(T).ToString() + ", name:" + name + ", layout:" + mLayout.getName());
 			}
 			return obj;
 		}

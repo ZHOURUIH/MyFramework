@@ -61,6 +61,24 @@ public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectO
 			mChildList.For(item => item.reset());
 		}
 	}
+	public bool hasDragViewLoop()
+	{
+		if (mDragViewLoopList?.Count > 0)
+		{
+			return true;
+		}
+		if (mChildList != null)
+		{
+			for (int i = 0; i < mChildList.Count; ++i)
+			{
+				if (mChildList[i]?.hasDragViewLoop() == true)
+				{
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 	public void updateDragViewLoop()
 	{
 		// 更新自己的滚动列表

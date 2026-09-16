@@ -24,37 +24,33 @@ public class SQLiteManager : FrameSystem
 	{
 		mTableList.forValue(item => item.setResourceAvailable(true));
 	}
-	// 异步加载所有SQLite表格,先预加载资源包再逐个加载表格
+	// 异步加载所有SQLite表格。每张表会先尝试直接打开本地版本缓存;
+	// 只有缓存未命中时才会请求SQLite AssetBundle中的TextAsset。
 	public void loadAllAsync(Action callback)
 	{
-		// 如果还没有注册表格,不在执行,没有任何表格加载,而且还会删除已缓存的表格
 		if (mTableNameList.Count == 0)
 		{
 			callback?.Invoke();
 			return;
 		}
-		// 加载之前也清理一次,因为可能在退出时由于文件被占用而清理不掉
-		deleteUselessTempFile();
 		DateTime startTime = DateTime.Now;
-		// 提前加载资源包和其中的子资源
-		mResourceManager.preloadAssetBundleAsync(FrameDefine.SQLITE, (AssetBundleInfo assetBundle) =>
+		int tableCount = mTableList.Count;
+		int finishCount = 0;
+		foreach (var item in mTableList)
 		{
-			assetBundle?.loadAllSubAssets();
-			// 然后再加载每个表格
-			int tableCount = mTableList.Count;
-			int finishCount = 0;
-			foreach (var item in mTableList)
+			SQLiteTable table = item.Value;
+			table.loadAsync(() =>
 			{
-				item.Value.loadAsync(() =>
+				if (++finishCount == tableCount)
 				{
-					if (++finishCount == tableCount)
-					{
-						log("打开所有SQLite表格耗时:" + (int)(DateTime.Now - startTime).TotalMilliseconds + "毫秒");
-						callback?.Invoke();
-					}
-				});
-			}
-		});
+					// 所有当前版本文件名都已经确定以后再清理旧版本缓存。
+					// 原实现放在加载前清理,会因为mDecryptFileName尚未生成而把全部可复用缓存删除。
+					deleteUselessTempFile();
+					log("打开所有SQLite表格耗时:" + (int)(DateTime.Now - startTime).TotalMilliseconds + "毫秒");
+					callback?.Invoke();
+				}
+			});
+		}
 	}
 	public void checkAll()
 	{
@@ -89,7 +85,7 @@ public class SQLiteManager : FrameSystem
 	public SQLiteTable getTableByDataType(Type type) { return mTableDataTypeList.get(type); }
 	public SQLiteTable getTable(string tableName) { return mTableNameList.get(tableName); }
 	//------------------------------------------------------------------------------------------------------------------------------
-	// 删除无用的临时解密文件
+	// 删除旧资源版本遗留的SQLite明文缓存文件
 	protected void deleteUselessTempFile()
 	{
 		foreach (string file in findFilesNonAlloc(SQLiteTable.getDecryptFilePath()))

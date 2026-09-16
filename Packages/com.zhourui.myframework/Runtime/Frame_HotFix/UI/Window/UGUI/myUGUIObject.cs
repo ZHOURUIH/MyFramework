@@ -323,14 +323,14 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	{
 		getCOMUGUIInteractive().setUGUIMouseDown(callback);
 		// 因为点击事件会使用触点,为了确保触点的正确状态,所以需要在布局隐藏时清除触点
-		mReceiveLayoutHide = true;
+		setReceiveLayoutHide(true);
 	}
 	// 用于兼容UGUI的事件监测,用得比较少
 	public void setUGUIMouseUp(Action<PointerEventData, GameObject> callback)
 	{
 		getCOMUGUIInteractive().setUGUIMouseUp(callback);
 		// 因为点击事件会使用触点,为了确保触点的正确状态,所以需要在布局隐藏时清除触点
-		mReceiveLayoutHide = true;
+		setReceiveLayoutHide(true);
 	}
 	// 用于兼容UGUI的事件监测,用得比较少
 	public void setUGUIMouseEnter(Action<PointerEventData, GameObject> callback)
@@ -347,13 +347,13 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	{
 		getCOMUGUIInteractive().setUGUIMouseMove(callback);
 		// 如果设置了要监听鼠标移动,则需要激活当前窗口
-		mNeedUpdate = true;
+		setNeedUpdate(true);
 	}
 	// 用于兼容UGUI的事件监测,用得比较少
 	public void setUGUIMouseStay(Action<Vector3> callback)
 	{
 		getCOMUGUIInteractive().setUGUIMouseStay(callback);
-		mNeedUpdate = true;
+		setNeedUpdate(true);
 	}
 	public override void destroy()
 	{
@@ -438,7 +438,13 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 		{
 			return;
 		}
-		mChildOrderSorted = false;
+		// SetSibling修改的是“父节点的子顺序”,不是当前节点自己的子节点顺序。
+		// 旧逻辑把当前节点标记为dirty,导致refreshUIDepth时去扫描/重排Avatar内部子树,
+		// 而真正需要同步mChildList的父节点反而仍然认为自己已排序。
+		if (mParent != null)
+		{
+			mParent.mChildOrderSorted = false;
+		}
 		mTransform.SetAsLastSibling();
 		if (refreshUIDepth)
 		{
@@ -451,7 +457,10 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 		{
 			return;
 		}
-		mChildOrderSorted = false;
+		if (mParent != null)
+		{
+			mParent.mChildOrderSorted = false;
+		}
 		mTransform.SetAsFirstSibling();
 		if (refreshUIDepth)
 		{
@@ -464,7 +473,10 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 		{
 			return false;
 		}
-		mChildOrderSorted = false;
+		if (mParent != null)
+		{
+			mParent.mChildOrderSorted = false;
+		}
 		mTransform.SetSiblingIndex(index);
 		if (refreshUIDepth)
 		{
@@ -550,8 +562,25 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	public void setOnScreenTouchUp(Vector3IntCallback callback)			{ getCOMInteractive().setOnScreenTouchUp(callback); }
 	public void setColliderForClick(bool forClick)						{ getCOMInteractive().setColliderForClick(forClick); }
 	public void setClickSound(int sound)								{ getCOMInteractive().setClickSound(sound); }
+	public override void setNeedUpdate(bool enable)
+	{
+		if (mNeedUpdate == enable)
+		{
+			return;
+		}
+		base.setNeedUpdate(enable);
+		mLayout?.notifyUIObjectIntrinsicNeedUpdate(this, enable);
+	}
 	public void setLayout(GameLayout layout)							{ mLayout = layout; }
-	public void setReceiveLayoutHide(bool receive)						{ mReceiveLayoutHide = receive; }
+	public void setReceiveLayoutHide(bool receive)
+	{
+		if (mReceiveLayoutHide == receive)
+		{
+			return;
+		}
+		mReceiveLayoutHide = receive;
+		mLayout?.notifyUIObjectReceiveLayoutHide(this, receive);
+	}
 	public void setIsNewObject(bool isNew)								{ mIsNewObject = isNew; }
 	public Canvas getCanvas()											{ return mCanvas; }
 	public override void setObject(GameObject go)
@@ -596,6 +625,8 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 		{
 			mGlobalTouchSystem?.notifyWindowChanged();
 		}
+		// Reparent同样可能改变activeInHierarchy,同步性能敏感布局的ActiveUpdateList。
+		mLayout?.notifyUIObjectActiveChanged(this);
 	}
 	public void notifyMouseCastRegiste(bool registe)
 	{
@@ -653,6 +684,48 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 		}
 		return RectTransformUtility.RectangleContainsScreenPoint(mRectTransform, screenPos, getUICamera());
 	}
+	// UIScene已经按最终深度顺序显式调用SetSiblingIndex时,不应该再通过Transform.GetChild+字典查询
+	// 把同一批子节点重新同步一次。orderedPrefix就是已经被移动到父节点最前面的最终顺序,其余未参与排序的子节点
+	// 保持原有相对顺序即可。这样后续refreshUIDepth可以直接遍历mChildList,避免怪物密集区根节点单次sortChild达到10~20ms。
+	public void syncChildOrderPrefix(List<myUGUIObject> orderedPrefix)
+	{
+		if (mChildList == null || mChildList.Count <= 1)
+		{
+			mChildOrderSorted = true;
+			return;
+		}
+		using var a = new HashSetScope<myUGUIObject>(out var prefixSet);
+		using var b = new ListScope<myUGUIObject>(out var orderedList);
+		if (orderedPrefix != null)
+		{
+			for (int i = 0; i < orderedPrefix.Count; ++i)
+			{
+				myUGUIObject child = orderedPrefix[i];
+				if (child != null && child.mParent == this && prefixSet.Add(child))
+				{
+					orderedList.Add(child);
+				}
+			}
+		}
+		for (int i = 0; i < mChildList.Count; ++i)
+		{
+			myUGUIObject child = mChildList[i];
+			if (child != null && !prefixSet.Contains(child))
+			{
+				orderedList.Add(child);
+			}
+		}
+		if (orderedList.Count == mChildList.Count)
+		{
+			mChildList.setRange(orderedList);
+			mChildOrderSorted = true;
+		}
+		else
+		{
+			// 理论上不会发生;若父子关系正在异步变化,回退下一次正常sortChild以保证正确性。
+			mChildOrderSorted = false;
+		}
+	}
 	public void sortChild()
 	{
 		if (mChildOrderSorted || mChildList.count() <= 1)
@@ -660,6 +733,36 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 			return;
 		}
 		mChildOrderSorted = true;
+
+		// refreshUIDepth之前经常已经通过SetSiblingIndex确定了真实Transform顺序。
+		// 旧实现再次quickSort所有myUGUIObject,比较器每次都会跨C#/Unity边界调用GetSiblingIndex。
+		// 怪物密集区AvatarRoot只有一次SortCalls也能耗5~10ms。若直接子节点全部有UI包装,
+		// 按Transform当前顺序做O(N)同步即可,语义与按SiblingIndex排序完全一致。
+		int childCount = mTransform != null ? mTransform.childCount : 0;
+		if (mLayout != null && childCount == mChildList.Count)
+		{
+			// 不能一边校验一边覆盖mChildList: 若中途发现未包装节点再回退quickSort,
+			// 已被部分覆盖的列表可能出现重复/丢元素。先放到池化临时列表,全部校验成功后一次替换。
+			using var a = new ListScope<myUGUIObject>(out var orderedChildList);
+			bool allWrapped = true;
+			for (int i = 0; i < childCount; ++i)
+			{
+				myUGUIObject child = mLayout.getUIObject(mTransform.GetChild(i).gameObject);
+				if (child == null || child.getParent() != this)
+				{
+					allWrapped = false;
+					break;
+				}
+				orderedChildList.Add(child);
+			}
+			if (allWrapped)
+			{
+				mChildList.setRange(orderedChildList);
+				return;
+			}
+		}
+
+		// 存在未包装的直接Transform时回退原逻辑,保证兼容。
 		quickSort(mChildList, mCompareSiblingIndex);
 	}
 	// registeEvent,这些函数只是用于简化注册碰撞体的操作
@@ -777,7 +880,13 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 		mGlobalTouchSystem?.unregisteCollider(this);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected override void notifyActiveChanged() { notifyMouseCastTransformChanged(); }
+	protected override void notifyActiveChanged()
+	{
+		notifyMouseCastTransformChanged();
+		// 维护真正可更新的ActiveUpdateList。父节点Active变化会影响整棵子树,
+		// 由GameLayout在状态变化时一次性同步,避免每帧逐个查询GameObject.activeInHierarchy。
+		mLayout?.notifyUIObjectActiveChanged(this);
+	}
 	protected override void notifyColliderChanged() { notifyMouseCastTransformChanged(); }
 	protected void notifyMouseCastTransformChanged()
 	{

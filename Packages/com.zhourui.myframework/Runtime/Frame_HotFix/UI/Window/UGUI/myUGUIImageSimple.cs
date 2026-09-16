@@ -197,12 +197,12 @@ public class myUGUIImageSimple : myUGUIObject
 	{
 		registeCollider(clickCallback, mDefaultClickSound);
 		getOrAddComponent<COMWindowInteractiveFade>();
-		mReceiveLayoutHide = true;
+		setReceiveLayoutHide(true);
 	}
 	public void registeColliderImage(Action clickCallback, int clickSound)
 	{
 		registeCollider(clickCallback, clickSound);
 		getOrAddComponent<COMWindowInteractiveFade>();
-		mReceiveLayoutHide = true;
+		setReceiveLayoutHide(true);
 	}
 }

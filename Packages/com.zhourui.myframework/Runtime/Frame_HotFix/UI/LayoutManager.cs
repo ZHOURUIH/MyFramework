@@ -45,13 +45,17 @@ public class LayoutManager : FrameSystem
 			// 显示布局时,如果当前正在显示有背景模糊的布局,则需要判断当前布局是否需要模糊
 			if (mBackBlurLayoutList.Count > 0)
 			{
-				CmdLayoutManagerBackBlur.execute(mBackBlurLayoutList, mBackBlurLayoutList.Count > 0);
+				CmdLayoutManagerBackBlur.execute(mBackBlurLayoutList, true);
 			}
 		}
 		else
 		{
-			mBackBlurLayoutList.removeIf(layout, layout.isBlurBack());
-			CmdLayoutManagerBackBlur.execute(mBackBlurLayoutList, mBackBlurLayoutList.Count > 0);
+			// 隐藏普通非Blur布局不会改变背景模糊关系，只有真正的Blur布局隐藏时才重算。
+			if (layout.isBlurBack())
+			{
+				mBackBlurLayoutList.removeIf(layout, true);
+				CmdLayoutManagerBackBlur.execute(mBackBlurLayoutList, mBackBlurLayoutList.Count > 0);
+			}
 			// 布局在隐藏时都需要确认设置层为UI层
 			setGameObjectLayer(layout.getRoot()?.getGameObject(), layout.getDefaultLayer());
 		}
@@ -64,9 +68,13 @@ public class LayoutManager : FrameSystem
 		foreach (var item in mLayoutList)
 		{
 			GameLayout layout = item.Value;
+			if (layout == null || !layout.isVisible())
+			{
+				continue;
+			}
 			try
 			{
-				using var b = new ProfilerScope(layout.getName());
+				using var b = layout.getUpdateProfilerMarker().Auto();
 				layout.update(elapsedTime);
 			}
 			catch (Exception e)
@@ -84,13 +92,18 @@ public class LayoutManager : FrameSystem
 		base.lateUpdate(elapsedTime);
 		foreach (var item in mLayoutList)
 		{
+			GameLayout layout = item.Value;
+			if (layout == null || !layout.isVisible())
+			{
+				continue;
+			}
 			try
 			{
-				item.Value.lateUpdate(elapsedTime);
+				layout.lateUpdate(elapsedTime);
 			}
 			catch (Exception e)
 			{
-				logException(e, "layout:" + item.Value.getName());
+				logException(e, "layout:" + layout.getName());
 			}
 		}
 	}
