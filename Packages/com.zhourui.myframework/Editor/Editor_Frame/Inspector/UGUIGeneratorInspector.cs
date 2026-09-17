@@ -101,7 +101,7 @@ public class UGUIGeneratorInspector : GameInspector
 	{
 		List<string> uiList = new();
 		List<string> insertList = new();
-		List<string> fileList = findFilesNonAlloc(F_UI_PREFAB_PATH, ".prefab", false);
+		List<string> fileList = findFilesNonAlloc(F_UI_PREFAB_PATH, ".prefab");
 		int fileCount = fileList.Count;
 		for (int i = 0; i < fileCount; ++i)
 		{
