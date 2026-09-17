@@ -7,7 +7,8 @@
         "HybridCLR.Editor",
         "Frame_Base",
         "Unity.TextMeshPro",
-        "Obfuz.Editor"
+        "Obfuz.Editor",
+        "Unity.2D.Sprite.Editor"
     ],
     "includePlatforms": [
         "Editor"

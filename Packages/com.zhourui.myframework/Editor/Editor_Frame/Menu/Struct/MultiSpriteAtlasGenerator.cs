@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEditor.U2D.Sprites;
 using static FrameBaseUtility;
 using static EditorCommonUtility;
 using static MathUtility;
@@ -37,7 +38,7 @@ public class MultiSpriteAtlasGenerator
 	private const int BORDER_PADDING = 1;                               // Sprite与图集边缘之间保留的像素间距。
 	private const int SHAPE_PADDING = 1;                                // 相邻Sprite区域之间保留的像素间距。
 	private const float SPRITE_PIXELS_PER_UNIT = 100.0f;                // 输出图集中所有Sprite统一使用的Pixels Per Unit。
-	// 根据Project窗口当前选中的文件夹执行完整的图集生成流程,生成的PNG保存在选中文件夹外，文件名为“文件夹名.png”
+																		// 根据Project窗口当前选中的文件夹执行完整的图集生成流程,生成的PNG保存在选中文件夹外，文件名为“文件夹名.png”
 	public static void generateMultiSprite(string folderAssetPath)
 	{
 		if (!AssetDatabase.IsValidFolder(folderAssetPath))
@@ -90,7 +91,8 @@ public class MultiSpriteAtlasGenerator
 	{
 		string folderFilePath = projectPathToFullPath(folderAssetPath);
 		List<string> filePaths = findFilesNonAlloc(folderFilePath, ".png", false);
-		filePaths.Sort(StringComparer.OrdinalIgnoreCase);
+
+		filePaths.Sort((left, right) => { return compareSpriteName(getFileNameNoSuffixNoDir(left), getFileNameNoSuffixNoDir(right)); });
 
 		List<AtlasSprite> sprites = new();
 		foreach (string filePath in filePaths)
@@ -128,11 +130,42 @@ public class MultiSpriteAtlasGenerator
 				UObject.DestroyImmediate(texture);
 			}
 		}
-		sprites.Sort(delegate (AtlasSprite left, AtlasSprite right)
-		{
-			return string.Compare(left.name, right.name, StringComparison.Ordinal);
-		});
+		sprites.Sort((left, right) => { return compareSpriteName(left.name, right.name); });
 		return sprites;
+	}
+	private static int compareSpriteName(string left, string right)
+	{
+		if (left == right)
+		{
+			return 0;
+		}
+
+		int leftUnderline = left.LastIndexOf('_');
+		int rightUnderline = right.LastIndexOf('_');
+		int leftIndex = 0;
+		int rightIndex = 0;
+		bool leftHasIndex = leftUnderline >= 0 && int.TryParse(left[(leftUnderline + 1)..], out leftIndex);
+		bool rightHasIndex = rightUnderline >= 0 && int.TryParse(right[(rightUnderline + 1)..], out rightIndex);
+		// 两边都是 xxx_数字 的形式
+		if (leftHasIndex && rightHasIndex)
+		{
+			string leftPrefix = left[..leftUnderline];
+			string rightPrefix = right[..rightUnderline];
+			// 先比较序列名字
+			int prefixCompare = string.Compare(leftPrefix, rightPrefix, StringComparison.Ordinal);
+			if (prefixCompare != 0)
+			{
+				return prefixCompare;
+			}
+			// 同一序列按数字排序
+			int indexCompare = leftIndex.CompareTo(rightIndex);
+			if (indexCompare != 0)
+			{
+				return indexCompare;
+			}
+		}
+		// 非序列帧文件或者特殊情况继续按照名字排序
+		return string.Compare(left, right, StringComparison.Ordinal);
 	}
 	// 在不超过maxSize的POT尺寸中寻找能够容纳全部Sprite的最小图集。
 	// 会按照图集面积从小到大测试候选尺寸，并对每个尺寸尝试所有矩形放置策略。
@@ -435,10 +468,11 @@ public class MultiSpriteAtlasGenerator
 	// 配置输出PNG的TextureImporter，将其设置为Sprite Multiple并写入所有Sprite切片数据。
 	private static void configureAtlasImporter(string outputAssetPath, List<AtlasSprite> sprites, int atlasWidth, int atlasHeight)
 	{
-		var textureImporter = AssetImporter.GetAtPath(outputAssetPath) as TextureImporter;
+		TextureImporter textureImporter = AssetImporter.GetAtPath(outputAssetPath) as TextureImporter;
 		if (textureImporter == null)
 		{
 			Debug.LogError("无法获取输出图集的TextureImporter:" + outputAssetPath);
+			return;
 		}
 
 		textureImporter.textureType = TextureImporterType.Sprite;
@@ -447,21 +481,53 @@ public class MultiSpriteAtlasGenerator
 		textureImporter.alphaIsTransparency = true;
 		textureImporter.mipmapEnabled = false;
 		textureImporter.wrapMode = TextureWrapMode.Clamp;
-		textureImporter.maxTextureSize = getMax(32, getMax(atlasWidth, atlasHeight));
-
-		SpriteMetaData[] spriteMetaData = new SpriteMetaData[sprites.Count];
-		for (int i = 0; i < sprites.Count; ++i)
+		textureImporter.maxTextureSize = getMax(32, atlasWidth, atlasHeight);
+		applySpriteRects(textureImporter, sprites);
+	}
+	private static void applySpriteRects(TextureImporter textureImporter, List<AtlasSprite> sprites)
+	{
+		SpriteDataProviderFactories factory = new();
+		factory.Init();
+		ISpriteEditorDataProvider dataProvider = factory.GetSpriteEditorDataProviderFromObject(textureImporter);
+		if (dataProvider == null)
 		{
-			AtlasSprite sprite = sprites[i];
-			SpriteMetaData metadata = new();
-			metadata.name = sprite.name;
-			metadata.rect = new Rect(sprite.rect.x, sprite.rect.y, sprite.rect.width, sprite.rect.height);
-			metadata.pivot = sprite.pivot;
-			metadata.alignment = (int)SpriteAlignment.Custom;
-			metadata.border = sprite.border;
-			spriteMetaData[i] = metadata;
+			Debug.LogError("当前Unity无法获得Sprite Editor Data Provider。");
+			return;
 		}
-		textureImporter.spritesheet = spriteMetaData;
+
+		dataProvider.InitSpriteEditorDataProvider();
+		// 保留已有Sprite的ID。
+		// 这样重新生成图集以后，外部对Sprite子资源的引用不会因为重新切图而全部失效。
+		Dictionary<string, GUID> oldSpriteIDs = new(StringComparer.Ordinal);
+		foreach (SpriteRect oldSpriteRect in dataProvider.GetSpriteRects())
+		{
+			oldSpriteIDs.TryAdd(oldSpriteRect.name, oldSpriteRect.spriteID);
+		}
+
+		List<SpriteRect> spriteRects = new(sprites.Count);
+		List<SpriteNameFileIdPair> nameFileIdPairs = new(sprites.Count);
+		foreach (AtlasSprite sprite in sprites)
+		{
+			if (!oldSpriteIDs.TryGetValue(sprite.name, out GUID spriteID))
+			{
+				spriteID = GUID.Generate();
+			}
+
+			SpriteRect spriteRect = new();
+			spriteRect.name = sprite.name;
+			spriteRect.rect = new Rect(sprite.rect.x, sprite.rect.y, sprite.rect.width, sprite.rect.height);
+			spriteRect.pivot = sprite.pivot;
+			spriteRect.alignment = SpriteAlignment.Custom;
+			spriteRect.border = sprite.border;
+			spriteRect.spriteID = spriteID;
+			spriteRects.Add(spriteRect);
+			nameFileIdPairs.Add(new(sprite.name, spriteID));
+		}
+
+		dataProvider.SetSpriteRects(spriteRects.ToArray());
+		ISpriteNameFileIdDataProvider nameFileIdDataProvider = dataProvider.GetDataProvider<ISpriteNameFileIdDataProvider>();
+		nameFileIdDataProvider?.SetNameFileIdPairs(nameFileIdPairs);
+		dataProvider.Apply();
 		textureImporter.SaveAndReimport();
 	}
 }
