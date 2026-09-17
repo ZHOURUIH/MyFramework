@@ -1,6 +1,4 @@
-﻿using static UnityUtility;
-using static FrameBaseUtility;
-
+﻿
 // 渐变一个窗口的填充值
 public class CmdWindowFill
 {
@@ -17,12 +15,6 @@ public class CmdWindowFill
 		if (obj == null)
 		{
 			return;
-		}
-		if (isEditor() && 
-			!onceLength.isZero() && 
-			!obj.getLayout().canUIObjectUpdate(obj))
-		{
-			logError("想要使窗口播放缓动动画,但是窗口当前未开启更新:" + obj.getName());
 		}
 		obj.getOrAddComponent(out COMWindowFill com);
 		com.setDoingCallback(doingCallback);

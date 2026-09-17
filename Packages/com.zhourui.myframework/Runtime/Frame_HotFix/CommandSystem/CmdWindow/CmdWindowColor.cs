@@ -1,6 +1,4 @@
 ﻿using UnityEngine;
-using static UnityUtility;
-using static FrameBaseUtility;
 
 // 渐变一个窗口的颜色
 public class CmdWindowColor
@@ -18,12 +16,6 @@ public class CmdWindowColor
 		if (obj == null)
 		{
 			return;
-		}
-		if (isEditor() && 
-			!onceLength.isZero() && 
-			!obj.getLayout().canUIObjectUpdate(obj))
-		{
-			logError("想要使窗口播放缓动动画,但是窗口当前未开启更新:" + obj.getName());
 		}
 		obj.getOrAddComponent(out COMWindowColor com);
 		com.setDoingCallback(doingCallback);

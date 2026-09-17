@@ -1,6 +1,4 @@
 ﻿using UnityEngine;
-using static UnityUtility;
-using static FrameBaseUtility;
 
 // 插值改变一个物体的旋转,如果目标旋转不变,离目标旋转越近,旋转速度越慢
 public class CmdTransformableLerpRotation
@@ -14,13 +12,6 @@ public class CmdTransformableLerpRotation
 		if (obj == null)
 		{
 			return;
-		}
-		if (isEditor() && 
-			obj is myUGUIObject uiObj && 
-			!lerpSpeed.isZero() && 
-			!uiObj.getLayout().canUIObjectUpdate(uiObj))
-		{
-			logError("想要使窗口播放缓动动画,但是窗口当前未开启更新:" + uiObj.getName());
 		}
 		obj.getOrAddComponent(out COMTransformableLerpRotation com);
 		com.setLerpingCallback(doingCallBack);

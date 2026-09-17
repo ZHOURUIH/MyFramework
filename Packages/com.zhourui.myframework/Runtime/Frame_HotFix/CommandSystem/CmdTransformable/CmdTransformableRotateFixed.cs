@@ -1,6 +1,4 @@
 ﻿using UnityEngine;
-using static UnityUtility;
-using static FrameBaseUtility;
 
 // 锁定物体的世界旋转
 public class CmdTransformableRotateFixed
@@ -12,13 +10,6 @@ public class CmdTransformableRotateFixed
 		if (obj == null)
 		{
 			return;
-		}
-		if (isEditor() && 
-			obj is myUGUIObject uiObj && 
-			active && 
-			!uiObj.getLayout().canUIObjectUpdate(uiObj))
-		{
-			logError("想要使窗口播放缓动动画,但是窗口当前未开启更新:" + uiObj.getName());
 		}
 		obj.getOrAddComponent(out COMTransformableRotateFixed com);
 		com.setActive(active);

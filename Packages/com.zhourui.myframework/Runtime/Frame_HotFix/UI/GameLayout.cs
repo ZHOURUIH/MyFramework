@@ -252,78 +252,6 @@ public class GameLayout
 			mLayoutHideNotifyList.Remove(uiObj);
 		}
 	}
-	protected void rebuildNeedUpdateList()
-	{
-		mNeedUpdateList.clear();
-		mNeedUpdateSet.Clear();
-		mActiveUpdateList.clear();
-		mActiveUpdateSet.Clear();
-		foreach (var item in mObjectList.getMainList())
-		{
-			myUGUIObject uiObj = item.Value;
-			if (uiObj != null && uiObj.isNeedUpdate())
-			{
-				addNeedUpdateObject(uiObj);
-			}
-		}
-	}
-	protected void addNeedUpdateObject(myUGUIObject uiObj)
-	{
-		if (uiObj == null || !mNeedUpdateSet.Add(uiObj))
-		{
-			return;
-		}
-		mNeedUpdateList.add(uiObj);
-		if (!mDefaultUpdateWindow)
-		{
-			refreshActiveUpdateObject(uiObj);
-		}
-	}
-	protected void removeNeedUpdateObject(myUGUIObject uiObj)
-	{
-		if (uiObj == null || !mNeedUpdateSet.Remove(uiObj))
-		{
-			return;
-		}
-		mNeedUpdateList.remove(uiObj);
-		if (mActiveUpdateSet.Remove(uiObj))
-		{
-			mActiveUpdateList.remove(uiObj);
-		}
-	}
-	protected void refreshActiveUpdateObject(myUGUIObject uiObj)
-	{
-		bool activeUpdate = mNeedUpdateSet.Contains(uiObj) && uiObj.canUpdate();
-		if (activeUpdate)
-		{
-			if (mActiveUpdateSet.Add(uiObj))
-			{
-				mActiveUpdateList.add(uiObj);
-			}
-		}
-		else if (mActiveUpdateSet.Remove(uiObj))
-		{
-			mActiveUpdateList.remove(uiObj);
-		}
-	}
-	protected void refreshActiveUpdateTree(myUGUIObject uiObj)
-	{
-		refreshActiveUpdateObject(uiObj);
-		List<myUGUIObject> childList = uiObj.getChildList();
-		if (childList == null)
-		{
-			return;
-		}
-		int count = childList.Count;
-		for (int i = 0; i < count; ++i)
-		{
-			myUGUIObject child = childList[i];
-			if (child != null)
-			{
-				refreshActiveUpdateTree(child);
-			}
-		}
-	}
 	public void registerUIObject(myUGUIObject uiObj)
 	{
 		mObjectList.add(uiObj.getID(), uiObj);
@@ -357,14 +285,11 @@ public class GameLayout
 		}
 		setUIDepth(parent, 0, false, ignoreInactive);
 	}
-	// get
 	public myUGUIObject getUIObject(GameObject go)			{ return mGameObjectSearchList.get(getGameObjectID(go)); }
 	public Dictionary<int, myUGUIObject> getUIObjectList()	{ return mGameObjectSearchList; }
 	public int getNeedUpdateCount()							{ return mNeedUpdateList.count(); }
 	public myUGUICanvas getRoot()							{ return mRoot; }
 	public LayoutScript getScript()							{ return mScript; }
-	// 手动注入布局脚本(默认由 init 通过 mLayoutManager.createScript 设置, 测试/特殊复用场景可注入)
-	public void setScript(LayoutScript script)				{ mScript = script; }
 	public LAYOUT_ORDER getRenderOrderType()				{ return mRenderOrderType; }
 	public string getName()									{ return mName; }
 	public Type getType()									{ return mType; }
@@ -377,7 +302,8 @@ public class GameLayout
 	public bool isScriptControlHide()						{ return mScriptControlHide; }
 	public bool isBlurBack()								{ return mBlurBack; }
 	public bool isAnchorApplied()							{ return mAnchorApplied; }
-	// set
+	// 手动注入布局脚本(默认由 init 通过 mLayoutManager.createScript 设置, 测试/特殊复用场景可注入)
+	public void setScript(LayoutScript script)				{ mScript = script; }
 	public void setPrefab(ResourceRef<GameObject> prefab)	{ mPrefab = prefab; }
 	public void setOrderType(LAYOUT_ORDER orderType)		{ mRenderOrderType = orderType; }
 	// 设置是否会立即隐藏,应该由布局脚本调用
@@ -475,6 +401,83 @@ public class GameLayout
 		for (int i = 0; i < childList.Count; ++i)
 		{
 			setUIDepth(childList[i], ++childOrder, true, ignoreInactive);
+		}
+	}
+	protected void addNeedUpdateObject(myUGUIObject uiObj)
+	{
+		if (uiObj == null)
+		{
+			return;
+		}
+
+		if (mNeedUpdateSet.Add(uiObj))
+		{
+			mNeedUpdateList.add(uiObj);
+		}
+		// 即使已经存在于NeedUpdateList中，也需要重新同步ActiveUpdateList。
+		// 对象可能是在加入NeedUpdateList之后才真正开启NeedUpdate。
+		if (!mDefaultUpdateWindow)
+		{
+			refreshActiveUpdateObject(uiObj);
+		}
+	}
+	protected void removeNeedUpdateObject(myUGUIObject uiObj)
+	{
+		if (uiObj == null || !mNeedUpdateSet.Remove(uiObj))
+		{
+			return;
+		}
+		mNeedUpdateList.remove(uiObj);
+		if (mActiveUpdateSet.Remove(uiObj))
+		{
+			mActiveUpdateList.remove(uiObj);
+		}
+	}
+	protected void refreshActiveUpdateObject(myUGUIObject uiObj)
+	{
+		if (mNeedUpdateSet.Contains(uiObj) && uiObj.canUpdate())
+		{
+			if (mActiveUpdateSet.Add(uiObj))
+			{
+				mActiveUpdateList.add(uiObj);
+			}
+		}
+		else if (mActiveUpdateSet.Remove(uiObj))
+		{
+			mActiveUpdateList.remove(uiObj);
+		}
+	}
+	protected void refreshActiveUpdateTree(myUGUIObject uiObj)
+	{
+		refreshActiveUpdateObject(uiObj);
+		List<myUGUIObject> childList = uiObj.getChildList();
+		if (childList == null)
+		{
+			return;
+		}
+		int count = childList.Count;
+		for (int i = 0; i < count; ++i)
+		{
+			myUGUIObject child = childList[i];
+			if (child != null)
+			{
+				refreshActiveUpdateTree(child);
+			}
+		}
+	}
+	protected void rebuildNeedUpdateList()
+	{
+		mNeedUpdateList.clear();
+		mNeedUpdateSet.Clear();
+		mActiveUpdateList.clear();
+		mActiveUpdateSet.Clear();
+		foreach (var item in mObjectList.getMainList())
+		{
+			myUGUIObject uiObj = item.Value;
+			if (uiObj != null && uiObj.isNeedUpdate())
+			{
+				addNeedUpdateObject(uiObj);
+			}
 		}
 	}
 }

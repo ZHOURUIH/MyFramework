@@ -1,7 +1,5 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-using static UnityUtility;
-using static FrameBaseUtility;
 
 // 以指定的缩放列表缩放物体
 public class CmdTransformableScaleCurve
@@ -15,12 +13,9 @@ public class CmdTransformableScaleCurve
 	// 是否循环
 	public static void execute(ITransformable obj, List<Vector3> scaleList, float onceLength, float offset, int keyframe, bool loop, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		if (isEditor() && 
-			obj is myUGUIObject uiObj && 
-			!onceLength.isZero() && 
-			!uiObj.getLayout().canUIObjectUpdate(uiObj))
+		if (obj == null)
 		{
-			logError("想要使窗口播放缓动动画,但是窗口当前未开启更新:" + uiObj.getName());
+			return;
 		}
 		obj.getOrAddComponent(out COMTransformableScaleCurve com);
 		com.setDoingCallback(doingCallback);
@@ -36,6 +31,10 @@ public class CmdTransformableScaleCurve
 	}
 	public static void execute(ITransformable obj)
 	{
+		if (obj == null)
+		{
+			return;
+		}
 		obj.getOrAddComponent(out COMTransformableScaleCurve com);
 		com.play(0, false, 0.0f, 0.0f);
 	}

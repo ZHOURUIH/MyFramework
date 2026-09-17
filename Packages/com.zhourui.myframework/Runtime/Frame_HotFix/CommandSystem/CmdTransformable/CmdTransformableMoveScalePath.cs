@@ -1,7 +1,5 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-using static UnityUtility;
-using static FrameBaseUtility;
 
 // 以指定的关键帧路径移动和缩放物体
 public class CmdTransformableMoveScalePath
@@ -23,14 +21,6 @@ public class CmdTransformableMoveScalePath
 		if (obj == null)
 		{
 			return;
-		}
-		if (isEditor() && 
-			obj is myUGUIObject uiObj &&
-			moveKeyFrame != null &&
-			scaleKeyFrame != null && 
-			!uiObj.getLayout().canUIObjectUpdate(uiObj))
-		{
-			logError("想要使窗口播放缓动动画,但是窗口当前未开启更新:" + uiObj.getName());
 		}
 		obj.getOrAddComponent(out COMTransformableMoveScalePath com);
 		com.setDoingCallback(doingCallBack);

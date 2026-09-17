@@ -67,14 +67,11 @@ public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectO
 		{
 			return true;
 		}
-		if (mChildList != null)
+		foreach (var child in mChildList.safe())
 		{
-			for (int i = 0; i < mChildList.Count; ++i)
+			if (child != null && child.hasDragViewLoop())
 			{
-				if (mChildList[i]?.hasDragViewLoop() == true)
-				{
-					return true;
-				}
+				return true;
 			}
 		}
 		return false;

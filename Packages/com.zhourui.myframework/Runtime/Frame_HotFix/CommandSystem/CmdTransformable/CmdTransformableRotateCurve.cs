@@ -1,7 +1,5 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-using static UnityUtility;
-using static FrameBaseUtility;
 
 // 以指定的旋转列表旋转
 public class CmdTransformableRotateCurve
@@ -18,13 +16,6 @@ public class CmdTransformableRotateCurve
 		if (obj == null)
 		{
 			return;
-		}
-		if (isEditor() && 
-			obj is myUGUIObject uiObj && 
-			!onceLength.isZero() && 
-			!uiObj.getLayout().canUIObjectUpdate(uiObj))
-		{
-			logError("想要使窗口播放缓动动画,但是窗口当前未开启更新:" + uiObj.getName());
 		}
 		obj.getOrAddComponent(out COMTransformableRotateCurve com);
 		com.setDoingCallback(doingCallback);

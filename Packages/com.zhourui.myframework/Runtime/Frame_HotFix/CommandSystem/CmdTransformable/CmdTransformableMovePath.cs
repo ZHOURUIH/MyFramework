@@ -1,7 +1,5 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-using static UnityUtility;
-using static FrameBaseUtility;
 
 // 以指定的关键帧路径移动物体
 public class CmdTransformableMovePath
@@ -19,13 +17,6 @@ public class CmdTransformableMovePath
 		if (obj == null)
 		{
 			return;
-		}
-		if (isEditor() && 
-			obj is myUGUIObject uiObj && 
-			valueKeyFrame != null && 
-			!uiObj.getLayout().canUIObjectUpdate(uiObj))
-		{
-			logError("想要使窗口播放缓动动画,但是窗口当前未开启更新:" + uiObj.getName());
 		}
 		obj.getOrAddComponent(out COMTransformableMovePath com);
 		com.setDoingCallback(doingCallBack);

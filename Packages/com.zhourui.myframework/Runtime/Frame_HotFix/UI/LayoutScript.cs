@@ -217,7 +217,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		{
 			foreach (WindowObjectBase item in mWindowObjectRootList)
 			{
-				if (item?.hasDragViewLoop() == true)
+				if (item != null && item.hasDragViewLoop())
 				{
 					mHasDragViewLoopUpdate = true;
 					break;

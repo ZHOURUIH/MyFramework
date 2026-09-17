@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using static UnityUtility;
-using static FrameBaseUtility;
 
 // 以指定的路径渐变窗口透明度
 public class CmdWindowAlphaPath
@@ -17,12 +15,6 @@ public class CmdWindowAlphaPath
 		if (obj == null)
 		{
 			return;
-		}
-		if (isEditor() && 
-			valueKeyFrame != null && 
-			!obj.getLayout().canUIObjectUpdate(obj))
-		{
-			logError("想要使窗口播放缓动动画,但是窗口当前未开启更新:" + obj.getName());
 		}
 		obj.getOrAddComponent(out COMWindowAlphaPath com);
 		com.setDoingCallback(doingCallBack);

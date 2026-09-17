@@ -1,6 +1,4 @@
 ﻿using UnityEngine;
-using static UnityUtility;
-using static FrameBaseUtility;
 
 // 以抛物线追踪一个目标
 public class CmdTransformableTrackTargetParabola
@@ -19,13 +17,6 @@ public class CmdTransformableTrackTargetParabola
 		if (obj == null)
 		{
 			return;
-		}
-		if (isEditor() && 
-			obj is myUGUIObject uiObj &&
-			target != null && 
-			!uiObj.getLayout().canUIObjectUpdate(uiObj))
-		{
-			logError("想要使窗口播放缓动动画,但是窗口当前未开启更新:" + uiObj.getName());
 		}
 		obj.getOrAddComponent(out ComponentTrackTargetParabola com);
 		com.setUpdateInFixedTick(updateInFixedTick);

@@ -1,6 +1,4 @@
 ﻿using UnityEngine;
-using static UnityUtility;
-using static FrameBaseUtility;
 
 // 锁定物体的世界坐标不变,可能会有误差
 public class CmdTransformableLockPosition
@@ -14,13 +12,6 @@ public class CmdTransformableLockPosition
 		if (obj == null)
 		{
 			return;
-		}
-		if (isEditor() && 
-			obj is myUGUIObject uiObj && 
-			(lockX || lockY || lockZ) && 
-			!uiObj.getLayout().canUIObjectUpdate(uiObj))
-		{
-			logError("想要使窗口播放缓动动画,但是窗口当前未开启更新:" + uiObj.getName());
 		}
 		obj.getOrAddComponent(out COMTransformableLockPosition com);
 		com.setActive(true);
