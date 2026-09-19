@@ -266,14 +266,22 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 		// 还是需要调用setSize,需要触发一些虚函数的调用
 		setSize(getSize().replaceY(height));
 	}
-	public virtual void setSize(Vector2 size)
+	public void setSize(Vector2 size)
 	{
 		if (mRectTransform.rect.size.isEqual(size))
 		{
 			return;
 		}
 		mRectTransform.setRectSize(size);
+		markSizeChanged();
+	}
+	public virtual void markSizeChanged()
+	{
 		ensureColliderSize();
+		notifyMouseCastTransformChanged();
+	}
+	public void markPostionChanged()
+	{
 		notifyMouseCastTransformChanged();
 	}
 	public virtual Vector2 getSize(bool transformed = false)
@@ -485,9 +493,11 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 		return true;
 	}
 	// 当自适应更新完以后调用
-	public virtual void notifyAnchorApply() 		{ notifyMouseCastTransformChanged(); }
+	public virtual void notifyAnchorApply() 		
+	{
+		markSizeChanged();
+	}
 	public int getSibling()							{ return mTransform.GetSiblingIndex(); }
-	// 获取描述,UI则返回所处布局名
 	public string getDescription()					{ return mLayout?.getName(); }
 	public int getID()								{ return mID; }
 	public GameLayout getLayout()					{ return mLayout; }

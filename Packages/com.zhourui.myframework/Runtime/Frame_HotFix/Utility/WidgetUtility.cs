@@ -243,6 +243,12 @@ public static class WidgetUtility
 			child.setRectSize(gridSize);
 		}
 
+		foreach (myUGUIObject child in root.getChildList())
+		{
+			child.markSizeChanged();
+			child.markPostionChanged();
+		}
+
 		if (autoRefreshUIDepth)
 		{
 			root.getLayout()?.refreshUIDepth(root, true);
@@ -279,6 +285,12 @@ public static class WidgetUtility
 			return;
 		}
 		root.getRectTransform().autoGrid(gridSize, intervalNoScreenScale, keepTopSide, horizontal);
+		root.markSizeChanged();
+		foreach (myUGUIObject child in root.getChildList())
+		{
+			child.markSizeChanged();
+			child.markPostionChanged();
+		}
 		if (root.getRectTransform() != null && autoRefreshUIDepth)
 		{
 			root.getLayout()?.refreshUIDepth(root, refreshIgnoreInactive);
@@ -307,6 +319,10 @@ public static class WidgetUtility
 		{
 			item.Key.position = item.Value;
 		}
+		foreach (myUGUIObject child in root.getChildList())
+		{
+			child.markPostionChanged();
+		}
 	}
 	// 在节点的底部追加一定高度,但是不影响子节点在节点中的位置,不考虑锚点
 	public static void appendBottomHeight(myUGUIObject root, float appendHeight)
@@ -330,6 +346,10 @@ public static class WidgetUtility
 		foreach (var item in childWorldPositionList)
 		{
 			item.Key.position = item.Value;
+		}
+		foreach (myUGUIObject child in root.getChildList())
+		{
+			child.markPostionChanged();
 		}
 	}
 	// 修改节点高度的同时保证顶部不会改变
@@ -362,6 +382,10 @@ public static class WidgetUtility
 			foreach (var item in childWorldPositionList)
 			{
 				item.Key.position = item.Value;
+			}
+			foreach (myUGUIObject child in root.getChildList())
+			{
+				child.markPostionChanged();
 			}
 		}
 		else
@@ -401,6 +425,10 @@ public static class WidgetUtility
 		{
 			item.Key.setPositionY(newHeight * 0.5f + item.Key.localPosition.y - maxY);
 		}
+		foreach (myUGUIObject child in root.getChildList())
+		{
+			child.markPostionChanged();
+		}
 	}
 	public static void autoGridVertical(myUGUIObject root)
 	{
@@ -426,8 +454,11 @@ public static class WidgetUtility
 			return;
 		}
 		root.getRectTransform().autoGridVertical(intervalNoScreenScale, minHeight, extraTopHeight, extraBottomHeight, keepTopSide, fromTopToBottom);
-		// 需要重新再调用一下setSize,以便触发虚函数的逻辑
-		root.setSize(root.getSize());
+		root.markSizeChanged();
+		foreach (myUGUIObject child in root.getChildList())
+		{
+			child.markPostionChanged();
+		}
 		if (root.getRectTransform() != null && autoRefreshUIDepth)
 		{
 			root.getLayout()?.refreshUIDepth(root, refreshIgnoreInactive);
@@ -461,8 +492,11 @@ public static class WidgetUtility
 			return;
 		}
 		root.getRectTransform().autoGridHorizontal(intervalNoScreenScale, changeRootPosSize, minWidth, extraLeftWidth, extraRightWidth, keepLeftSide);
-		// 需要重新再调用一下setSize,以便触发虚函数的逻辑
-		root.setSize(root.getSize());
+		root.markSizeChanged();
+		foreach (myUGUIObject child in root.getChildList())
+		{
+			child.markPostionChanged();
+		}
 		if (root.getRectTransform() != null && autoRefreshUIDepth)
 		{
 			root.getLayout()?.refreshUIDepth(root, refreshIgnoreInactive);
@@ -475,8 +509,11 @@ public static class WidgetUtility
 			return;
 		}
 		root.getRectTransform().autoGridHorizontalCenter(intervalNoScreenScale);
-		// 需要重新再调用一下setSize,以便触发虚函数的逻辑
-		root.setSize(root.getSize());
+		root.markSizeChanged();
+		foreach (myUGUIObject child in root.getChildList())
+		{
+			child.markPostionChanged();
+		}
 		if (root.getRectTransform() != null && autoRefreshUIDepth)
 		{
 			root.getLayout()?.refreshUIDepth(root, refreshIgnoreInactive);

@@ -672,8 +672,24 @@ public class GlobalTouchSystem : FrameSystem
 
 		// 射线检测
 		continueRay = true;
-		foreach (IMouseEventCollect window in windowOrderList)
+		// 仅用于在Editor中方便调试
+		List<string> nameList = null;
+		if (isEditor())
 		{
+			using var aa = new ListScope<string>(out nameList);
+			foreach (IMouseEventCollect window in windowOrderList)
+			{
+				nameList.add(window.getName());
+			}
+		}
+		for (int i = 0; i < windowOrderList.Count; ++i)
+		{
+			IMouseEventCollect window = windowOrderList[i];
+			string name = null;
+			if (isEditor())
+			{
+				name = nameList[i];
+			}
 			if (window.isDestroy())
 			{
 				logError("窗口已经被销毁,无法访问:" + window.getName());
