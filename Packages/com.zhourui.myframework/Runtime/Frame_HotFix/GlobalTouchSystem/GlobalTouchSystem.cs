@@ -676,7 +676,7 @@ public class GlobalTouchSystem : FrameSystem
 		List<string> nameList = null;
 		if (isEditor())
 		{
-			using var aa = new ListScope<string>(out nameList);
+			LIST(out nameList);
 			foreach (IMouseEventCollect window in windowOrderList)
 			{
 				nameList.add(window.getName());
@@ -738,6 +738,7 @@ public class GlobalTouchSystem : FrameSystem
 				break;
 			}
 		}
+		UN_LIST(ref nameList);
 	}
 	// obj的所有父节点中是否允许射线选中obj
 	// bindParentList是当前激活的已绑定的仅父节点区域穿透的列表
