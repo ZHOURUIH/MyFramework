@@ -60,18 +60,19 @@ public class UnityUtility
 			return;
 		}
 		string originInfo = info;
-		if (info == null)
+		string errorInfo = info ?? "";
+		Exception curException = e;
+		int depth = 0;
+		while (curException != null)
 		{
-			info = "";
-		}
-		else
-		{
-			info += ", ";
-		}
-		info += e.Message + ", stack:" + e.StackTrace;
-		if (e.InnerException != null)
-		{
-			info += "\ninner exception:" + e.InnerException.Message + ", stack:" + e.InnerException.StackTrace;
+			errorInfo +=
+				"\nexception[" + depth + "]:" +
+				curException.GetType().FullName +
+				"\nmessage:" + curException.Message +
+				"\nstack:" + curException.StackTrace;
+
+			curException = curException.InnerException;
+			++depth;
 		}
 		if (isEditor())
 		{

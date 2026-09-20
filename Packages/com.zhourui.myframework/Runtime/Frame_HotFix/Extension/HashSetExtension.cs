@@ -212,6 +212,15 @@ public static class HashSetExtension
 		}
 		return false;
 	}
+	public static bool remove<T>(this HashSet<T> list, List<T> needRemove)
+	{
+		bool hasRemoved = false;
+		foreach (T item in needRemove)
+		{
+			hasRemoved |= list.Remove(item);
+		}
+		return hasRemoved;
+	}
 	public static bool contains<T>(this HashSet<T> list, T other)
 	{
 		if (list.isEmpty())
