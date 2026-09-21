@@ -243,7 +243,7 @@ public static class WidgetUtility
 			child.setRectSize(gridSize);
 		}
 
-		foreach (myUGUIObject child in root.getChildList())
+		foreach (myUGUIObject child in root.getChildList().safe())
 		{
 			child.markSizeChanged();
 			child.markPostionChanged();
@@ -286,7 +286,7 @@ public static class WidgetUtility
 		}
 		root.getRectTransform().autoGrid(gridSize, intervalNoScreenScale, keepTopSide, horizontal);
 		root.markSizeChanged();
-		foreach (myUGUIObject child in root.getChildList())
+		foreach (myUGUIObject child in root.getChildList().safe())
 		{
 			child.markSizeChanged();
 			child.markPostionChanged();
@@ -319,7 +319,7 @@ public static class WidgetUtility
 		{
 			item.Key.position = item.Value;
 		}
-		foreach (myUGUIObject child in root.getChildList())
+		foreach (myUGUIObject child in root.getChildList().safe())
 		{
 			child.markPostionChanged();
 		}
@@ -347,7 +347,7 @@ public static class WidgetUtility
 		{
 			item.Key.position = item.Value;
 		}
-		foreach (myUGUIObject child in root.getChildList())
+		foreach (myUGUIObject child in root.getChildList().safe())
 		{
 			child.markPostionChanged();
 		}
@@ -383,7 +383,7 @@ public static class WidgetUtility
 			{
 				item.Key.position = item.Value;
 			}
-			foreach (myUGUIObject child in root.getChildList())
+			foreach (myUGUIObject child in root.getChildList().safe())
 			{
 				child.markPostionChanged();
 			}
@@ -425,7 +425,7 @@ public static class WidgetUtility
 		{
 			item.Key.setPositionY(newHeight * 0.5f + item.Key.localPosition.y - maxY);
 		}
-		foreach (myUGUIObject child in root.getChildList())
+		foreach (myUGUIObject child in root.getChildList().safe())
 		{
 			child.markPostionChanged();
 		}
@@ -455,7 +455,7 @@ public static class WidgetUtility
 		}
 		root.getRectTransform().autoGridVertical(intervalNoScreenScale, minHeight, extraTopHeight, extraBottomHeight, keepTopSide, fromTopToBottom);
 		root.markSizeChanged();
-		foreach (myUGUIObject child in root.getChildList())
+		foreach (myUGUIObject child in root.getChildList().safe())
 		{
 			child.markPostionChanged();
 		}
@@ -493,7 +493,7 @@ public static class WidgetUtility
 		}
 		root.getRectTransform().autoGridHorizontal(intervalNoScreenScale, changeRootPosSize, minWidth, extraLeftWidth, extraRightWidth, keepLeftSide);
 		root.markSizeChanged();
-		foreach (myUGUIObject child in root.getChildList())
+		foreach (myUGUIObject child in root.getChildList().safe())
 		{
 			child.markPostionChanged();
 		}
@@ -510,7 +510,7 @@ public static class WidgetUtility
 		}
 		root.getRectTransform().autoGridHorizontalCenter(intervalNoScreenScale);
 		root.markSizeChanged();
-		foreach (myUGUIObject child in root.getChildList())
+		foreach (myUGUIObject child in root.getChildList().safe())
 		{
 			child.markPostionChanged();
 		}
