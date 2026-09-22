@@ -31,16 +31,29 @@ public class TouchInfo : ClassObject
 	{
 		int touchID = mTouch.getTouchID();
 		Vector3 curPos = mTouch.getCurPosition();
-		// 通知触点移动,只通知触点按下时的窗口列表
+		// 通知触点移动,只通知触点按下时仍然有效、激活且接收输入的对象。
+		// mPressList是SafeList,支持在foreach中直接移除,不需要每帧获取临时列表。
 		foreach (IMouseEventCollect obj in mPressList)
 		{
+			if (!mGlobalTouchSystem.isColliderRegisted(obj) || obj.isDestroy())
+			{
+				mPressList.remove(obj);
+				continue;
+			}
+			if (!obj.isActiveInHierarchy() || !obj.isHandleInput())
+			{
+				// 先移除当前按下记录,再通知取消,避免回调期间仍将其视为有效按下对象。
+				mPressList.remove(obj);
+				obj.onTouchLeave(curPos, touchID);
+				continue;
+			}
 			if (mTouch.getMoveDelta().isZero())
 			{
-				obj.onTouchStay(curPos, mTouch.getTouchID());
+				obj.onTouchStay(curPos, touchID);
 			}
 			else
 			{
-				obj.onTouchMove(curPos, mTouch.getMoveDelta(), elapsedTime, mTouch.getTouchID());
+				obj.onTouchMove(curPos, mTouch.getMoveDelta(), elapsedTime, touchID);
 			}
 		}
 

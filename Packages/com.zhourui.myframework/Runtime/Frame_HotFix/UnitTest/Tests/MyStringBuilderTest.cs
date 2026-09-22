@@ -627,10 +627,28 @@ public static class MyStringBuilderTest
         b.jsonAddObject("k", "v", 0, false);
         AssertEqual("\"k\": v,", b.ToString(), "jsonAddObject 输出");
 
-        // jsonStartStruct: 源码字面 add('}') —— 文档化(源码如此,断言照实)
+        // jsonStartStruct 带名: 输出字段名和左大括号,由 jsonEndStruct 闭合
         b.clear();
         b.jsonStartStruct("obj", 0, false);
-        AssertEqual("\"obj\":}", b.ToString(), "jsonStartStruct 源码字面输出(文档化)");
+        AssertEqual("\"obj\":{", b.ToString(), "jsonStartStruct 带名应输出左大括号");
+
+        // jsonStartStruct 无名: 根对象和数组中的对象都从左大括号开始
+        b.clear();
+        b.jsonStartStruct(null, 0, false);
+        AssertEqual("{", b.ToString(), "jsonStartStruct 无名应只输出左大括号");
+
+        // 起止配对: 空根对象不能产生多余逗号
+        b.jsonEndStruct(false, 0, false);
+        AssertEqual("{}", b.ToString(), "jsonStartStruct/jsonEndStruct 应构造完整空对象");
+
+        // 完整嵌套对象: 子对象保留分隔逗号,根对象结束时清除末尾逗号
+        b.clear();
+        b.jsonStartStruct(null, 0, false);
+        b.jsonStartStruct("obj", 0, false);
+        b.jsonAddPair("key", "val", 0, false);
+        b.jsonEndStruct(true, 0, false);
+        b.jsonEndStruct(false, 0, false);
+        AssertEqual("{\"obj\":{\"key\": \"val\"}}", b.ToString(), "嵌套对象的括号与末尾逗号应正确闭合");
 
         // jsonEndStruct: 末尾 add('}') + 可选逗号(keepComma 默认 true)
         b.clear();

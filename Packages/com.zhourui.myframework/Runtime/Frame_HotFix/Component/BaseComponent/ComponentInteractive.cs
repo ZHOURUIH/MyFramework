@@ -214,8 +214,16 @@ public class ComponentInteractive : GameComponent
 			mHoverDetailCallback?.Invoke(touchPos, false);
 		}
 
+		// 按下期间窗口失活/禁用输入时,GlobalTouchSystem会用TouchLeave取消本次触点。
+		// 这里必须同时结束Press状态,否则按钮的按下表现可能一直保留。
+		bool wasPressing = mPressing;
 		mPressing = false;
 		mPressedTime = -1.0f;
+		if (wasPressing)
+		{
+			mPressCallback?.Invoke(false);
+			mPressDetailCallback?.Invoke(touchPos, false);
+		}
 		mOnTouchLeave?.Invoke(touchPos, touchID);
 		mLongPressList.For(data => data.mOnLongPressing?.Invoke(0.0f));
 	}
@@ -252,25 +260,41 @@ public class ComponentInteractive : GameComponent
 		mPressedTime = -1.0f;
 		mPressCallback?.Invoke(false);
 		mPressDetailCallback?.Invoke(touchPos, false);
-		if ((mTouchDownPosition - touchPos).lengthLess(CLICK_LENGTH) &&
+
+		// TouchDown之后Owner可能被隐藏、销毁或禁用输入。
+		// 这种情况下TouchUp只能用于结束内部按下状态,不能再产生Click/DoubleClick/OnTouchUp业务回调。
+		bool canHandleInput = mComponentOwner is not IMouseEventCollect owner ||
+			(!owner.isDestroy() && owner.isActiveInHierarchy() && owner.isHandleInput());
+		if (canHandleInput &&
+		   (mTouchDownPosition - touchPos).lengthLess(CLICK_LENGTH) &&
 		   (DateTime.Now - mTouchDownTime).TotalSeconds < CLICK_TIME)
 		{
 			mPreClickCallback?.Invoke();
 			mPreClickDetailCallback?.Invoke(touchPos);
-			mClickCallback?.Invoke();
-			mClickDetailCallback?.Invoke(touchPos);
-			if (mClickSound > 0)
+
+			// PreClick允许修改界面状态,所以正式Click前再确认一次Owner仍可交互。
+			canHandleInput = mComponentOwner is not IMouseEventCollect clickOwner ||
+				(!clickOwner.isDestroy() && clickOwner.isActiveInHierarchy() && clickOwner.isHandleInput());
+			if (canHandleInput)
 			{
-				SOUND_2D(mClickSound);
+				mClickCallback?.Invoke();
+				mClickDetailCallback?.Invoke(touchPos);
+				if (mClickSound > 0)
+				{
+					SOUND_2D(mClickSound);
+				}
+				if ((DateTime.Now - mLastClickTime).TotalSeconds < DOUBLE_CLICK_TIME)
+				{
+					mDoubleClickCallback?.Invoke();
+					mDoubleClickDetailCallback?.Invoke(touchPos);
+				}
+				mLastClickTime = DateTime.Now;
 			}
-			if ((DateTime.Now - mLastClickTime).TotalSeconds < DOUBLE_CLICK_TIME)
-			{
-				mDoubleClickCallback?.Invoke();
-				mDoubleClickDetailCallback?.Invoke(touchPos);
-			}
-			mLastClickTime = DateTime.Now;
 		}
-		mOnTouchUp?.Invoke(touchPos, touchID);
+		if (canHandleInput)
+		{
+			mOnTouchUp?.Invoke(touchPos, touchID);
+		}
 		mLongPressList.For(data => data.mOnLongPressing?.Invoke(0.0f));
 
 		// 如果是触屏的触点,则触点在当前窗口内抬起时,认为已经取消悬停

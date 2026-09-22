@@ -462,11 +462,7 @@ public class GlobalTouchSystem : FrameSystem
 
 			foreach (IMouseEventCollect obj in touchInfo.getPressList())
 			{
-				// 如果此时窗口已经被销毁了,则不再通知,因为可能在onScreenMouseUp中销毁了
-				if (mAllObjectSet.Contains(obj))
-				{
-					obj.onTouchUp(pos, touchID);
-				}
+				notifyPressedObjectRelease(obj, pos, touchID);
 			}
 		}
 		// 只允许指定的物体接收事件时
@@ -492,17 +488,17 @@ public class GlobalTouchSystem : FrameSystem
 			// 因为onScreenMouseUp里可能会移除物体,所以这里还要再判断一次mAllObjectSet.Contains
 			foreach (IMouseEventCollect item in mActiveOnlyUIObject)
 			{
-				if (mAllObjectSet.Contains(item) && touchInfo.getPressList().contains(item))
+				if (touchInfo.getPressList().contains(item))
 				{
-					item.onTouchUp(pos, touchID);
+					notifyPressedObjectRelease(item, pos, touchID);
 				}
 			}
 
 			foreach (IMouseEventCollect item in mActiveOnlyMovableObject)
 			{
-				if (mAllObjectSet.Contains(item) && touchInfo.getPressList().contains(item))
+				if (touchInfo.getPressList().contains(item))
 				{
-					item.onTouchUp(pos, touchID);
+					notifyPressedObjectRelease(item, pos, touchID);
 				}
 			}
 		}
@@ -516,6 +512,21 @@ public class GlobalTouchSystem : FrameSystem
 			mTouchInfoList.Remove(touchID);
 			UN_CLASS(ref touchInfo);
 		}
+	}
+	// TouchDown后目标可能被隐藏、销毁或禁用输入。
+	// 失效目标不能再收到TouchUp产生点击,但需要通过TouchLeave取消内部Press/LongPress状态。
+	protected void notifyPressedObjectRelease(IMouseEventCollect obj, Vector3 pos, int touchID)
+	{
+		if (!mAllObjectSet.Contains(obj) || obj.isDestroy())
+		{
+			return;
+		}
+		if (!obj.isActiveInHierarchy() || !obj.isHandleInput())
+		{
+			obj.onTouchLeave(pos, touchID);
+			return;
+		}
+		obj.onTouchUp(pos, touchID);
 	}
 	// 全局射线检测
 	protected void globalRaycast(List<IMouseEventCollect> resultList, Vector3 touchPos, bool ignorePassRay = false)

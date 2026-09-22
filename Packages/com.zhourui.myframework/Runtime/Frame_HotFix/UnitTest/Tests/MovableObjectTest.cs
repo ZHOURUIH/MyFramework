@@ -48,6 +48,9 @@ public static class MovableObjectTest
 		testSetObjectNullTwiceSelfCreate();
 		// ─── 交互回调链 ───
 		testClickCallbackInvoked();
+		testInactiveAfterTouchDownCancelsClick();
+		testParentInactiveAfterTouchDownCancelsClick();
+		testInputDisabledAfterTouchDownCancelsClick();
 		testHoverCallbackOnEnterLeave();
 		testPressCallbackOnDownUp();
 		testTouchMoveCallback();
@@ -483,8 +486,8 @@ public static class MovableObjectTest
 	{
 		go = new GameObject("DeepMob");
 		MovableObject mob = new();
-		// ClassObject 构造时 mHasDestroy=true(相当于已被回收), 这里显式重置,
-		// 否则 COMMovableObjectMoveInfo.update 会因 movableObject.isDestroy() 提前返回
+		// ClassObject 构造时 mHasDestroy=true,直接new的测试对象需要模拟出池后的有效状态。
+		// 移动和交互的正常路径都必须满足 !mob.isDestroy(),不能绕过底层生命周期检查。
 		mob.setDestroy(false);
 		mob.setObject(go);
 		return mob;
@@ -751,13 +754,14 @@ public static class MovableObjectTest
 	//  11. 点击回调链: onTouchDown + onTouchUp(短时近距离) → clickCallback
 	private static void testClickCallbackInvoked()
 	{
-		MovableObject mob = new();
-		GameObject go = new GameObject("ClickMob");
-		mob.setObject(go);
+		MovableObject mob = NewMob(out GameObject go);
 		bool clicked = false;
 		try
 		{
 			mob.setClickCallback(() => { clicked = true; });
+			assertFalse(mob.isDestroy(), "正常点击测试对象必须处于有效生命周期");
+			assertTrue(mob.isActiveInHierarchy(), "正常点击测试对象必须在层级中激活");
+			assertTrue(mob.isHandleInput(), "正常点击测试对象必须允许输入");
 			// 模拟一次短按: 同点按下立即抬起 → 触发 click
 			mob.onTouchDown(new Vector3(0f, 0f, 0f), 1);
 			mob.onTouchUp(new Vector3(0f, 0f, 0f), 1);
@@ -770,12 +774,96 @@ public static class MovableObjectTest
 		}
 	}
 
+	// 按下时对象有效,抬起前隐藏对象: 不得把旧触点转换为点击。
+	private static void testInactiveAfterTouchDownCancelsClick()
+	{
+		MovableObject mob = NewMob(out GameObject go);
+		try
+		{
+			int clickCount = 0;
+			int touchUpCount = 0;
+			mob.setClickCallback(() => ++clickCount);
+			mob.setOnTouchUp((pos, id) => ++touchUpCount);
+			assertFalse(mob.isDestroy(), "隐藏测试开始前对象必须有效");
+			assertTrue(mob.isActiveInHierarchy(), "隐藏测试开始前对象必须激活");
+			assertTrue(mob.isHandleInput(), "隐藏测试开始前对象必须允许输入");
+			mob.onTouchDown(Vector3.zero, 1);
+			mob.setActive(false);
+			assertFalse(mob.isActiveInHierarchy(), "隐藏后对象应处于非激活状态");
+			mob.onTouchUp(Vector3.zero, 1);
+			assertEqual(0, clickCount, "按下后隐藏对象不应触发Click");
+			assertEqual(0, touchUpCount, "按下后隐藏对象不应触发业务TouchUp");
+		}
+		finally
+		{
+			mob.destroy();
+			Object.DestroyImmediate(go);
+		}
+	}
+
+	// 子对象自身仍激活,但父对象被隐藏: 必须按activeInHierarchy取消点击。
+	private static void testParentInactiveAfterTouchDownCancelsClick()
+	{
+		MovableObject mob = NewMob(out GameObject go);
+		GameObject parent = new GameObject("ClickTestParent");
+		try
+		{
+			go.transform.SetParent(parent.transform, false);
+			int clickCount = 0;
+			mob.setClickCallback(() => ++clickCount);
+			assertFalse(mob.isDestroy(), "父节点隐藏测试开始前对象必须有效");
+			assertTrue(mob.isActiveInHierarchy(), "父节点隐藏测试开始前层级必须激活");
+			assertTrue(mob.isHandleInput(), "父节点隐藏测试开始前对象必须允许输入");
+			mob.onTouchDown(Vector3.zero, 1);
+			parent.SetActive(false);
+			assertTrue(go.activeSelf, "只隐藏父节点,不改变子节点activeSelf");
+			assertFalse(mob.isActiveInHierarchy(), "父节点隐藏后子节点在层级中不可交互");
+			mob.onTouchUp(Vector3.zero, 1);
+			assertEqual(0, clickCount, "按下后父节点隐藏不应触发Click");
+		}
+		finally
+		{
+			mob.destroy();
+			Object.DestroyImmediate(go);
+			Object.DestroyImmediate(parent);
+		}
+	}
+
+	// 禁用输入会拦截旧触点;重新启用后,新的一次完整点击仍应正常触发。
+	private static void testInputDisabledAfterTouchDownCancelsClick()
+	{
+		MovableObject mob = NewMob(out GameObject go);
+		try
+		{
+			int clickCount = 0;
+			int touchUpCount = 0;
+			mob.setClickCallback(() => ++clickCount);
+			mob.setOnTouchUp((pos, id) => ++touchUpCount);
+			assertFalse(mob.isDestroy(), "禁用输入测试开始前对象必须有效");
+			assertTrue(mob.isActiveInHierarchy(), "禁用输入测试开始前对象必须激活");
+			assertTrue(mob.isHandleInput(), "禁用输入测试开始前输入开关必须开启");
+			mob.onTouchDown(Vector3.zero, 1);
+			mob.setHandleInput(false);
+			mob.onTouchUp(Vector3.zero, 1);
+			assertEqual(0, clickCount, "按下后禁用输入不应触发Click");
+			assertEqual(0, touchUpCount, "按下后禁用输入不应触发业务TouchUp");
+			mob.setHandleInput(true);
+			mob.onTouchDown(Vector3.zero, 1);
+			mob.onTouchUp(Vector3.zero, 1);
+			assertEqual(1, clickCount, "重新启用后新的一次点击应正常触发");
+			assertEqual(1, touchUpCount, "重新启用后新的一次TouchUp应正常触发");
+		}
+		finally
+		{
+			mob.destroy();
+			Object.DestroyImmediate(go);
+		}
+	}
+
 	//  12. hover 回调: onTouchEnter → hover(true), onTouchLeave → hover(false)
 	private static void testHoverCallbackOnEnterLeave()
 	{
-		MovableObject mob = new();
-		GameObject go = new GameObject("HoverMob");
-		mob.setObject(go);
+		MovableObject mob = NewMob(out GameObject go);
 		bool hoverVal = false;
 		int hoverCount = 0;
 		try
@@ -799,14 +887,11 @@ public static class MovableObjectTest
 		}
 	}
 
-	//  13. press 回调: onTouchDown → press(true), onTouchUp → press(false)
-	//     注意: 源码 onTouchLeave 只重置 mPressing 内部标记,【不】回调 pressCallback(false),
-	//     只有 onTouchUp 才回调 mPressCallback(false)。这里按真实语义驱动抬起释放路径。
+	//  13. press 回调: 正常抬起和按下后离开,都必须结束按下状态。
+	//     Fix10底层取消触点时用onTouchLeave释放Press,按钮不能停留在按下表现。
 	private static void testPressCallbackOnDownUp()
 	{
-		MovableObject mob = new();
-		GameObject go = new GameObject("PressMob");
-		mob.setObject(go);
+		MovableObject mob = NewMob(out GameObject go);
 		bool pressVal = false;
 		try
 		{
@@ -815,12 +900,11 @@ public static class MovableObjectTest
 			assertTrue(pressVal, "onTouchDown → press true");
 			mob.onTouchUp(new Vector3(0f, 0f, 0f), 1);
 			assertFalse(pressVal, "onTouchUp → press false");
-			// 源码行为校验: onTouchLeave 不回调 pressCallback(false), press 回调保持当前值
+			// 再次按下后离开,应释放Press,而不是保留旧的按下状态。
 			mob.onTouchDown(new Vector3(0f, 0f, 0f), 1);
 			assertTrue(pressVal, "再次按下 → press true");
 			mob.onTouchLeave(new Vector3(0f, 0f, 0f), 1);
-			// 离开仅重置内部按压标记, 不重新回调 pressCallback(false) → 回调值不变
-			assertTrue(pressVal, "onTouchLeave 不回调 pressCallback(false), 保持 true");
+			assertFalse(pressVal, "onTouchLeave 取消按下时应回调 press(false)");
 		}
 		finally
 		{
@@ -832,9 +916,7 @@ public static class MovableObjectTest
 	//  14. touchMove 回调: onTouchMove 透传触点数据
 	private static void testTouchMoveCallback()
 	{
-		MovableObject mob = new();
-		GameObject go = new GameObject("MoveMob");
-		mob.setObject(go);
+		MovableObject mob = NewMob(out GameObject go);
 		Vector3? lastDelta = null;
 		try
 		{
@@ -853,9 +935,7 @@ public static class MovableObjectTest
 	//  15. 射线穿透开关: setPassRay 切换 isPassRay
 	private static void testPassRayToggle()
 	{
-		MovableObject mob = new();
-		GameObject go = new GameObject("RayMob");
-		mob.setObject(go);
+		MovableObject mob = NewMob(out GameObject go);
 		try
 		{
 			bool def = mob.isPassRay();
@@ -874,9 +954,7 @@ public static class MovableObjectTest
 	//  16. 输入开关: setHandleInput 切换 isHandleInput
 	private static void testHandleInputToggle()
 	{
-		MovableObject mob = new();
-		GameObject go = new GameObject("InputMob");
-		mob.setObject(go);
+		MovableObject mob = NewMob(out GameObject go);
 		try
 		{
 			bool def = mob.isHandleInput();
@@ -895,9 +973,7 @@ public static class MovableObjectTest
 	//  17. 可拖拽状态转变: 无拖拽组件 → false; 添加 COMMovableObjectDrag → true
 	private static void testDragableStateTransition()
 	{
-		MovableObject mob = new();
-		GameObject go = new GameObject("DragMob");
-		mob.setObject(go);
+		MovableObject mob = NewMob(out GameObject go);
 		try
 		{
 			assertFalse(mob.isDraggable(), "默认不可拖拽");

@@ -18,6 +18,11 @@ public static class ComponentInteractiveTest
 		testOnTouchLeaveChain();
 		testOnTouchDownChain();
 		testClickChain();
+		testActiveOwnerAllowsClick();
+		testInactiveOwnerCancelsClick();
+		testDisabledOwnerCancelsClick();
+		testPreClickHidesOwnerCancelsClick();
+		testTouchLeaveReleasesPress();
 		testClickDistanceThreshold();
 		testLongPressProgress();
 		testLongPressComplete();
@@ -33,7 +38,19 @@ public static class ComponentInteractiveTest
 	// ═════════════════════════════════════════════════════════════════
 	private static TestComponentInteractive createInteractive()
 	{
-		return new TestComponentInteractive();
+		TestComponentInteractive touch = new();
+		touch.setDestroy(false);
+		return touch;
+	}
+	private static TestMouseEventOwner createMouseEventOwner()
+	{
+		TestMouseEventOwner owner = new();
+		// 直接new不会执行对象池的出池初始化,正常交互测试必须先标记为有效对象。
+		owner.setDestroy(false);
+		assertFalse(owner.isDestroy(), "Owner初始必须未销毁");
+		assertTrue(owner.isActiveInHierarchy(), "Owner初始必须激活");
+		assertTrue(owner.isHandleInput(), "Owner初始必须允许输入");
+		return owner;
 	}
 
 	// setter/getter 往返
@@ -180,6 +197,129 @@ public static class ComponentInteractiveTest
 			assertEqual(2, pressCount, "press 回调 2 次(按下+抬起)");
 			assertTrue(!lastPress, "抬起时 press 参数 false");
 			assertTrue(!touch.getPressingForTest(), "抬起后 pressing 复位");
+		}
+		finally
+		{
+			touch.destroy();
+		}
+	}
+
+	// 正向对照: 有效Owner必须能点击,避免取消测试因Owner从一开始就已销毁而误通过。
+	private static void testActiveOwnerAllowsClick()
+	{
+		TestMouseEventOwner owner = createMouseEventOwner();
+		TestComponentInteractive touch = createInteractive();
+		touch.init(owner);
+		try
+		{
+			int clickCount = 0;
+			int touchUpCount = 0;
+			touch.setClickCallback(() => ++clickCount);
+			touch.setOnTouchUp((pos, id) => ++touchUpCount);
+			touch.onTouchDown(Vector3.zero, 0);
+			touch.onTouchUp(Vector3.zero, 0);
+			assertEqual(1, clickCount, "有效Owner应正常触发Click");
+			assertEqual(1, touchUpCount, "有效Owner应正常触发TouchUp");
+		}
+		finally
+		{
+			touch.destroy();
+			owner.destroy();
+		}
+	}
+
+	// Owner在TouchDown之后失活: TouchUp只结束Press,不能继续触发业务Click/OnTouchUp
+	private static void testInactiveOwnerCancelsClick()
+	{
+		TestMouseEventOwner owner = createMouseEventOwner();
+		TestComponentInteractive touch = createInteractive();
+		touch.init(owner);
+		try
+		{
+			int clickCount = 0;
+			int touchUpCount = 0;
+			int pressCount = 0;
+			touch.setClickCallback(() => ++clickCount);
+			touch.setOnTouchUp((pos, id) => ++touchUpCount);
+			touch.setPressCallback((press) => ++pressCount);
+			touch.onTouchDown(Vector3.zero, 0);
+			owner.mActive = false;
+			touch.onTouchUp(Vector3.zero, 0);
+			assertEqual(0, clickCount, "Owner失活后不应触发click");
+			assertEqual(0, touchUpCount, "Owner失活后不应触发业务onTouchUp");
+			assertEqual(2, pressCount, "Owner失活后仍应结束Press状态");
+			assertFalse(touch.getPressingForTest(), "Owner失活后TouchUp应复位pressing");
+		}
+		finally
+		{
+			touch.destroy();
+			owner.destroy();
+		}
+	}
+
+	// Owner在TouchDown之后禁用输入: 与失活相同,当前触点必须取消
+	private static void testDisabledOwnerCancelsClick()
+	{
+		TestMouseEventOwner owner = createMouseEventOwner();
+		TestComponentInteractive touch = createInteractive();
+		touch.init(owner);
+		try
+		{
+			int clickCount = 0;
+			touch.setClickCallback(() => ++clickCount);
+			touch.onTouchDown(Vector3.zero, 0);
+			owner.mHandleInput = false;
+			touch.onTouchUp(Vector3.zero, 0);
+			assertEqual(0, clickCount, "Owner禁用输入后不应触发click");
+		}
+		finally
+		{
+			touch.destroy();
+			owner.destroy();
+		}
+	}
+
+	// PreClick使原本有效的Owner失活: 正式Click前必须重新验证交互状态。
+	private static void testPreClickHidesOwnerCancelsClick()
+	{
+		TestMouseEventOwner owner = createMouseEventOwner();
+		TestComponentInteractive touch = createInteractive();
+		touch.init(owner);
+		try
+		{
+			int preClickCount = 0;
+			int clickCount = 0;
+			int touchUpCount = 0;
+			touch.setPreClickCallback(() => { ++preClickCount; owner.mActive = false; });
+			touch.setClickCallback(() => ++clickCount);
+			touch.setOnTouchUp((pos, id) => ++touchUpCount);
+			touch.onTouchDown(Vector3.zero, 0);
+			touch.onTouchUp(Vector3.zero, 0);
+			assertEqual(1, preClickCount, "有效Owner应先进入PreClick");
+			assertEqual(0, clickCount, "PreClick隐藏Owner后不应继续Click");
+			assertEqual(0, touchUpCount, "PreClick隐藏Owner后不应继续业务TouchUp");
+		}
+		finally
+		{
+			touch.destroy();
+			owner.destroy();
+		}
+	}
+
+	// TouchLeave代表取消当前触点,必须同时发送press(false),避免按钮保持按下视觉状态
+	private static void testTouchLeaveReleasesPress()
+	{
+		TestComponentInteractive touch = createInteractive();
+		try
+		{
+			int pressCount = 0;
+			bool lastPress = true;
+			touch.setPressCallback((press) => { ++pressCount; lastPress = press; });
+			touch.onTouchDown(Vector3.zero, 0);
+			touch.onTouchLeave(Vector3.zero, 0);
+			assertEqual(2, pressCount, "TouchLeave取消按下时应收到press(true/false)");
+			assertFalse(lastPress, "TouchLeave取消后press状态应为false");
+			assertFalse(touch.getPressingForTest(), "TouchLeave取消后pressing应复位");
 		}
 		finally
 		{
@@ -364,4 +504,37 @@ public class TestComponentInteractive : ComponentInteractive
 	public float getPressedTimeForTest() { return mPressedTime; }
 	public bool getMouseHoveredForTest() { return mMouseHovered; }
 	public int getLongPressCountForTest() { return mLongPressList.Count; }
+}
+
+// ComponentInteractive Owner模拟: 用于验证TouchDown后Owner失活/禁用输入时必须取消点击。
+public class TestMouseEventOwner : ComponentOwner, IMouseEventCollect
+{
+	public bool mActive = true;			// 测试Owner在层级中的激活状态
+	public bool mHandleInput = true;		// 测试Owner是否允许接收输入
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mActive = true;
+		mHandleInput = true;
+	}
+	public string getName() { return "TestMouseEventOwner"; }
+	public string getDescription() { return "ComponentInteractiveTest Owner"; }
+	public bool isActiveInHierarchy() { return mActive; }
+	public bool isHandleInput() { return mHandleInput; }
+	public void onTouchLeave(Vector3 touchPos, int touchID) { }
+	public void onTouchEnter(Vector3 touchPos, int touchID) { }
+	public void onTouchMove(Vector3 touchPos, Vector3 moveDelta, float moveTime, int touchID) { }
+	public void onTouchStay(Vector3 touchPos, int touchID) { }
+	public Collider getCollider(bool addIfNotExist = false) { return null; }
+	public UIDepth getDepth() { return null; }
+	public bool isReceiveScreenTouch() { return false; }
+	public void onScreenTouchDown(Vector3 touchPos, int touchID) { }
+	public void onScreenTouchUp(Vector3 touchPos, int touchID) { }
+	public void onTouchDown(Vector3 touchPos, int touchID) { }
+	public void onTouchUp(Vector3 touchPos, int touchID) { }
+	public bool isPassRay() { return false; }
+	public bool isPassDragEvent() { return false; }
+	public void onReceiveDrag(IMouseEventCollect dragObj, Vector3 touchPos, ref bool continueEvent) { }
+	public bool isDraggable() { return false; }
+	public bool isChildOf(IMouseEventCollect parent) { return false; }
 }
