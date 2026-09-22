@@ -38,6 +38,7 @@ public static class WidgetUtilityTest
 		testAlignParentCenterOrLeftBasic();
 		testAdjustRectToContainChildren();
 		testClampNoOverParentRectInverse();
+		testLayoutWithOptionalChildWindows();
 		cleanupPlayModeSetup();
 	}
 
@@ -546,4 +547,154 @@ public static class WidgetUtilityTest
 		...
 	}
 	*/
+
+	// Fix12: 没有子窗口包装、只有部分子节点被包装、最后一个包装被移除,
+	// 都是合法状态。九个排版/高度调整入口均需继续处理真实RectTransform子节点。
+	private static void testLayoutWithOptionalChildWindows()
+	{
+		verifyOptionalChildWindowLayout("autoGridFixedRootHeight",
+			root => autoGridFixedRootHeight(root, new Vector2(50.0f, 30.0f), false),
+			new Vector2(50.0f, 120.0f), new Vector3(-75.0f, 0.0f, 0.0f),
+			new Vector3(0.0f, 45.0f, 0.0f), new Vector3(0.0f, 15.0f, 0.0f), true, false);
+		verifyOptionalChildWindowLayout("autoGrid",
+			root => autoGrid(root, new Vector2(50.0f, 30.0f), false),
+			new Vector2(200.0f, 30.0f), new Vector3(0.0f, 45.0f, 0.0f),
+			new Vector3(-75.0f, 0.0f, 0.0f), new Vector3(-25.0f, 0.0f, 0.0f), true, false);
+		verifyOptionalChildWindowLayout("appendTopHeight",
+			root => appendTopHeight(root, 20.0f),
+			new Vector2(200.0f, 140.0f), new Vector3(0.0f, 10.0f, 0.0f),
+			new Vector3(17.0f, 20.0f, 0.0f), new Vector3(-9.0f, -30.0f, 0.0f), false, true);
+		verifyOptionalChildWindowLayout("appendBottomHeight",
+			root => appendBottomHeight(root, 20.0f),
+			new Vector2(200.0f, 140.0f), new Vector3(0.0f, -10.0f, 0.0f),
+			new Vector3(17.0f, 40.0f, 0.0f), new Vector3(-9.0f, -10.0f, 0.0f), false, true);
+		verifyOptionalChildWindowLayout("setWindowHeightKeepTop",
+			root => setWindowHeightKeepTop(root, 160.0f, true),
+			new Vector2(200.0f, 160.0f), new Vector3(0.0f, -20.0f, 0.0f),
+			new Vector3(17.0f, 50.0f, 0.0f), new Vector3(-9.0f, 0.0f, 0.0f), false, true);
+		verifyOptionalChildWindowLayout("setWindowBestHeight",
+			root => setWindowBestHeight(root, true, true),
+			new Vector2(200.0f, 80.0f), new Vector3(0.0f, 20.0f, 0.0f),
+			new Vector3(17.0f, 30.0f, 0.0f), new Vector3(-9.0f, -20.0f, 0.0f), false, false);
+		verifyOptionalChildWindowLayout("autoGridVertical",
+			root => autoGridVertical(root),
+			new Vector2(200.0f, 60.0f), new Vector3(0.0f, 30.0f, 0.0f),
+			new Vector3(17.0f, 20.0f, 0.0f), new Vector3(-9.0f, -10.0f, 0.0f), false, false);
+		verifyOptionalChildWindowLayout("autoGridHorizontal",
+			root => autoGridHorizontal(root),
+			new Vector2(100.0f, 120.0f), new Vector3(-50.0f, 0.0f, 0.0f),
+			new Vector3(-30.0f, 30.0f, 0.0f), new Vector3(20.0f, -20.0f, 0.0f), false, false);
+		verifyOptionalChildWindowLayout("autoGridHorizontalCenter",
+			root => autoGridHorizontalCenter(root, false, false, 0.0f),
+			new Vector2(200.0f, 120.0f), Vector3.zero,
+			new Vector3(-30.0f, 30.0f, 0.0f), new Vector3(20.0f, -20.0f, 0.0f), false, false);
+	}
+
+	// 每个入口验证三种合法的包装列表状态,同时断言真实排版结果,不以“不抛异常”代替正确性检查。
+	private static void verifyOptionalChildWindowLayout(string name, Action<myUGUIObject> apply,
+		Vector2 rootSize, Vector3 rootPosition, Vector3 child0Position, Vector3 child1Position,
+		bool resizeChildren, bool keepChildWorldPosition)
+	{
+		for (int mode = 0; mode < 3; ++mode)
+		{
+			string context = name + ", childWindowMode:" + mode;
+			GameObject rootGo = new GameObject("Fix12_" + name, typeof(RectTransform));
+			myUGUIObject root = null;
+			try
+			{
+				RectTransform rootRect = rootGo.GetComponent<RectTransform>();
+				rootRect.anchorMin = rootRect.anchorMax = new Vector2(0.5f, 0.5f);
+				rootRect.pivot = new Vector2(0.5f, 0.5f);
+				rootRect.sizeDelta = new Vector2(200.0f, 120.0f);
+				rootRect.localPosition = Vector3.zero;
+				root = LayoutScript.newUIObject<myUGUIObject>(null, null, rootGo, true);
+				RectTransform child0 = createFix12Child(rootRect, "Child0",
+					new Vector2(40.0f, 20.0f), new Vector3(17.0f, 30.0f, 0.0f));
+				RectTransform child1 = createFix12Child(rootRect, "Child1",
+					new Vector2(60.0f, 40.0f), new Vector3(-9.0f, -20.0f, 0.0f));
+				Vector3 child0WorldPosition = child0.position;
+				Vector3 child1WorldPosition = child1.position;
+				BoxCollider childCollider = null;
+				if (mode > 0)
+				{
+					// 只包装第一个子节点,第二个始终保留为原始RectTransform。
+					childCollider = child0.gameObject.AddComponent<BoxCollider>();
+					myUGUIObject childWindow = LayoutScript.newUIObject<myUGUIObject>(root, null, child0.gameObject, true);
+					childWindow.markSizeChanged();
+					if (mode == 2)
+					{
+						// 正常销毁包装而保留GameObject,父节点包装列表变为空列表。
+						myUGUIObject.destroyWindow(childWindow, false);
+					}
+				}
+				List<myUGUIObject> childWindows = root.getChildList();
+				if (mode == 0)
+				{
+					assertNull(childWindows, context + ":测试前包装列表应未创建");
+				}
+				else
+				{
+					assertNotNull(childWindows, context + ":测试前包装列表应已创建");
+					assertEqual(mode == 1 ? 1 : 0, childWindows.Count, context + ":测试前包装数量");
+				}
+				assertEqual(2, rootRect.childCount, context + ":真实子节点数量");
+
+				apply(root);
+
+				assertTrue(ReferenceEquals(childWindows, root.getChildList()), context + ":不能创建或替换包装列表");
+				assertEqual(rootSize.x, rootRect.rect.width, 0.001f, context + ":父节点宽度");
+				assertEqual(rootSize.y, rootRect.rect.height, 0.001f, context + ":父节点高度");
+				assertFix12Position(rootPosition, rootRect.localPosition, context + ":父节点位置");
+				assertFix12Position(child0Position, child0.localPosition, context + ":第一个子节点位置");
+				assertFix12Position(child1Position, child1.localPosition, context + ":第二个未包装子节点位置");
+				Vector2 child0Size = resizeChildren ? new Vector2(50.0f, 30.0f) : new Vector2(40.0f, 20.0f);
+				Vector2 child1Size = resizeChildren ? new Vector2(50.0f, 30.0f) : new Vector2(60.0f, 40.0f);
+				assertEqual(child0Size.x, child0.rect.width, 0.001f, context + ":第一个子节点宽度");
+				assertEqual(child0Size.y, child0.rect.height, 0.001f, context + ":第一个子节点高度");
+				assertEqual(child1Size.x, child1.rect.width, 0.001f, context + ":第二个子节点宽度");
+				assertEqual(child1Size.y, child1.rect.height, 0.001f, context + ":第二个子节点高度");
+				if (mode == 1)
+				{
+					// 两种网格布局改变子节点尺寸后,仍需通知有效包装来同步碰撞盒。
+					assertEqual(child0Size.x, childCollider.size.x, 0.001f, context + ":包装碰撞盒宽度");
+					assertEqual(child0Size.y, childCollider.size.y, 0.001f, context + ":包装碰撞盒高度");
+				}
+				if (keepChildWorldPosition)
+				{
+					assertFix12Position(child0WorldPosition, child0.position, context + ":第一个子节点世界位置");
+					assertFix12Position(child1WorldPosition, child1.position, context + ":第二个子节点世界位置");
+				}
+			}
+			finally
+			{
+				try
+				{
+					myUGUIObject.destroyWindow(root, false);
+				}
+				finally
+				{
+					UObject.DestroyImmediate(rootGo);
+				}
+			}
+		}
+	}
+
+	private static RectTransform createFix12Child(RectTransform parent, string name, Vector2 size, Vector3 position)
+	{
+		GameObject go = new GameObject(name, typeof(RectTransform));
+		RectTransform rect = go.GetComponent<RectTransform>();
+		rect.SetParent(parent, false);
+		rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
+		rect.pivot = new Vector2(0.5f, 0.5f);
+		rect.sizeDelta = size;
+		rect.localPosition = position;
+		return rect;
+	}
+
+	private static void assertFix12Position(Vector3 expected, Vector3 actual, string context)
+	{
+		assertEqual(expected.x, actual.x, 0.001f, context + ":x");
+		assertEqual(expected.y, actual.y, 0.001f, context + ":y");
+		assertEqual(expected.z, actual.z, 0.001f, context + ":z");
+	}
 }
