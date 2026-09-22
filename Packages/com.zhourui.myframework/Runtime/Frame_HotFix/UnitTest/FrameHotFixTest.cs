@@ -300,6 +300,7 @@ public class FrameHotFixTest
         Register("WindowPoolTest", WindowPoolTest.Run);
         Register("UGUITabTest", UGUITabTest.Run);
         Register("UGUITreeListTest", UGUITreeListTest.Run);
+        Register("UGUIDragViewLoopTest", UGUIDragViewLoopTest.Run);
         Register("UGUISliderTest", UGUISliderTest.Run);
         Register("UGUIAnimProgressTest", UGUIAnimProgressTest.Run);
         Register("UGUIScrollTest", UGUIScrollTest.Run);

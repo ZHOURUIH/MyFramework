@@ -144,12 +144,34 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop whe
 					mContent.setTopCenterToParentTopCenter();
 				}
 			}
+			// 回收显示节点前先清理旧绑定,clearData可能还需要读取旧数据。
+			foreach (T item in mDisplayItemPool.getUsedList())
+			{
+				item.clearData();
+			}
 			mDisplayItemPool.unuseAll();
 			mDisplayItemMap.Clear();
 		}
 		mDataList.setRange(dataList);
+		// 数量相同也必须重新绑定已有节点,不能只创建缺少的节点。
+		// 所有可见节点切换到新数据以后,才允许回收旧数据。
 		updateDisplayItem();
-		UN_CLASS_LIST(tempList);
+		if (tempList.Count > 0)
+		{
+			// 只在替换数据时使用,不进入每帧滚动更新路径。
+			// 新列表仍引用的数据保留所有权,也支持传入getDataList()或对旧数据重新排序。
+			using var b = new HashSetScope<DataType>(out var retainedDataSet);
+			retainedDataSet.addRange(mDataList);
+			for (int i = 0; i < tempList.Count; ++i)
+			{
+				// 同一旧对象只回收一次,仍在新列表中的对象不能回收。
+				if (tempList[i] != null && !retainedDataSet.Add(tempList[i]))
+				{
+					tempList[i] = null;
+				}
+			}
+			UN_CLASS_LIST(tempList);
+		}
 	}
 	public List<DataType> getDataList() { return mDataList; }
 	// 每次需要设置整个列表的数据时,可以先使用startSetDataList获取一个临时列表,然后填充列表,再调用endSetDataList应用填充好的数据列表
@@ -229,7 +251,7 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop whe
 			item.setData(mDataList[item.getIndex()]);
 		}
 	}
-	// 刷新整个列表,重新计算位置
+	// 刷新可见范围,forceRefresh为true时也会清理并重新绑定已有节点的数据
 	public void updateDisplayItem(bool forceRefresh = true)
 	{
 		// 根据当前Content的位置,计算出当前显示的节点
@@ -245,7 +267,7 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop whe
 			for (int i = displayItemList.Count - 1; i >= 0; --i)
 			{
 				T item = displayItemList[i];
-				if (item.getIndex() < startItemIndex || item.getIndex() >= endItemIndex)
+				if (item.getIndex() < startItemIndex || item.getIndex() >= endItemIndex || item.getIndex() >= mDataList.Count)
 				{
 					mDisplayItemMap.Remove(item.getIndex());
 					item.clearData();
@@ -253,16 +275,23 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop whe
 				}
 			}
 
-			// 新增需要显示的节点
-			for (int i = startItemIndex; i < endItemIndex; ++i)
+			// 新增需要显示的节点,强制刷新时也重新绑定仍在可见范围内的旧节点。
+			// 普通滚动传入false,重叠范围内的节点不重复clearData/setData。
+			for (int i = startItemIndex; i < endItemIndex && i < mDataList.Count; ++i)
 			{
-				if (mDisplayItemMap.get(i) == null && i < mDataList.Count)
+				T item = mDisplayItemMap.get(i);
+				if (item == null)
 				{
-					T item = mDisplayItemPool.newItem();
+					item = mDisplayItemPool.newItem();
 					item.setIndex(i);
 					item.setData(mDataList[i]);
 					item.setPosition(mAllItemPos[i]);
 					mDisplayItemMap.addOrSet(i, item);
+				}
+				else if (forceRefresh)
+				{
+					item.clearData();
+					item.setData(mDataList[i]);
 				}
 			}
 
