@@ -29,6 +29,10 @@ public static class HashSetExtension
 	}
 	public static T addOrRemove<T>(this HashSet<T> list, T value, bool add)
 	{
+		if (list == null)
+		{
+			return value;
+		}
 		if (add)
 		{
 			list.Add(value);
@@ -41,11 +45,19 @@ public static class HashSetExtension
 	}
 	public static T add<T>(this HashSet<T> list, T value)
 	{
+		if (list == null)
+		{
+			return value;
+		}
 		list.Add(value);
 		return value;
 	}
 	public static bool addNot<T>(this HashSet<T> list, T value, T notValue)
 	{
+		if (list == null)
+		{
+			return false;
+		}
 		if (equal(value, notValue))
 		{
 			return false;
@@ -55,7 +67,7 @@ public static class HashSetExtension
 	}
 	public static HashSet<TKey> addRangeKeys<TKey, TValue>(this HashSet<TKey> list, Dictionary<TKey, TValue> other)
 	{
-		if (other.isEmpty())
+		if (list == null || other.isEmpty())
 		{
 			return list;
 		}
@@ -67,7 +79,7 @@ public static class HashSetExtension
 	}
 	public static HashSet<TValue> addRangeValues<TKey, TValue>(this HashSet<TValue> list, Dictionary<TKey, TValue> other)
 	{
-		if (other.isEmpty())
+		if (list == null || other.isEmpty())
 		{
 			return list;
 		}
@@ -79,7 +91,7 @@ public static class HashSetExtension
 	}
 	public static HashSet<TKey> setRangeKeys<TKey, TValue>(this HashSet<TKey> list, Dictionary<TKey, TValue> other)
 	{
-		if (other.isEmpty())
+		if (list == null || other.isEmpty())
 		{
 			return list;
 		}
@@ -92,7 +104,7 @@ public static class HashSetExtension
 	}
 	public static HashSet<TValue> setRangeValues<TKey, TValue>(this HashSet<TValue> list, Dictionary<TKey, TValue> other)
 	{
-		if (other.isEmpty())
+		if (list == null || other.isEmpty())
 		{
 			return list;
 		}
@@ -105,19 +117,27 @@ public static class HashSetExtension
 	}
 	public static HashSet<T> setRange<T>(this HashSet<T> list, HashSet<T> other)
 	{
+		if (list == null || list == other)
+		{
+			return list;
+		}
         list.Clear();
         list.addRange(other);
         return list;
 	}
     public static HashSet<T> setRange<T>(this HashSet<T> list, List<T> other)
     {
-        list.Clear();
+		if (list == null)
+		{
+			return list;
+		}
+		list.Clear();
 		list.addRange(other);
         return list;
     }
     public static HashSet<T> addRange<T>(this HashSet<T> list, List<T> other)
 	{
-		if (other.isEmpty())
+		if (list == null || other.isEmpty())
 		{
 			return list;
 		}
@@ -129,7 +149,7 @@ public static class HashSetExtension
 	}
 	public static HashSet<T> addRange<T>(this HashSet<T> list, HashSet<T> other)
 	{
-		if (other.isEmpty())
+		if (list == null || other.isEmpty())
 		{
 			return list;
 		}
@@ -141,6 +161,10 @@ public static class HashSetExtension
 	}
 	public static bool addNotNull<T>(this HashSet<T> list, T value) where T : class
 	{
+		if (list == null)
+		{
+			return false;
+		}
 		if (value != null)
 		{
 			list.Add(value);
@@ -150,6 +174,10 @@ public static class HashSetExtension
 	}
 	public static bool addIf<T>(this HashSet<T> list, T value, bool condition)
 	{
+		if (list == null)
+		{
+			return false;
+		}
 		if (condition)
 		{
 			return list.Add(value);
@@ -158,13 +186,17 @@ public static class HashSetExtension
 	}
 	public static T addClass<T>(this HashSet<T> list) where T : ClassObject, new()
 	{
+		if (list == null)
+		{
+			return null;
+		}
 		return list.add(CLASS<T>());
 	}
 	// 将派生类List<T>的元素添加到基类HashSet<Base>中（协变类型转换）
 	// 泛型约束确保 T 是 Base 的子类型，如 addRangeDerived<Animal, Dog>()
 	public static HashSet<Base> addRangeDerived<Base, T>(this HashSet<Base> list, List<T> other) where Base : class where T : Base
 	{
-		if (other.isEmpty())
+		if (list == null || other.isEmpty())
 		{
 			return list;
 		}
@@ -176,6 +208,10 @@ public static class HashSetExtension
 	}
 	public static bool addNotEmpty(this HashSet<string> list, string value)
 	{
+		if (list == null)
+		{
+			return false;
+		}
 		if (!value.isEmpty())
 		{
 			list.Add(value);
@@ -185,6 +221,10 @@ public static class HashSetExtension
 	}
 	public static T first<T>(this HashSet<T> list)
 	{
+		if (list.isEmpty())
+		{
+			return default;
+		}
 		foreach (T item in list)
 		{
 			return item;
@@ -195,6 +235,10 @@ public static class HashSetExtension
 	// 如果集合为空则返回default(T)
 	public static T popFirst<T>(this HashSet<T> list)
 	{
+		if (list.isEmpty())
+		{
+			return default;
+		}
 		T elem = default;
 		foreach (T item in list)
 		{
@@ -206,6 +250,10 @@ public static class HashSetExtension
 	}
 	public static bool removeIf<T>(this HashSet<T> list, T value, bool condition)
 	{
+		if (list.isEmpty())
+		{
+			return false;
+		}
 		if (condition)
 		{
 			return list.Remove(value);
@@ -214,6 +262,10 @@ public static class HashSetExtension
 	}
 	public static bool remove<T>(this HashSet<T> list, List<T> needRemove)
 	{
+		if (list.isEmpty())
+		{
+			return false;
+		}
 		bool hasRemoved = false;
 		foreach (T item in needRemove)
 		{

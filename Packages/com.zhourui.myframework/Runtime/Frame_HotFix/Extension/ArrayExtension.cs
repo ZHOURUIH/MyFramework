@@ -38,7 +38,7 @@ public static class ArrayExtension
 	}
 	public static T[] setRange<T>(this T[] list, List<T> other)
 	{
-		if (other.isEmpty())
+		if (list == null || other.isEmpty())
 		{
 			return list;
 		}
@@ -51,7 +51,7 @@ public static class ArrayExtension
 	}
 	public static T[] setRange<T>(this T[] list, Span<T> other)
 	{
-		if (other.isEmpty())
+		if (list == null || other.isEmpty())
 		{
 			return list;
 		}
@@ -63,7 +63,7 @@ public static class ArrayExtension
 	}
 	public static void ForI<T>(this T[] list, Action<int> action)
 	{
-		if (list.isEmpty())
+		if (list == null || list.isEmpty())
 		{
 			return;
 		}
@@ -272,7 +272,7 @@ public static class ArrayExtension
 	// 注意：删除后不会清除最后一个元素位置，需要调用者自行维护validElementCount
 	public static void removeIndex<T>(this T[] array, int validElementCount, int index)
 	{
-		if (index < 0 || index >= validElementCount)
+		if (array == null || index < 0 || index >= validElementCount)
 		{
 			return;
 		}
@@ -286,6 +286,10 @@ public static class ArrayExtension
 	// 遍历过程中发现匹配项就调用removeIndex，并同步更新validElementCount和索引i
 	public static int removeValue<T>(this T[] array, int validElementCount, T value)
 	{
+		if (array == null)
+		{
+			return 0;
+		}
 		for (int i = 0; i < validElementCount; ++i)
 		{
 			if (equal(array[i], value))
@@ -297,14 +301,26 @@ public static class ArrayExtension
 	}
 	public static void sort<T>(this T[] array)
 	{
+		if (array == null)
+		{
+			return;
+		}
 		Array.Sort(array);
 	}
 	public static void sort<T>(this T[] array, IComparer comparer)
 	{
+		if (array == null)
+		{
+			return;
+		}
 		Array.Sort(array, comparer);
 	}
 	public static void sort<T>(this T[] array, Comparison<T> comparison)
 	{
+		if (array == null)
+		{
+			return;
+		}
 		Array.Sort(array, comparison);
 	}
 	public static T random<T>(this T[] list)

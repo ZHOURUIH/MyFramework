@@ -49,7 +49,7 @@ public static class ListExtension
 	}
 	public static bool removeIf<T>(this List<T> list, T value, bool condition)
 	{
-		if (!condition)
+		if (list == null || !condition)
 		{
 			return false;
 		}
@@ -57,7 +57,7 @@ public static class ListExtension
 	}
 	public static T removeAtIf<T>(this List<T> list, int index, bool condition)
 	{
-		if (!condition)
+		if (list == null || !condition)
 		{
 			return default;
 		}
@@ -67,6 +67,10 @@ public static class ListExtension
 	}
 	public static T removeAt<T>(this List<T> list, int index)
 	{
+		if (list == null)
+		{
+			return default;
+		}
 		T value = list[index];
 		list.RemoveAt(index);
 		return value;
@@ -111,12 +115,16 @@ public static class ListExtension
 	// 将index处元素与最后一个元素交换，然后移除末尾元素（O(1)删除，不保持顺序）
 	public static T swapToEndAndRemove<T>(this List<T> list, int index)
 	{
+		if (list == null)
+		{
+			return default;
+		}
 		list.swap(index, list.Count - 1);
 		return list.removeAt(list.Count - 1);
 	}
 	public static void addCount<T>(this List<T> list, int count)
 	{
-		if (count < 0)
+		if (list == null || count < 0)
 		{
 			return;
 		}
@@ -131,7 +139,7 @@ public static class ListExtension
 	}
 	public static void addCount<T>(this List<T> list, T value, int count)
 	{
-		if (count < 0)
+		if (list == null || count < 0)
 		{
 			return;
 		}
@@ -146,7 +154,7 @@ public static class ListExtension
 	}
 	public static void addRangeKeys<TKey, TValue>(this List<TKey> list, Dictionary<TKey, TValue> dic)
 	{
-		if (dic.isEmpty())
+		if (list == null || dic.isEmpty())
 		{
 			return;
 		}
@@ -161,7 +169,7 @@ public static class ListExtension
 	}
 	public static void addRangeValues<TKey, TValue>(this List<TValue> list, Dictionary<TKey, TValue> dic)
 	{
-		if (dic.isEmpty())
+		if (list == null || dic.isEmpty())
 		{
 			return;
 		}
@@ -176,6 +184,10 @@ public static class ListExtension
 	}
 	public static bool addNotNull<T>(this List<T> list, T value) where T : class
 	{
+		if (list == null)
+		{
+			return false;
+		}
 		if (value != null)
 		{
 			list.Add(value);
@@ -215,6 +227,10 @@ public static class ListExtension
 	}
 	public static bool addIf<T>(this List<T> list, T value, bool condition)
 	{
+		if (list == null)
+		{
+			return false;
+		}
 		if (condition)
 		{
 			list.Add(value);
@@ -223,6 +239,10 @@ public static class ListExtension
 	}
 	public static bool addNotEmpty(this List<string> list, string value)
 	{
+		if (list == null)
+		{
+			return false;
+		}
 		if (!value.isEmpty())
 		{
 			list.Add(value);
@@ -232,7 +252,7 @@ public static class ListExtension
 	}
 	public static bool addNot<T>(this List<T> list, T value, T notValue)
 	{
-		if (equal(value, notValue))
+		if (list == null || equal(value, notValue))
 		{
 			return false;
 		}
@@ -241,11 +261,15 @@ public static class ListExtension
 	}
 	public static T addClass<T>(this List<T> list) where T : ClassObject, new()
 	{
+		if (list == null)
+		{
+			return default;
+		}
 		return list.add(CLASS<T>());
 	}
 	public static T addClassIf<T>(this List<T> list, bool condition) where T : ClassObject, new()
 	{
-		if (!condition)
+		if (list == null || !condition)
 		{
 			return null;
 		}
@@ -253,10 +277,18 @@ public static class ListExtension
 	}
 	public static T addNew<T>(this List<T> list) where T : new()
 	{
+		if (list == null)
+		{
+			return default;
+		}
 		return list.add(new());
 	}
 	public static bool addUnique<T>(this List<T> list, T value)
 	{
+		if (list == null)
+		{
+			return false;
+		}
 		if (!list.Contains(value))
 		{
 			list.Add(value);
@@ -266,7 +298,7 @@ public static class ListExtension
 	}
 	public static bool addUniqueIf<T>(this List<T> list, T value, bool condition)
 	{
-		if (!condition)
+		if (list == null || !condition)
 		{
 			return false;
 		}
@@ -279,6 +311,10 @@ public static class ListExtension
 	}
 	public static void addUniqueOrRemove<T>(this List<T> list, T value, bool addOrRemove)
 	{
+		if (list == null)
+		{
+			return;
+		}
 		if (addOrRemove)
 		{
 			list.addUnique(value);
@@ -290,7 +326,7 @@ public static class ListExtension
 	}
 	public static bool addUniqueNot<T>(this List<T> list, T value, T notValue)
 	{
-		if (equal(value, notValue))
+		if (list == null || equal(value, notValue))
 		{
 			return false;
 		}
@@ -355,7 +391,7 @@ public static class ListExtension
 	}
 	public static List<T> addRange<T>(this List<T> list, List<T> other)
 	{
-		if (list == null || other.isEmpty())
+		if (other.isEmpty())
 		{
 			return list;
 		}
@@ -364,6 +400,10 @@ public static class ListExtension
 	}
 	public static List<T> addRange<T>(this List<T> list, List<T> other0, List<T> other1)
 	{
+		if (list == null)
+		{
+			return list;
+		}
 		int totalCount = list.Count + other0.count() + other1.count();
 		if (list.Capacity < totalCount)
 		{
@@ -375,6 +415,10 @@ public static class ListExtension
 	}
 	public static List<T> addRange<T>(this List<T> list, List<T> other0, List<T> other1, List<T> other2)
 	{
+		if (list == null)
+		{
+			return list;
+		}
 		int totalCount = list.Count + other0.count() + other1.count() + other2.count();
 		if (list.Capacity < totalCount)
 		{
@@ -387,6 +431,10 @@ public static class ListExtension
 	}
 	public static List<T> addRange<T>(this List<T> list, List<T> other0, List<T> other1, List<T> other2, List<T> other3)
 	{
+		if (list == null)
+		{
+			return list;
+		}
 		int totalCount = list.Count + other0.count() + other1.count() + other2.count() + other3.count();
 		if (list.Capacity < totalCount)
 		{
@@ -444,6 +492,10 @@ public static class ListExtension
 	}
 	public static List<T> addRange<T>(this List<T> list, T[] other0, T[] other1)
 	{
+		if (list == null)
+		{
+			return list;
+		}
 		int totalCount = list.Count + other0.count() + other1.count();
 		if (list.Capacity < totalCount)
 		{
@@ -455,6 +507,10 @@ public static class ListExtension
 	}
 	public static List<T> addRange<T>(this List<T> list, T[] other0, T[] other1, T[] other2)
 	{
+		if (list == null)
+		{
+			return list;
+		}
 		int totalCount = list.Count + other0.count() + other1.count() + other2.count();
 		if (list.Capacity < totalCount)
 		{
@@ -467,6 +523,10 @@ public static class ListExtension
 	}
 	public static List<T> addRange<T>(this List<T> list, T[] other0, T[] other1, T[] other2, T[] other3)
 	{
+		if (list == null)
+		{
+			return list;
+		}
 		int totalCount = list.Count + other0.count() + other1.count() + other2.count() + other3.count();
 		if (list.Capacity < totalCount)
 		{
@@ -481,7 +541,7 @@ public static class ListExtension
 	// T0 必须是 T1 的基类或者实现 T1 的接口
 	public static List<Base> addRangeDerived<Base, T>(this List<Base> list, List<T> other) where Base : class where T : Base
 	{
-		if (other.isEmpty())
+		if (list == null || other.isEmpty())
 		{
 			return list;
 		}
@@ -498,7 +558,7 @@ public static class ListExtension
 	// T0 必须是 T1 的基类或者实现 T1 的接口
 	public static List<Base> addRangeDerived<Base, T>(this List<Base> list, T[] other) where Base : class where T : Base
 	{
-		if (other.isEmpty())
+		if (list == null || other.isEmpty())
 		{
 			return list;
 		}
@@ -514,7 +574,7 @@ public static class ListExtension
 	}
 	public static List<T> addRange<T>(this List<T> list, Span<T> other)
 	{
-		if (other.isEmpty())
+		if (list == null || other.isEmpty())
 		{
 			return list;
 		}
@@ -530,7 +590,7 @@ public static class ListExtension
 	}
 	public static List<T> addRange<T>(this List<T> list, Span<T> other, int count)
 	{
-		if (count <= 0)
+		if (list == null || count <= 0)
 		{
 			return list;
 		}
@@ -547,7 +607,7 @@ public static class ListExtension
 	}
 	public static List<T> setRange<T>(this List<T> list, List<T> other)
 	{
-		if (list == other)
+		if (list == null || list == other)
 		{
 			return list;
 		}
@@ -561,6 +621,10 @@ public static class ListExtension
 	}
 	public static List<T> setRange<T>(this List<T> list, T[] other)
 	{
+		if (list == null)
+		{
+			return list;
+		}
 		list.Clear();
 		if (other.isEmpty())
 		{
@@ -571,6 +635,10 @@ public static class ListExtension
 	}
 	public static List<Base> setRangeDerived<Base, T>(this List<Base> list, List<T> other) where T : Base
 	{
+		if (list == null)
+		{
+			return list;
+		}
 		list.Clear();
 		if (other.isEmpty())
 		{
@@ -588,6 +656,10 @@ public static class ListExtension
 	}
 	public static List<Base> setRangeDerived<Base, T>(this List<Base> list, T[] other) where T : Base
 	{
+		if (list == null)
+		{
+			return list;
+		}
 		list.Clear();
 		if (other == null || other.Length == 0)
 		{
@@ -605,6 +677,10 @@ public static class ListExtension
 	}
 	public static List<T> setRange<T>(this List<T> list, Span<T> other)
 	{
+		if (list == null)
+		{
+			return list;
+		}
 		list.Clear();
 		if (list.Capacity < other.Length)
 		{
@@ -618,6 +694,10 @@ public static class ListExtension
 	}
 	public static List<T> setRange<T>(this List<T> list, Span<T> other, int count)
 	{
+		if (list == null)
+		{
+			return list;
+		}
 		list.Clear();
 		count = count.clampMax(other.Length);
 		if (list.Capacity < count)
@@ -632,6 +712,10 @@ public static class ListExtension
 	}
 	public static List<TKey> setRangeKeys<TKey, TValue>(this List<TKey> list, Dictionary<TKey, TValue> dic)
 	{
+		if (list == null)
+		{
+			return list;
+		}
 		list.Clear();
 		if (dic.isEmpty())
 		{
@@ -649,6 +733,10 @@ public static class ListExtension
 	}
 	public static List<TValue> setRangeValues<TKey, TValue>(this List<TValue> list, Dictionary<TKey, TValue> dic)
 	{
+		if (list == null)
+		{
+			return list;
+		}
 		list.Clear();
 		if (dic.isEmpty())
 		{
@@ -674,7 +762,7 @@ public static class ListExtension
 	}
 	public static bool set<T>(this List<T> list, int index, T value)
 	{
-		if (index < 0 || index >= list.Count)
+		if (list == null || index < 0 || index >= list.Count)
 		{
 			return false;
 		}
@@ -683,22 +771,38 @@ public static class ListExtension
 	}
 	public static T add<T>(this List<T> list, T value)
 	{
+		if (list == null)
+		{
+			return default;
+		}
 		list.Add(value);
 		return value;
 	}
 	public static void add<T>(this List<T> list, T value0, T value1)
 	{
+		if (list == null)
+		{
+			return;
+		}
 		list.Add(value0);
 		list.Add(value1);
 	}
 	public static void add<T>(this List<T> list, T value0, T value1, T value2)
 	{
+		if (list == null)
+		{
+			return;
+		}
 		list.Add(value0);
 		list.Add(value1);
 		list.Add(value2);
 	}
 	public static void add<T>(this List<T> list, T value0, T value1, T value2, T value3)
 	{
+		if (list == null)
+		{
+			return;
+		}
 		list.Add(value0);
 		list.Add(value1);
 		list.Add(value2);
@@ -706,6 +810,10 @@ public static class ListExtension
 	}
 	public static void add<T>(this List<T> list, T value0, T value1, T value2, T value3, T value4)
 	{
+		if (list == null)
+		{
+			return;
+		}
 		list.Add(value0);
 		list.Add(value1);
 		list.Add(value2);
@@ -743,11 +851,7 @@ public static class ListExtension
 	// 判断subList是否是list的连续子序列（朴素匹配，O(n*m)）
 	public static bool isSubList<T>(this List<T> list, List<T> subList)
 	{
-		if (list.isEmpty() || subList.isEmpty())
-		{
-			return false;
-		}
-		if (list.Count < subList.Count)
+		if (list.isEmpty() || subList.isEmpty() || list.Count < subList.Count)
 		{
 			return false;
 		}
@@ -785,6 +889,10 @@ public static class ListExtension
 	}
 	public static void ForI<T>(this List<T> list, Action<int> action)
 	{
+		if (list == null)
+		{
+			return;
+		}
 		for (int i = 0; i < list.count(); ++i)
 		{
 			action(i);
@@ -944,11 +1052,11 @@ public static class ListExtension
 	// 比较两个列表是否完全一致
 	public static bool isSame<T>(this List<T> list0, List<T> list1)
 	{
-		if (list0 == null && list1 == null)
+		if (list0 == null)
 		{
-			return true;
+			return list1 == null;
 		}
-		if (list0 == null || list1 == null)
+		if (list1 == null)
 		{
 			return false;
 		}
@@ -982,13 +1090,40 @@ public static class ListExtension
 		}
 		return curCount;
 	}
-	public static int count<T>(this List<T> list)									{ return list?.Count ?? 0; }
-	public static bool isEmpty<T>(this List<T> list)								{ return list == null || list.Count == 0; }
-	public static bool contains<T>(this List<T> list, T value)						{ return list != null && list.Contains(value); }
-	public static bool contains<T>(this List<T> list, Predicate<T> match)			{ return list != null && list.find(match, index : out _); }
-	public static List<T> safe<T>(this List<T> original)							{ return original ?? EmptyList<T>.getEmptyList(); }
+	public static int count<T>(this List<T> list)
+	{
+		if (list == null)
+		{
+			return 0;
+		}
+		return list.Count;
+	}
+	public static bool isEmpty<T>(this List<T> list)
+	{
+		return list == null || list.Count == 0;
+	}
+	public static bool contains<T>(this List<T> list, T value)
+	{
+		return list != null && list.Contains(value);
+	}
+	public static bool contains<T>(this List<T> list, Predicate<T> match)
+	{
+		return list != null && list.find(match, index : out _);
+	}
+	public static List<T> safe<T>(this List<T> original)
+	{
+		if (original == null)
+		{
+			return EmptyList<T>.getEmptyList();
+		}
+		return original;
+	}
 	public static T first<T>(this List<T> list)
 	{
+		if (list == null)
+		{
+			return default;
+		}
 		return list.get(0);
 	}
 	public static T first<T>(this List<T> list, Predicate<T> action)
