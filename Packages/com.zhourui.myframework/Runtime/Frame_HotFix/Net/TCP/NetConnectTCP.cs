@@ -43,9 +43,11 @@ public abstract class NetConnectTCP : NetConnect
 		mPort = port;
 		if (!mManualSendReceive)
 		{
+			// 发送线程由MyThread事件模式负责休眠/唤醒。
+			// 接收线程同样使用事件模式:连接成功时只唤醒一次,之后阻塞在Socket.Receive等待网络数据。
 			mSendThread.setBackground(false);
-			mSendThread.start(sendThread);
-			mReceiveThread.start(receiveThread);
+			mSendThread.startEvent(sendThread);
+			mReceiveThread.startEvent(receiveThread);
 		}
 		// 每2秒发出一个ping包
 		mPingTimer.init(0.0f, 2.0f, false);
@@ -54,6 +56,11 @@ public abstract class NetConnectTCP : NetConnect
 	public override void resetProperty()
 	{
 		base.resetProperty();
+		// Receive线程可能阻塞在Socket.Receive,必须先关闭Socket解除阻塞,再停止线程和销毁网络缓冲。
+		mManualDisconnect = true;
+		clearSocket();
+		mSendThread.stop();
+		mReceiveThread.stop();
 		mReceiveBuffer.destroy();
 		mOutputBuffer.destroy();
 		mReceivePacketHistory.Clear();
@@ -65,8 +72,6 @@ public abstract class NetConnectTCP : NetConnect
 		// mSocketLock.unlock();
 		// mInputBufferLock.unlock();
 		mIPAddress = null;
-		mReceiveThread.stop();
-		mSendThread.stop();
 		mSocket = null;
 		mRecvBuff.setAllDefault();
 		mPort = 0;
@@ -183,6 +188,7 @@ public abstract class NetConnectTCP : NetConnect
 	{
 		base.destroy();
 		mManualDisconnect = true;
+		// 先关闭Socket解除Receive阻塞,再销毁线程。
 		clearSocket();
 		mSendThread.destroy();
 		mReceiveThread.destroy();
@@ -197,6 +203,8 @@ public abstract class NetConnectTCP : NetConnect
 	public void setIPAddress(IPAddress ip) { mIPAddress = ip; }
 	public void setPingAction(Action callback) { mPingCallback = callback; }
 	public void setManualSendReceive(bool manual) { mManualSendReceive = manual; }
+	// 有新的待发送数据时立即唤醒事件发送线程。
+	protected void notifySendPending() { mSendThread.wake(); }
 	public void notifyReceivePing()
 	{
 		mPing = (int)(DateTime.Now - mPingStartTime).TotalMilliseconds;
@@ -251,6 +259,11 @@ public abstract class NetConnectTCP : NetConnect
 		{
 			mInputBuffer.clear();
 		}
+		// 缓冲状态全部准备完成后再启动阻塞接收。断线后Receive线程会回到MyThread事件等待,重连后在这里再次唤醒。
+		if (!mManualSendReceive)
+		{
+			mReceiveThread.wake();
+		}
 	}
 	// doSend和doReceive开放出来方便外部自己处理发送和接收线程,而不是在内部固定在单独的线程中运行
 	public void doSend()
@@ -289,30 +302,34 @@ public abstract class NetConnectTCP : NetConnect
 	}
 	public void doReceive()
 	{
-		if (mSocket == null || !mSocket.Connected || mNetState != NET_STATE.CONNECTED)
+		// 手动收包模式保持原语义:没有数据时立即返回。
+		receiveSocketData(true);
+	}
+	// 返回true表示当前连接仍然有效,自动接收线程可以继续阻塞等待下一批数据。
+	// 返回false表示连接已经结束或当前无数据(手动模式),调用方应结束本轮接收。
+	protected bool receiveSocketData(bool checkAvailable)
+	{
+		// 不能持有mSocketLock执行阻塞Receive,否则clearSocket无法取得锁来关闭Socket并解除阻塞。
+		Socket socket = mSocket;
+		if (socket == null || !socket.Connected || mNetState != NET_STATE.CONNECTED)
 		{
-			return;
+			return false;
 		}
 		try
 		{
-			// 在Receive之前先判断SocketBuffer中有没有数据可以读,因为如果不判断直接调用的话,可能会出现即使SocketBuffer中有数据,
-			// Receive仍然获取不到的问题,具体原因未知,且出现几率也比较小,但是仍然可能会出现.所以先判断再Receive就不会出现这个问题
-			if (mSocket.Available == 0)
+			if (checkAvailable && socket.Available == 0)
 			{
-				return;
+				return false;
 			}
-			int nRecv = mSocket.Receive(mRecvBuff);
+			// 自动接收模式直接阻塞在Receive。Socket关闭后这里会立即返回/抛异常。
+			int nRecv = socket.Receive(mRecvBuff);
 			if (nRecv == 0)
 			{
-				// 服务器关闭了连接
-				notifyNetState(NET_STATE.SERVER_ABORT, SocketError.NotConnected);
-				return;
-			}
-			else if (nRecv < 0)
-			{
-				// 服务器异常
-				notifyNetState(NET_STATE.SERVER_CLOSE, SocketError.NotConnected);
-				return;
+				if (!mManualDisconnect)
+				{
+					notifyNetState(NET_STATE.SERVER_ABORT, SocketError.NotConnected);
+				}
+				return false;
 			}
 			using (new ThreadLockScope(mInputBufferLock))
 			{
@@ -327,7 +344,7 @@ public abstract class NetConnectTCP : NetConnect
 				using (new ThreadLockScope(mInputBufferLock))
 				{
 					PARSE_RESULT result = preParsePacket(mInputBuffer.getData(), mInputBuffer.getDataLength(), out int bitIndex, out byte[] packetData,
-													out ushort packetType, out int packetSize, out uint sequence, out ulong fieldFlag, out bool hasSign);
+											out ushort packetType, out int packetSize, out uint sequence, out ulong fieldFlag, out bool hasSign);
 					if (result != PARSE_RESULT.SUCCESS)
 					{
 						if (result == PARSE_RESULT.ERROR)
@@ -359,16 +376,25 @@ public abstract class NetConnectTCP : NetConnect
 					}
 				}
 			}
+			return true;
 		}
-		catch (ObjectDisposedException) { }
+		catch (ObjectDisposedException)
+		{
+			return false;
+		}
 		catch (SocketException e)
 		{
-			socketException(e);
+			// 主动断开会通过关闭Socket唤醒Receive,不再重复改变网络状态。
+			if (!mManualDisconnect)
+			{
+				socketException(e);
+			}
+			return false;
 		}
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected abstract NetPacket parsePacket(ushort packetType, byte[] buffer, int size, uint sequence, ulong fieldFlag, bool hasSign);
-	// 发送Socket消息
+	// 发送Socket消息。等待/唤醒由MyThread负责,这里只处理真正的发送。
 	protected void sendThread(ref bool run)
 	{
 		if (mManualSendReceive)
@@ -377,14 +403,20 @@ public abstract class NetConnectTCP : NetConnect
 		}
 		doSend();
 	}
-	// 接收Socket消息
+	// 接收线程只在连接成功时由MyThread.wake启动一次。启动后持续阻塞Receive,直到连接断开才返回事件等待状态。
 	protected void receiveThread(ref bool run)
 	{
 		if (mManualSendReceive)
 		{
 			return;
 		}
-		doReceive();
+		while (run && !mManualDisconnect && mNetState == NET_STATE.CONNECTED)
+		{
+			if (!receiveSocketData(false))
+			{
+				break;
+			}
+		}
 	}
 	protected void sendTotalData()
 	{
@@ -393,23 +425,33 @@ public abstract class NetConnectTCP : NetConnect
 		{
 			return;
 		}
+		Socket socket = mSocket;
+		if (socket == null)
+		{
+			mTotalBuffer.clear();
+			return;
+		}
 		try
 		{
 			byte[] allBytes = mTotalBuffer.getData();
 			int allSendCount = 0;
 			while (allSendCount < allLength)
 			{
-				int thisSendCount = mSocket.Send(allBytes, allSendCount, allLength - allSendCount, SocketFlags.None);
+				int thisSendCount = socket.Send(allBytes, allSendCount, allLength - allSendCount, SocketFlags.None);
 				if (thisSendCount == 0)
 				{
-					// 服务器关闭了连接
-					notifyNetState(NET_STATE.SERVER_ABORT, SocketError.NotConnected);
+					if (!mManualDisconnect)
+					{
+						notifyNetState(NET_STATE.SERVER_ABORT, SocketError.NotConnected);
+					}
 					break;
 				}
 				else if (thisSendCount < 0)
 				{
-					// 服务器异常
-					notifyNetState(NET_STATE.SERVER_CLOSE, SocketError.NotConnected);
+					if (!mManualDisconnect)
+					{
+						notifyNetState(NET_STATE.SERVER_CLOSE, SocketError.NotConnected);
+					}
 					break;
 				}
 				allSendCount += thisSendCount;
@@ -418,7 +460,10 @@ public abstract class NetConnectTCP : NetConnect
 		catch (ObjectDisposedException) { }
 		catch (SocketException e)
 		{
-			socketException(e);
+			if (!mManualDisconnect)
+			{
+				socketException(e);
+			}
 		}
 		mTotalBuffer.clear();
 	}

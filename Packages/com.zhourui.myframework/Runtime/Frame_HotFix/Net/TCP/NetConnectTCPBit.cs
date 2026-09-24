@@ -90,6 +90,8 @@ public class NetConnectTCPBit : NetConnectTCP
 		ARRAY_BYTE_THREAD(out byte[] packetData, curByteCount.getGreaterPow2());
 		memcpy(packetData, writer.getBuffer(), 0, 0, curByteCount);
 		mOutputBuffer.add(new(packetData, curByteCount, true, 0));
+		// 有新数据后立即唤醒MyThread事件发送线程,不再等待固定轮询周期。
+		notifySendPending();
 		mNetPacketFactory.destroyPacket(netPacket);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
