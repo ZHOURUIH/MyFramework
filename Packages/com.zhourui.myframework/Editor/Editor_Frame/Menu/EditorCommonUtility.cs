@@ -851,7 +851,7 @@ public class EditorCommonUtility
 	{
 		deleteFolder(getFilePath(outputPath));
 		createDir(getFilePath(outputPath));
-		return buildGame(outputPath, BuildTarget.StandaloneWindows, BuildTargetGroup.Standalone, buildOptions);
+		return buildGame(outputPath, BuildTarget.StandaloneWindows64, BuildTargetGroup.Standalone, buildOptions);
 	}
 	// outputPath是xcodeproj所在的目录,不带文件名
 	public static BuildResult buildIOS(string outputPath, BuildOptions buildOptions)
@@ -3075,7 +3075,7 @@ public class EditorCommonUtility
 #elif UNITY_WEBGL
 		return BuildTarget.WebGL;
 #elif UNITY_STANDALONE_WIN
-		return BuildTarget.StandaloneWindows;
+		return BuildTarget.StandaloneWindows64;
 #elif UNITY_IOS
 		return BuildTarget.iOS;
 #elif UNITY_STANDALONE_OSX
