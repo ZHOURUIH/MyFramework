@@ -98,7 +98,8 @@ public abstract class NetConnectTCP : NetConnect
 		}
 		mManualDisconnect = false;
 		notifyNetState(NET_STATE.CONNECTING);
-		// 创建socket
+		// 创建socket。异步连接回调必须绑定本次创建的Socket,不能在回调里直接访问可能已经被重连替换的mSocket。
+		Socket connectSocket;
 		using (new ThreadLockScope(mSocketLock))
 		{
 			if (mSocket != null)
@@ -109,28 +110,61 @@ public abstract class NetConnectTCP : NetConnect
 			}
 			mSocket = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 			mSocket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, 1);
+			connectSocket = mSocket;
 		}
 		if (isDevOrEditor())
 		{
 			log("开始连接服务器:" + mIPAddress);
 		}
-		mSocket.BeginConnect(mIPAddress, mPort, (IAsyncResult ar) =>
+		connectSocket.BeginConnect(mIPAddress, mPort, (IAsyncResult ar) =>
 		{
+			Socket callbackSocket = ar.AsyncState as Socket;
 			try
 			{
-				mSocket.EndConnect(ar);
+				callbackSocket?.EndConnect(ar);
+			}
+			catch (ObjectDisposedException)
+			{
+				// 连接过程中主动断开/切换网络时,旧Socket被Dispose后异步回调仍可能到达。
+				// 这是正常竞态,不能作为客户端错误上报。
+				delayCall(callback, false);
+				return;
 			}
 			catch (SocketException e)
 			{
 				delayCall(callback, false);
 				log("init socket exception : " + e.Message);
-				socketException(e);
+				bool isCurrentSocket;
+				using (new ThreadLockScope(mSocketLock))
+				{
+					isCurrentSocket = ReferenceEquals(mSocket, callbackSocket) && !mManualDisconnect;
+				}
+				// 旧连接的迟到回调不能影响已经建立的新连接。
+				if (isCurrentSocket)
+				{
+					socketException(e);
+				}
+				return;
+			}
+
+			bool connected = false;
+			using (new ThreadLockScope(mSocketLock))
+			{
+				// disconnect/重连后到达的旧回调直接丢弃,不能把新连接状态改回CONNECTED。
+				if (callbackSocket != null && ReferenceEquals(mSocket, callbackSocket) && !mManualDisconnect && callbackSocket.Connected)
+				{
+					notifyNetState(NET_STATE.CONNECTED);
+					connected = true;
+				}
+			}
+			if (!connected)
+			{
+				delayCall(callback, false);
 				return;
 			}
 			log("连接服务器成功");
-			notifyNetState(NET_STATE.CONNECTED);
 			delayCall(callback, true);
-		}, mSocket);
+		}, connectSocket);
 	}
 	public void disconnect()
 	{
