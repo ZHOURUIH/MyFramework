@@ -196,26 +196,54 @@ public abstract class NetConnectTCP : NetConnect
 			mPingStartTime = DateTime.Now;
 			mPingCallback.Invoke();
 		}
-		// 解析所有已经收到的消息包
+		// 解析所有已经收到的消息包。
+		// 单包异常时必须回收当前Packet和当前/剩余原始byte[],否则DoubleBufferReader.Dispose只会Clear列表,不会归还数组池。
 		using var a = new DoubleBufferReader<PacketReceiveInfo>(mReceiveBuffer);
-		try
+		List<PacketReceiveInfo> readList = a.mReadList;
+		if (readList == null)
 		{
-			foreach (PacketReceiveInfo info in a.mReadList.safe())
-			{
-				NetPacket packet = parsePacket(info.mType, info.mPacketData, info.mPacketSize, info.mSequence, info.mFieldFlag, info.mHasSign);
-				UN_ARRAY_BYTE_THREAD(info.mPacketData);
-				if (packet == null)
-				{
-					continue;
-				}
-				using var b = new ProfilerScope(packet.GetType().Name);
-				packet.execute();
-				mNetPacketFactory.destroyPacket(packet);
-			}
+			return;
 		}
-		catch (Exception e)
+		int readCount = readList.Count;
+		for (int i = 0; i < readCount; ++i)
 		{
-			logException(e, "socket packet error");
+			PacketReceiveInfo info = readList[i];
+			NetPacket packet = null;
+			bool packetFailed = false;
+			try
+			{
+				packet = parsePacket(info.mType, info.mPacketData, info.mPacketSize, info.mSequence, info.mFieldFlag, info.mHasSign);
+				if (packet != null)
+				{
+					using var b = new ProfilerScope(packet.GetType().Name);
+					packet.execute();
+				}
+			}
+			catch (Exception e)
+			{
+				packetFailed = true;
+				logException(e, "socket packet error, packetType:" + info.mType + ", sequence:" + info.mSequence + ", packetSize:" + info.mPacketSize);
+			}
+			finally
+			{
+				UN_ARRAY_BYTE_THREAD(info.mPacketData);
+				if (packet != null)
+				{
+					mNetPacketFactory.destroyPacket(packet);
+				}
+			}
+			if (!packetFailed)
+			{
+				continue;
+			}
+			// 保持旧行为:当前批次遇到执行异常后不再继续执行后续消息。
+			// 但后续消息的原始buffer必须全部归还数组池,避免异常后产生额外内存泄漏。
+			for (int j = i + 1; j < readCount; ++j)
+			{
+				PacketReceiveInfo remainInfo = readList[j];
+				UN_ARRAY_BYTE_THREAD(remainInfo.mPacketData);
+			}
+			break;
 		}
 	}
 	public override void destroy()
