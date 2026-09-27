@@ -805,9 +805,14 @@ public class FrameBaseUtility
 		}
 		return str;
 	}
-	// 通过WWW加载本地资源时,需要确保路径的前缀正确
+	// 通过UnityWebRequest加载本地资源时,需要确保路径前缀正确。
+	// Android只有APK内StreamingAssets使用jar:file://,persistentDataPath等普通文件系统路径必须使用file://。
 	public static void checkDownloadPath(ref string path)
 	{
+		if (string.IsNullOrEmpty(path) || path.Contains("://"))
+		{
+			return;
+		}
 		if (isEditor() || isWindows())
 		{
 			path = ensurePrefix(path, "file:///");
@@ -818,8 +823,9 @@ public class FrameBaseUtility
 		}
 		else if (isAndroid())
 		{
-			// android本地加载需要添加jar:file://前缀
-			path = ensurePrefix(path, "jar:file://");
+			// Application.streamingAssetsPath在Android上通常已经是jar:file:// URI,上面的Contains("://")会直接保留。
+			// 进入这里的绝对路径属于persistentDataPath等普通文件系统路径。
+			path = ensurePrefix(path, "file://");
 		}
 	}
 	// fileName为绝对路径
