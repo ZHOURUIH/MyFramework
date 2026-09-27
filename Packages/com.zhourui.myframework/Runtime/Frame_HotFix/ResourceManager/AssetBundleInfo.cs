@@ -196,8 +196,22 @@ public class AssetBundleInfo : ClassObject
 		{
 			item.Value?.loadAssetBundle();
 		}
-		byte[] bytes = openFileSync(availableReadPath(mBundleFileName), true);
-		mAssetBundle = bytes != null ? AssetBundle.LoadFromMemory(bytes) : null;
+		if (isWebGL())
+		{
+			if (isWeiXin() || isByteDance())
+			{
+				byte[] bytes = openFileSync(availableReadPath(mBundleFileName), true);
+				mAssetBundle = bytes != null ? AssetBundle.LoadFromMemory(bytes) : null;
+			}
+			else
+			{
+				logError("不支持的平台");
+			}
+		}
+		else
+		{
+			mAssetBundle = AssetBundle.LoadFromFile(availableReadPath(mBundleFileName));
+		}
 		if (mAssetBundle == null)
 		{
 			logError("can not load asset bundle : " + mBundleFileName);
