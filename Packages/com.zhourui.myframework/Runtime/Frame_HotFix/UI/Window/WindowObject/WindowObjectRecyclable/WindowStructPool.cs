@@ -16,9 +16,18 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 	{
 		base.destroy();
 		unuseAll();
+		clearUnused();
+	}
+	// 真正销毁池中所有未使用对象。
+	// 与unuseAll不同:unuseAll只是把正在使用对象放进mUnusedItemList以便后续复用,
+	// clearUnused会调用WindowObject.destroy(),从而连同克隆的GameObject和myUGUISprite持有的ResourceRef一起释放。
+	public void clearUnused()
+	{
 		mUnusedItemList.For(item => item.destroy());
 		mUnusedItemList.Clear();
 	}
+	public int getUnusedCount() { return mUnusedItemList.Count; }
+	public int getTotalCount() { return mUsedItemList.Count + mUnusedItemList.Count; }
 	public override void init()
 	{
 		base.init();
