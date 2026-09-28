@@ -56,6 +56,37 @@ public class ClassPool : FrameSystem
 	{
 		mUnusedList.forValue(item => item.Clear());
 	}
+	// 清空未使用对象缓存,但为指定类型保留最多keepCount个对象。
+	// 用于一些构造时会申请大块常驻Buffer、且设计上明确需要跨场景复用的对象。
+	// 不创建临时集合,直接在现有Queue上处理。
+	public void clearUnusedExcept(Type keepType, int keepCount = 1)
+	{
+		if (keepCount < 0)
+		{
+			keepCount = 0;
+		}
+		foreach (var item in mUnusedList)
+		{
+			Queue<ClassObject> list = item.Value;
+			if (list == null)
+			{
+				continue;
+			}
+			if (item.Key != keepType)
+			{
+				list.Clear();
+				continue;
+			}
+			while (list.Count > keepCount)
+			{
+				list.Dequeue();
+			}
+		}
+	}
+	public void clearUnusedExcept<T>(int keepCount = 1) where T : ClassObject
+	{
+		clearUnusedExcept(typeof(T), keepCount);
+	}
 	public Dictionary<Type, HashSet<ClassObject>> getPersistentInusedList() { return mPersistentInuseList; }
 	public Dictionary<Type, HashSet<ClassObject>> getInusedList() { return mInusedList; }
 	public Dictionary<Type, Queue<ClassObject>> getUnusedList() { return mUnusedList; }

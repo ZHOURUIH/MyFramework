@@ -77,7 +77,7 @@ public class PrefabPool : ClassObject
                 op.setFinish();
                 return;
 			}
-			setPrefab(asset);
+			adoptAsyncLoadedPrefab(ref asset);
 			doInitToPool(tag, count, moveToHide);
 			callback?.Invoke();
             op.setFinish();
@@ -127,7 +127,7 @@ public class PrefabPool : ClassObject
                 op.setFinish();
                 return;
 			}
-			setPrefab(asset);
+			adoptAsyncLoadedPrefab(ref asset);
 			getOneUnusedAsyncInternal(tag, (GameObjectInfo info)=> 
 			{
 				callback?.Invoke(info, false);
@@ -204,6 +204,26 @@ public class PrefabPool : ClassObject
 		mUnuseList.add(obj);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
+	// 同一个Prefab在首次异步加载完成前,可能同时收到多次createObjectAsync请求。
+	// 每次ResourceManager异步回调都会返回一个独立的ResourceRef,即使底层UnityEngine.Object是同一个。
+	// mPrefab只能持有其中一个ResourceRef,其余ResourceRef必须显式unload,
+	// 否则直接mPrefab = asset会丢失旧ResourceRef,对应的ResourceManager token将永远无法释放。
+	protected void adoptAsyncLoadedPrefab(ref ResourceRef<GameObject> asset)
+	{
+		if (asset == null)
+		{
+			return;
+		}
+		if (mPrefab == null)
+		{
+			mPrefab = asset;
+			asset = null;
+			return;
+		}
+		// 已经有其他并发请求先完成并持有Prefab引用。
+		// 当前asset只是同一Prefab的额外ResourceRef,释放它的token即可。
+		mResourceManager.unload(ref asset);
+	}
 	protected void doInitToPool(int tag, int count, bool moveToHide)
 	{
 		if (mPrefab == null)
