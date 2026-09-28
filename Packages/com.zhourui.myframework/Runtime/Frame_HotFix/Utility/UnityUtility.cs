@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
@@ -78,8 +78,7 @@ public class UnityUtility
 		{
 			errorInfo += "\n编辑器中双击下一条日志可跳转到抛异常的具体代码位置";
 		}
-		// 必须上报已经拼接了异常类型、message和stack的errorInfo。
-		// 旧实现误传info,会导致线上数据库只剩"socket packet error"之类的标题,真正异常内容全部丢失。
+		// 必须上报已经拼接了异常类型、message和stack的errorInfo
 		logError(errorInfo);
 		if (isEditor())
 		{
