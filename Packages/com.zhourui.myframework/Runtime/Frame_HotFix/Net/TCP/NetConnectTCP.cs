@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Collections.Generic;
+using System.Threading;
 using static StringUtility;
 using static UnityUtility;
 using static SerializeBitUtility;
@@ -34,6 +35,7 @@ public abstract class NetConnectTCP : NetConnect
 	protected byte[] mRecvBuff = new byte[TCP_RECEIVE_BUFFER];				// 从Socket接收时使用的缓冲区
 	protected int mPing;													// 网络延迟,计算方式是从发出一个ping包到接收到一个回复包的间隔时间
 	protected int mPort;													// 服务器端口
+	protected int mConnectionGeneration;							// 连接代次,每次主动断开/重新连接都会递增,用于丢弃旧Socket线程/异步回调
 	protected bool mManualDisconnect;										// 是否正在主动断开连接
 	protected bool mManualSendReceive;										// 是否手动去调用doSend和doReceive
 	protected NET_STATE mNetState;											// 网络连接状态
@@ -56,8 +58,10 @@ public abstract class NetConnectTCP : NetConnect
 	public override void resetProperty()
 	{
 		base.resetProperty();
-		// Receive线程可能阻塞在Socket.Receive,必须先关闭Socket解除阻塞,再停止线程和销毁网络缓冲。
+		// Receive线程可能阻塞在Socket.Receive,先让当前连接代次失效,再关闭Socket解除阻塞。
+		// 旧Receive/Send/BeginConnect回调即使稍后才返回,也不能再影响下一次连接。
 		mManualDisconnect = true;
+		Interlocked.Increment(ref mConnectionGeneration);
 		clearSocket();
 		mSendThread.stop();
 		mReceiveThread.stop();
@@ -89,6 +93,8 @@ public abstract class NetConnectTCP : NetConnect
 	public bool isManualDisconnect()							{ return mManualDisconnect; }
 	public NetStateCallback getNetStateCallback()				{ return mNetStateCallback; }
 	public void setNetStateCallback(NetStateCallback callback)	{ mNetStateCallback = callback; }
+	public int getConnectionGeneration()							{ return Volatile.Read(ref mConnectionGeneration); }
+	public bool isConnectionGenerationCurrent(int generation)		{ return generation == Volatile.Read(ref mConnectionGeneration); }
 	public void startConnect(Action<bool> callback)
 	{
 		if (isConnected() || isConnecting())
@@ -96,26 +102,40 @@ public abstract class NetConnectTCP : NetConnect
 			callback?.Invoke(false);
 			return;
 		}
+
+		// 新连接开始前切换到新的连接代次。
+		// disconnect关闭旧Socket后,旧Receive线程可能还没从Socket.Receive返回;
+		// 旧线程后续收到Interrupted/OperationAborted时必须被识别为旧连接事件。
+		int connectionGeneration = Interlocked.Increment(ref mConnectionGeneration);
 		mManualDisconnect = false;
-		notifyNetState(NET_STATE.CONNECTING);
-		// 创建socket。异步连接回调必须绑定本次创建的Socket,不能在回调里直接访问可能已经被重连替换的mSocket。
+		notifyNetState(NET_STATE.CONNECTING, SocketError.Success, connectionGeneration);
+
+		// 创建Socket。异步连接回调必须绑定本次创建的Socket,
+		// 不能在回调里访问可能已经被下一次重连替换的mSocket。
 		Socket connectSocket;
 		using (new ThreadLockScope(mSocketLock))
 		{
+			if (!isConnectionGenerationCurrent(connectionGeneration))
+			{
+				callback?.Invoke(false);
+				return;
+			}
 			if (mSocket != null)
 			{
 				callback?.Invoke(false);
 				logError("当前Socket不为空");
 				return;
 			}
-			mSocket = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-			mSocket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, 1);
-			connectSocket = mSocket;
+			connectSocket = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+			connectSocket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, 1);
+			mSocket = connectSocket;
 		}
+
 		if (isDevOrEditor())
 		{
-			log("开始连接服务器:" + mIPAddress);
+			log("开始连接服务器:" + mIPAddress + ", Generation:" + connectionGeneration);
 		}
+
 		connectSocket.BeginConnect(mIPAddress, mPort, (IAsyncResult ar) =>
 		{
 			Socket callbackSocket = ar.AsyncState as Socket;
@@ -125,50 +145,59 @@ public abstract class NetConnectTCP : NetConnect
 			}
 			catch (ObjectDisposedException)
 			{
-				// 连接过程中主动断开/切换网络时,旧Socket被Dispose后异步回调仍可能到达。
-				// 这是正常竞态,不能作为客户端错误上报。
-				delayCall(callback, false);
+				// 主动切服/断开时旧Socket被Dispose后回调仍可能晚到。
+				if (isDevOrEditor() && !isCurrentConnection(callbackSocket, connectionGeneration))
+				{
+					log("忽略旧TCP连接BeginConnect回调(ObjectDisposed), Generation:" + connectionGeneration +
+						", CurrentGeneration:" + getConnectionGeneration(), LOG_LEVEL.LOW);
+				}
 				return;
 			}
 			catch (SocketException e)
 			{
+				// 旧连接的迟到异常不能影响已经建立/正在建立的新连接。
+				if (!isCurrentConnection(callbackSocket, connectionGeneration))
+				{
+					if (isDevOrEditor())
+					{
+						log("忽略旧TCP连接BeginConnect异常:" + e.SocketErrorCode +
+							", Generation:" + connectionGeneration +
+							", CurrentGeneration:" + getConnectionGeneration(), LOG_LEVEL.LOW);
+					}
+					return;
+				}
 				delayCall(callback, false);
 				log("init socket exception : " + e.Message);
-				bool isCurrentSocket;
-				using (new ThreadLockScope(mSocketLock))
+				socketException(e, callbackSocket, connectionGeneration);
+				return;
+			}
+
+			// EndConnect成功时也必须再次确认这还是当前连接。
+			if (!isCurrentConnection(callbackSocket, connectionGeneration) || !callbackSocket.Connected)
+			{
+				if (isDevOrEditor())
 				{
-					isCurrentSocket = ReferenceEquals(mSocket, callbackSocket) && !mManualDisconnect;
-				}
-				// 旧连接的迟到回调不能影响已经建立的新连接。
-				if (isCurrentSocket)
-				{
-					socketException(e);
+					log("忽略旧TCP连接成功回调, Generation:" + connectionGeneration +
+						", CurrentGeneration:" + getConnectionGeneration(), LOG_LEVEL.LOW);
 				}
 				return;
 			}
 
-			bool connected = false;
-			using (new ThreadLockScope(mSocketLock))
+			notifyNetState(NET_STATE.CONNECTED, SocketError.Success, connectionGeneration, callbackSocket);
+			if (!isCurrentConnection(callbackSocket, connectionGeneration))
 			{
-				// disconnect/重连后到达的旧回调直接丢弃,不能把新连接状态改回CONNECTED。
-				if (callbackSocket != null && ReferenceEquals(mSocket, callbackSocket) && !mManualDisconnect && callbackSocket.Connected)
-				{
-					notifyNetState(NET_STATE.CONNECTED);
-					connected = true;
-				}
-			}
-			if (!connected)
-			{
-				delayCall(callback, false);
 				return;
 			}
-			log("连接服务器成功");
+			log("连接服务器成功, Generation:" + connectionGeneration);
 			delayCall(callback, true);
 		}, connectSocket);
 	}
 	public void disconnect()
 	{
 		mManualDisconnect = true;
+		// 先使旧连接代次失效。旧Receive线程可能在clearSocket之后才从阻塞Receive返回,
+		// 即使下一次startConnect已经把mManualDisconnect重新设为false,旧线程也不能再影响新连接。
+		int connectionGeneration = Interlocked.Increment(ref mConnectionGeneration);
 		clearSocket();
 		mPingTimer.stop(false);
 		using (var a = new DoubleBufferReader<PacketReceiveInfo>(mReceiveBuffer))
@@ -186,8 +215,9 @@ public abstract class NetConnectTCP : NetConnect
 			}
 		}
 		mReceiveBuffer.clear();
-		// 主动关闭时,网络状态应该是无状态
-		notifyNetState(NET_STATE.NONE);
+		// 主动关闭时,网络状态应该是无状态。
+		// 如果同一帧马上startConnect,这个NONE命令会因为Generation过期而在主线程被忽略。
+		notifyNetState(NET_STATE.NONE, SocketError.Success, connectionGeneration);
 	}
 	public virtual void update(float elapsedTime)
 	{
@@ -250,6 +280,7 @@ public abstract class NetConnectTCP : NetConnect
 	{
 		base.destroy();
 		mManualDisconnect = true;
+		Interlocked.Increment(ref mConnectionGeneration);
 		// 先关闭Socket解除Receive阻塞,再销毁线程。
 		clearSocket();
 		mSendThread.destroy();
@@ -275,30 +306,47 @@ public abstract class NetConnectTCP : NetConnect
 	public int getPing() { return mPing; }
 	public abstract void sendNetPacket(NetPacket packet);
 	public NET_STATE getNetState() { return mNetState; }
-	public virtual void clearSocket()
+	protected bool isCurrentConnection(Socket socket, int connectionGeneration)
+	{
+		return socket != null &&
+			connectionGeneration == Volatile.Read(ref mConnectionGeneration) &&
+			ReferenceEquals(socket, mSocket);
+	}
+	// 仅清理指定Socket。旧连接的异常/回调不能误关已经建立的新Socket。
+	protected void clearSocket(Socket expectedSocket)
 	{
 		using (new ThreadLockScope(mSocketLock))
 		{
+			if (expectedSocket != null && !ReferenceEquals(expectedSocket, mSocket))
+			{
+				return;
+			}
+			Socket socket = mSocket;
+			if (socket == null)
+			{
+				return;
+			}
+			// 先摘掉当前Socket,其它线程随后即可识别它已经过期。
+			mSocket = null;
 			try
 			{
-				if (mSocket != null)
+				if (socket.Connected)
 				{
-					if (mSocket.Connected)
-					{
-						mSocket.Shutdown(SocketShutdown.Both);
-						mSocket.Disconnect(false);
-					}
-					mSocket.Close();
-					mSocket.Dispose();
-					mSocket = null;
+					socket.Shutdown(SocketShutdown.Both);
+					socket.Disconnect(false);
 				}
+				socket.Close();
+				socket.Dispose();
 			}
 			catch (Exception e)
 			{
 				log("关闭连接时异常：" + e.Message);
-				mSocket = null;
 			}
 		}
+	}
+	public virtual void clearSocket()
+	{
+		clearSocket(null);
 	}
 	// 由于连接成功操作可能不在主线程,所以只能是外部在主线程通知网络管理器连接成功
 	public void notifyConnected()
@@ -373,7 +421,8 @@ public abstract class NetConnectTCP : NetConnect
 	{
 		// 不能持有mSocketLock执行阻塞Receive,否则clearSocket无法取得锁来关闭Socket并解除阻塞。
 		Socket socket = mSocket;
-		if (socket == null || !socket.Connected || mNetState != NET_STATE.CONNECTED)
+		int connectionGeneration = Volatile.Read(ref mConnectionGeneration);
+		if (!isCurrentConnection(socket, connectionGeneration) || !socket.Connected || mNetState != NET_STATE.CONNECTED)
 		{
 			return false;
 		}
@@ -385,11 +434,16 @@ public abstract class NetConnectTCP : NetConnect
 			}
 			// 自动接收模式直接阻塞在Receive。Socket关闭后这里会立即返回/抛异常。
 			int nRecv = socket.Receive(mRecvBuff);
+			// Receive返回时连接可能已经切换。旧连接的数据不能再写入新连接共用的输入缓冲。
+			if (!isCurrentConnection(socket, connectionGeneration))
+			{
+				return false;
+			}
 			if (nRecv == 0)
 			{
-				if (!mManualDisconnect)
+				if (!mManualDisconnect && isCurrentConnection(socket, connectionGeneration))
 				{
-					notifyNetState(NET_STATE.SERVER_ABORT, SocketError.NotConnected);
+					notifyNetState(NET_STATE.SERVER_ABORT, SocketError.NotConnected, connectionGeneration, socket);
 				}
 				return false;
 			}
@@ -446,10 +500,17 @@ public abstract class NetConnectTCP : NetConnect
 		}
 		catch (SocketException e)
 		{
-			// 主动断开会通过关闭Socket唤醒Receive,不再重复改变网络状态。
-			if (!mManualDisconnect)
+			// 主动切服关闭旧Socket后,旧Receive线程可能晚于下一次startConnect才收到Interrupted。
+			// mManualDisconnect此时可能已经被新连接改回false,所以必须同时校验Socket和Generation。
+			if (!mManualDisconnect && isCurrentConnection(socket, connectionGeneration))
 			{
-				socketException(e);
+				socketException(e, socket, connectionGeneration);
+			}
+			else if (isDevOrEditor())
+			{
+				log("忽略旧TCP接收线程异常:" + e.SocketErrorCode +
+					", Generation:" + connectionGeneration +
+					", CurrentGeneration:" + getConnectionGeneration(), LOG_LEVEL.LOW);
 			}
 			return false;
 		}
@@ -488,7 +549,8 @@ public abstract class NetConnectTCP : NetConnect
 			return;
 		}
 		Socket socket = mSocket;
-		if (socket == null)
+		int connectionGeneration = Volatile.Read(ref mConnectionGeneration);
+		if (!isCurrentConnection(socket, connectionGeneration))
 		{
 			mTotalBuffer.clear();
 			return;
@@ -502,17 +564,17 @@ public abstract class NetConnectTCP : NetConnect
 				int thisSendCount = socket.Send(allBytes, allSendCount, allLength - allSendCount, SocketFlags.None);
 				if (thisSendCount == 0)
 				{
-					if (!mManualDisconnect)
+					if (!mManualDisconnect && isCurrentConnection(socket, connectionGeneration))
 					{
-						notifyNetState(NET_STATE.SERVER_ABORT, SocketError.NotConnected);
+						notifyNetState(NET_STATE.SERVER_ABORT, SocketError.NotConnected, connectionGeneration, socket);
 					}
 					break;
 				}
 				else if (thisSendCount < 0)
 				{
-					if (!mManualDisconnect)
+					if (!mManualDisconnect && isCurrentConnection(socket, connectionGeneration))
 					{
-						notifyNetState(NET_STATE.SERVER_CLOSE, SocketError.NotConnected);
+						notifyNetState(NET_STATE.SERVER_CLOSE, SocketError.NotConnected, connectionGeneration, socket);
 					}
 					break;
 				}
@@ -522,9 +584,15 @@ public abstract class NetConnectTCP : NetConnect
 		catch (ObjectDisposedException) { }
 		catch (SocketException e)
 		{
-			if (!mManualDisconnect)
+			if (!mManualDisconnect && isCurrentConnection(socket, connectionGeneration))
 			{
-				socketException(e);
+				socketException(e, socket, connectionGeneration);
+			}
+			else if (isDevOrEditor())
+			{
+				log("忽略旧TCP发送线程异常:" + e.SocketErrorCode +
+					", Generation:" + connectionGeneration +
+					", CurrentGeneration:" + getConnectionGeneration(), LOG_LEVEL.LOW);
 			}
 		}
 		mTotalBuffer.clear();
@@ -541,8 +609,12 @@ public abstract class NetConnectTCP : NetConnect
 		}
 		logError(info.ToString());
 	}
-	protected void socketException(SocketException e)
+	protected void socketException(SocketException e, Socket socket, int connectionGeneration)
 	{
+		if (!isCurrentConnection(socket, connectionGeneration))
+		{
+			return;
+		}
 		// 本地网络异常,基本全部都认为是网络问题,这样可以进行重连,而不是只提示服务器关闭
 		// 如果服务器真的关了,那也只是会重连失败
 		NET_STATE state = NET_STATE.NET_CLOSE;
@@ -564,17 +636,34 @@ public abstract class NetConnectTCP : NetConnect
 		{
 			state = NET_STATE.NET_CLOSE;
 		}
-		notifyNetState(state, e.SocketErrorCode);
+		notifyNetState(state, e.SocketErrorCode, connectionGeneration, socket);
 	}
-	protected void notifyNetState(NET_STATE state, SocketError errorCode = SocketError.Success)
+	protected void notifyNetState(
+		NET_STATE state,
+		SocketError errorCode = SocketError.Success,
+		int connectionGeneration = -1,
+		Socket sourceSocket = null)
 	{
 		using (new ThreadLockScope(mConnectStateLock))
 		{
+			int currentGeneration = Volatile.Read(ref mConnectionGeneration);
+			int eventGeneration = connectionGeneration >= 0 ? connectionGeneration : currentGeneration;
+			// 旧连接事件不能覆盖当前连接状态。
+			if (eventGeneration != currentGeneration)
+			{
+				return;
+			}
+			if (sourceSocket != null && !ReferenceEquals(sourceSocket, mSocket))
+			{
+				return;
+			}
+
 			NET_STATE lastState = mNetState;
 			mNetState = state;
 			if (!isConnected() && !isConnecting())
 			{
-				clearSocket();
+				// 来自Socket线程的终止状态只能关闭它自己的Socket,不能误关下一次连接。
+				clearSocket(sourceSocket);
 			}
 			CMD_DELAY_THREAD(out CmdNetConnectTCPState cmd, LOG_LEVEL.FORCE);
 			if (cmd != null)
@@ -582,6 +671,7 @@ public abstract class NetConnectTCP : NetConnect
 				cmd.mErrorCode = errorCode;
 				cmd.mNetState = mNetState;
 				cmd.mLastNetState = lastState;
+				cmd.mConnectionGeneration = eventGeneration;
 				pushDelayCommand(cmd, this);
 			}
 		}
