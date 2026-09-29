@@ -619,6 +619,20 @@ public static class ListExtension
 		list.AddRange(other);
 		return list;
 	}
+	public static List<T> setRange<T>(this List<T> list, HashSet<T> other)
+	{
+		if (list == null)
+		{
+			return list;
+		}
+		list.Clear();
+		if (other.isEmpty())
+		{
+			return list;
+		}
+		list.AddRange(other);
+		return list;
+	}
 	public static List<T> setRange<T>(this List<T> list, T[] other)
 	{
 		if (list == null)
