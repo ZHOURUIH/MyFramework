@@ -1,3 +1,4 @@
+using UnityEngine;
 using UPlayerPrefs = UnityEngine.PlayerPrefs;
 #if BYTE_DANCE
 using TTSDK;
@@ -116,6 +117,22 @@ public class PrefsUtility
 		TT.PlayerPrefs.DeleteKey(key);
 #else
 		UPlayerPrefs.DeleteKey(key);
+#endif
+	}
+	public static void prefsSave(string key)
+	{
+#if !UNITY_EDITOR && BYTE_DANCE
+		TT.PlayerPrefs.Save();
+#else
+		UPlayerPrefs.Save();
+#endif
+	}
+	public static void prefsDeleteAll(string key)
+	{
+#if !UNITY_EDITOR && BYTE_DANCE
+		TT.PlayerPrefs.DeleteAll();
+#else
+		UPlayerPrefs.DeleteAll();
 #endif
 	}
 }
