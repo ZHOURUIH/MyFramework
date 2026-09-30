@@ -62,4 +62,5 @@ public class FrameBaseHotFix
 	public static AndroidPurchasing mAndroidPurchasing;
 	public static PurchasingSystem mPurchasingSystem;
 	public static AvatarRenderer mAvatarRenderer;
+	public static MiniGamePlatform mMiniGamePlatform;
 }
