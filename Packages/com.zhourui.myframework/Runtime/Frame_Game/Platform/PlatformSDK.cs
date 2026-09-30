@@ -18,19 +18,4 @@ public class PlatformSDK
 		});
 #endif
 	}
-	public static bool isMobile()
-	{
-#if OPPO_MINI_GAME || VIVO_MINI_GAME
-		return true;
-#elif UNITY_WEBGL && !UNITY_EDITOR
-		return NativePlatform_IsMobile() != 0;
-#else
-		return Application.isMobilePlatform;
-#endif
-	}
-#if UNITY_WEBGL && !UNITY_EDITOR
-	//------------------------------------------------------------------------------------------------------------------------------
-	[System.Runtime.InteropServices.DllImport("__Internal")]
-	private static extern int NativePlatform_IsMobile();
-#endif
 }

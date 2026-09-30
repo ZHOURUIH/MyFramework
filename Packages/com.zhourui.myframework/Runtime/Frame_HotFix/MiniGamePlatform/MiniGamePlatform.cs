@@ -225,7 +225,7 @@ public class MiniGamePlatform : FrameSystem
 			return;
 		}
 #if BYTE_DANCE || OPPO_MINI_GAME || VIVO_MINI_GAME
-		string adUnitID = rewarded ? PlatformConfig.getRewardedVideoID() : PlatformConfig.getInterstitialID();
+		string adUnitID = rewarded ? PlatformConfigHotFix.getRewardedVideoID() : PlatformConfigHotFix.getInterstitialID();
 		if (string.IsNullOrWhiteSpace(adUnitID))
 		{
 			logWarning("未配置当前平台的" + (rewarded ? "激励视频" : "插屏") + "广告位 ID");
