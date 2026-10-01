@@ -13,6 +13,8 @@ public class FrameMacro
     public const string USE_SEVEN_ZIP = "USE_SEVEN_ZIP";			// 项目中是否用到了7Zip
     public const string PROJECT_2D = "PROJECT_2D";					// 是否为2D项目
 	public const string BYTE_DANCE = "BYTE_DANCE";					// 是否要发布到抖音小游戏
+	public const string OPPO_MINI_GAME = "OPPO_MINI_GAME";			// 是否要发布到Oppo小游戏
+	public const string VIVO_MINI_GAME = "VIVO_MINI_GAME";			// 是否要发布到Vivo小游戏
 	public const string ENABLE_HOTFIX = "ENABLE_HOTFIX";			// 是否启用热更
 	public const string TEST = "TEST";								// 是否为测试客户端
 	public const string USE_GOOGLE_PLAY_ASSET_DELIVERY = "USE_GOOGLE_PLAY_ASSET_DELIVERY";	// 是否使用谷歌资源分发

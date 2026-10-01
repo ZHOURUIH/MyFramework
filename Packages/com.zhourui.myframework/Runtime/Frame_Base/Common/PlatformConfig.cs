@@ -1,21 +1,31 @@
-#if (OPPO_MINI_GAME && VIVO_MINI_GAME) || ((OPPO_MINI_GAME || VIVO_MINI_GAME) && (BYTE_DANCE || UNITY_WEIXINMINIGAME))
-#error A build must select exactly one mini game platform.
-#endif
+using static FrameBaseUtility;
 
 public class PlatformConfig
 {
 	public static string getResourceFolder(string gameName)
 	{
-#if BYTE_DANCE
-		return gameName + "_ByteDance/";
-#elif OPPO_MINI_GAME
-		return gameName + "_OPPO/";
-#elif VIVO_MINI_GAME
-		return gameName + "_VIVO/";
-#elif UNITY_WEIXINMINIGAME
-		return gameName + "_WeChat/";
-#else
-		return "";
-#endif
+		var settings = PlatformSettings.get();
+		string folder;
+		if (isByteDance())
+		{
+			folder = settings.ByteDanceResourceFolder;
+		}
+		else if (isOppo())
+		{
+			folder = settings.OppoResourceFolder;
+		}
+		else if (isVivo())
+		{
+			folder = settings.VivoResourceFolder;
+		}
+		else if (isWeiXin())
+		{
+			folder = settings.WeChatResourceFolder;
+		}
+		else
+		{
+			folder = settings.DefaultResourceFolder;
+		}
+		return folder.Replace("{GameName}", gameName);
 	}
 }

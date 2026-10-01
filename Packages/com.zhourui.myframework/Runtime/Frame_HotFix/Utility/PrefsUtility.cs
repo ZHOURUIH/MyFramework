@@ -1,5 +1,9 @@
 using UnityEngine;
+#if !UNITY_EDITOR && UNITY_WEBGL && (OPPO_MINI_GAME || VIVO_MINI_GAME || UNITY_WEIXINMINIGAME)
+using UPlayerPrefs = MiniGamePlayerPrefs;
+#else
 using UPlayerPrefs = UnityEngine.PlayerPrefs;
+#endif
 #if BYTE_DANCE
 using TTSDK;
 #endif

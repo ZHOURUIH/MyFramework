@@ -24,7 +24,31 @@ public static class MenuSetting
         }
         pingAsset(P_RESOURCES_PATH + RUNTIME_SETTINGS_RES_PATH);
     }
-	//------------------------------------------------------------------------------------------------------------------------------
+	[MenuItem(MENU_NAME + "打开平台设置")]
+	public static void openPlatformSetting()
+	{
+		string path = P_RESOURCES_PATH + PlatformSettings.RESOURCE_PATH + ".asset";
+		if (!isFileExist(projectPathToFullPath(path)))
+		{
+			createPlatformSettingsFile();
+		}
+		pingAsset(path);
+	}
+	public static void createPlatformSettingsFile()
+	{
+		string path = P_RESOURCES_PATH + PlatformSettings.RESOURCE_PATH + ".asset";
+		createDir(getFilePath(path));
+		var asset = AssetDatabase.LoadAssetAtPath<PlatformSettings>(path);
+		if (asset == null)
+		{
+			asset = ScriptableObject.CreateInstance<PlatformSettings>();
+			AssetDatabase.CreateAsset(asset, path);
+		}
+		EditorUtility.SetDirty(asset);
+		AssetDatabase.SaveAssets();
+		AssetDatabase.Refresh();
+		Debug.Log("已生成平台设置: " + path);
+	}
 	public static void createRuntimeSettinsFile()
     {
         string runtimeSettingsPath = P_RESOURCES_PATH + RUNTIME_SETTINGS_RES_PATH;

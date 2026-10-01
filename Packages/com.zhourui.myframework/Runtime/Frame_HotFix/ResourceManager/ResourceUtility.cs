@@ -107,13 +107,13 @@ public class ResourceUtility
 	public static IEnumerator loadAssetBundleWithURL(string url, AssetLoadCallback callback)
 	{
 		// 小游戏中读取PersistentDataPath中的文件需要使用小游戏提供的接口
-		if ((isByteDance() || isWeiXin()) && url.startWith(F_PERSISTENT_ASSETS_PATH))
+		if ((isByteDance() || isWeiXin() || isOppo() || isVivo()) && url.startWith(F_PERSISTENT_ASSETS_PATH))
 		{
 			yield return openFileAsyncInternal(url, true, (byte[] bytes) =>
 			{
 				try
 				{
-					callback?.Invoke(AssetBundle.LoadFromMemory(bytes), null, null, url);
+					callback?.Invoke(bytes != null ? AssetBundle.LoadFromMemory(bytes) : null, null, null, url);
 				}
 				catch (Exception e)
 				{
@@ -238,8 +238,8 @@ public class ResourceUtility
 	public static IEnumerator loadFileWithURL(string url, AssetLoadCallback callback, DownloadCallback downloadingCallback)
 	{
 		// 这里由于需要计算下载进度,就不再支持小游戏上读取本地文件了
-		if ((isByteDance() || isWeiXin()) &&
-			url.startWith(F_ASSET_BUNDLE_PATH) || url.startWith(F_PERSISTENT_ASSETS_PATH))
+		if ((isByteDance() || isWeiXin() || isOppo() || isVivo()) &&
+			(url.startWith(F_ASSET_BUNDLE_PATH) || url.startWith(F_PERSISTENT_ASSETS_PATH)))
 		{
 			logErrorBase("小游戏上不支持使用loadFileWithURL读取本地文件");
 			try

@@ -198,7 +198,7 @@ public class AssetBundleInfo : ClassObject
 		}
 		if (isWebGL())
 		{
-			if (isWeiXin() || isByteDance())
+			if (isWeiXin() || isByteDance() || isOppo() || isVivo())
 			{
 				byte[] bytes = openFileSync(availableReadPath(mBundleFileName), true);
 				mAssetBundle = bytes != null ? AssetBundle.LoadFromMemory(bytes) : null;

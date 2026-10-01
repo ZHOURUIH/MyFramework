@@ -66,7 +66,6 @@ public class WeChatFileSystem
         WXBase.GetFileSystemManager().WriteFileSync(filePath, byteArray);
 #endif
 	}
-	// 只能读取PersistentData中的文件
 	public static byte[] readBytes(string filePath)
 	{
 #if UNITY_WEIXINMINIGAME
@@ -90,7 +89,8 @@ public class WeChatFileSystem
 			},
 			fail = res =>
 			{
-				Debug.LogError($"WeChatFileSystem read file bytes async failed - {res.errCode}");
+				isLoading = false;
+				FrameBaseUtility.logWarningBase($"WeChatFileSystem read file bytes async failed - {res.errCode}");
 			},
 			position = 0
 		});

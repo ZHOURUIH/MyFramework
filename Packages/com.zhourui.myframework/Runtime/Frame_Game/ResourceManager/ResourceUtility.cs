@@ -18,7 +18,7 @@ public class ResourceUtility
 	public static IEnumerator loadAssetsUrl(string url, AssetLoadDoneCallback callback, DownloadCallback downloadingCallback)
 	{
 		// 这里由于需要计算下载进度,就不再支持小游戏上读取本地文件了
-		if ((isByteDance() || isWeiXin()) &&
+		if ((isByteDance() || isWeiXin() || isOppo() || isVivo()) &&
 			(url.startWith(F_ASSET_BUNDLE_PATH) || url.startWith(F_PERSISTENT_ASSETS_PATH)))
 		{
 			logErrorBase("小游戏上不支持使用loadFileWithURL读取本地文件");

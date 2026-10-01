@@ -131,6 +131,22 @@ public class FrameBaseUtility
 		return false;
 #endif
 	}
+	public static bool isOppo()
+	{
+#if OPPO_MINI_GAME
+		return true;
+#else
+		return false;
+#endif
+	}
+	public static bool isVivo()
+	{
+#if VIVO_MINI_GAME
+		return true;
+#else
+		return false;
+#endif
+	}
 	public static bool isMacOS()
 	{
 #if UNITY_STANDALONE_OSX
@@ -798,6 +814,14 @@ public class FrameBaseUtility
 		}
 	}
 #endif
+	public static string GetQuickGamePersistentPath()
+	{
+#if (OPPO_MINI_GAME || VIVO_MINI_GAME) && UNITY_WEBGL && !UNITY_EDITOR
+		return getQuickGamePersistentPath();
+#else
+		return Application.persistentDataPath;
+#endif
+	}
 	public static UnityWebRequest unityWebRequest(string url)
 	{
 		if (isWebGL() && url.StartsWith(F_PERSISTENT_ASSETS_PATH))
@@ -866,6 +890,18 @@ public class FrameBaseUtility
 			else if (isWeiXin())
 			{
 				yield return WeChatFileSystem.readBytesAsync(fileName, (byte[] bytes) =>
+				{
+					if (errorIfNull && bytes == null)
+					{
+						logErrorBase("open file failed:" + fileName);
+					}
+					logBase("打开文件耗时:" + (int)(DateTime.Now - start).TotalMilliseconds + "毫秒,file:" + fileName);
+					callBytesCallback(callback, bytes);
+				});
+			}
+			else if (isOppo() || isVivo())
+			{
+				yield return QuickGameFileSystem.readBytesAsync(fileName, (byte[] bytes) =>
 				{
 					if (errorIfNull && bytes == null)
 					{
@@ -996,4 +1032,8 @@ public class FrameBaseUtility
 		return "#0000FF";
 #endif
 	}
+#if (OPPO_MINI_GAME || VIVO_MINI_GAME) && UNITY_WEBGL && !UNITY_EDITOR
+	[System.Runtime.InteropServices.DllImport("__Internal", EntryPoint = "GetQuickGamePersistentPath")]
+	private static extern string getQuickGamePersistentPath();
+#endif
 }

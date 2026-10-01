@@ -44,6 +44,10 @@ public class FrameBaseDefine
 	public static string F_PERSISTENT_DATA_PATH = GetTTPersistantPath();
 #elif UNITY_WEIXINMINIGAME
 	public static string F_PERSISTENT_DATA_PATH = WXBase.env.USER_DATA_PATH + "/";
+#elif OPPO_MINI_GAME || VIVO_MINI_GAME
+	public static string F_PERSISTENT_DATA_PATH = GetQuickGamePersistentPath().TrimEnd('/') + "/";
+#else
+	public static string F_PERSISTENT_DATA_PATH = Application.persistentDataPath + "/";
 #endif
 #else
 	public static string F_PERSISTENT_DATA_PATH = Application.persistentDataPath + "/";
