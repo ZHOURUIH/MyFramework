@@ -13,23 +13,34 @@ public class SafeDictionary<Key, Value> : ClassObject
 	{
 		private SafeDictionary<Key, Value> mOwner;
 		private Dictionary<Key, Value>.Enumerator mEnumerator;
+		private uint mIterationID;
 		public SafeDictionaryEnumerator(SafeDictionary<Key, Value> safeList)
 		{
-			mOwner = safeList;
+			// 同一容器不支持嵌套遍历,失败的内层枚举器不能结束外层遍历。
+			mOwner = safeList.isForeaching() ? null : safeList;
 			mEnumerator = safeList.startForeach().safe().GetEnumerator();
+			mIterationID = mOwner?.mIterationID ?? 0;
 		}
 		public KeyValuePair<Key, Value> Current => mEnumerator.Current;
 		public bool MoveNext() { return mEnumerator.MoveNext(); }
 		public void Dispose()
 		{
 			mEnumerator.Dispose();
-			mOwner.endForeach();
+			mEnumerator = default;
+			SafeDictionary<Key, Value> owner = mOwner;
+			mOwner = null;
+			// 清除Current中的引用,并避免重复Dispose或枚举器副本结束新的遍历。
+			if (owner != null && owner.mForeaching && owner.mIterationID == mIterationID)
+			{
+				owner.endForeach();
+			}
 		}
 	}
 	protected List<SafeDictionaryModify<Key, Value>> mModifyList = new();   // 记录操作的列表
 	protected Dictionary<Key, Value> mUpdateList = new();					// 用于遍历更新的列表
 	protected Dictionary<Key, Value> mMainList = new();                     // 用于存储实时数据的列表
 	protected string mLastFileName;											// 上一次开始遍历时的文件名
+	private uint mIterationID;												// 当前遍历的所有权版本
 	protected bool mForeaching;												// 当前是否正在遍历中
 	public override void resetProperty()
 	{
@@ -39,6 +50,7 @@ public class SafeDictionary<Key, Value> : ClassObject
 		mMainList.Clear();
 		mLastFileName = null;
 		mForeaching = false;
+		mIterationID = mIterationID + 1;
 	}
 	public bool isForeaching()									{ return mForeaching; }
 	// 安全遍历枚举器：foreach 时自动调用 startForeach，枚举器 Dispose 时自动调用 endForeach
@@ -86,14 +98,21 @@ public class SafeDictionary<Key, Value> : ClassObject
 	public bool containsKey(Key key)					{ return mMainList.ContainsKey(key); }
 	public bool containsValue(Value value)				{ return mMainList.ContainsValue(value); }
 	public int count()									{ return mMainList.Count; }
-	// 因为只能保证开始遍历时mUpdateList与mMainList一致,但是遍历结束后两个列表可能就不一致了,所以即使没有正在遍历时,也只能是记录操作,而不是直接修改mUpdateList
+	// 仅在遍历中延后同步,其余时候两个列表保持一致,不保留已删除对象的修改记录。
 	public bool add(Key key, Value value)
 	{
 		if (!mMainList.TryAdd(key, value))
 		{
 			return false;
 		}
-		mModifyList.Add(new(key, value));
+		if (mForeaching)
+		{
+			mModifyList.Add(new(key, value));
+		}
+		else
+		{
+			mUpdateList.Add(key, value);
+		}
 		return true;
 	}
 	public void addIf(Key key, Value value, bool condition)
@@ -117,7 +136,14 @@ public class SafeDictionary<Key, Value> : ClassObject
 		{
 			return false;
 		}
-		mModifyList.Add(new(key));
+		if (mForeaching)
+		{
+			mModifyList.Add(new(key));
+		}
+		else
+		{
+			mUpdateList.Remove(key);
+		}
 		return true;
 	}
 	// 清空所有数据
@@ -148,7 +174,11 @@ public class SafeDictionary<Key, Value> : ClassObject
 		}
 		mLastFileName = fileName;
 		mForeaching = true;
-
+		mIterationID = mIterationID + 1;
+		return mUpdateList;
+	}
+	private void syncUpdateList()
+	{
 		// 获取更新列表前,先同步主列表到更新列表,为了避免当列表过大时每次同步量太大
 		// 所以单独使用了添加列表和移除列表,用来存储主列表的添加和移除的元素
 		int mainCount = mMainList.Count;
@@ -178,10 +208,16 @@ public class SafeDictionary<Key, Value> : ClassObject
 			logError("同步失败");
 		}
 		mModifyList.Clear();
-		return mUpdateList;
 	}
-	// 仅在迭代器中被调用
-	protected void endForeach() { mForeaching = false; }
+	// 快照使用结束后立即同步,无需等待下次遍历才释放旧对象。
+	protected void endForeach()
+	{
+		mForeaching = false;
+		if (mModifyList.Count > 0)
+		{
+			syncUpdateList();
+		}
+	}
 }
 
 // SafeDictionary的扩展方法,提供便捷的添加和获取操作,因为需要添加新的约束,也就是Value必须是ClassObject,所以只能写成扩展函数

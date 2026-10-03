@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using static UnityUtility;
 
@@ -10,23 +10,33 @@ public class SafeHashSet<T> : ClassObject
 	{
 		private SafeHashSet<T> mOwner;
 		private HashSet<T>.Enumerator mEnumerator;
+		private uint mIterationID;
 		public SafeHashSetEnumerator(SafeHashSet<T> safeList)
 		{
-			mOwner = safeList;
+			// 同一容器不支持嵌套遍历,失败的内层枚举器不能结束外层遍历。
+			mOwner = safeList.isForeaching() ? null : safeList;
 			mEnumerator = safeList.startForeach().safe().GetEnumerator();
+			mIterationID = mOwner?.mIterationID ?? 0;
 		}
 		public T Current => mEnumerator.Current;
 		public bool MoveNext() { return mEnumerator.MoveNext(); }
 		public void Dispose()
 		{
 			mEnumerator.Dispose();
-			mOwner.endForeach();
+			mEnumerator = default;
+			SafeHashSet<T> owner = mOwner;
+			mOwner = null;
+			if (owner != null && owner.mForeaching && owner.mIterationID == mIterationID)
+			{
+				owner.endForeach();
+			}
 		}
 	}
 	protected List<SafeHashSetModify<T>> mModifyList = new();	// 记录操作的列表,按顺序存储所有的操作
 	protected HashSet<T> mUpdateList = new();					// 用于遍历更新的列表
 	protected HashSet<T> mMainList = new();						// 用于存储实时数据的列表
 	protected string mLastFileName;                             // 上一次开始遍历时的文件名
+	private uint mIterationID;											// 当前遍历的所有权版本
 	protected bool mForeaching;									// 当前是否正在遍历中
 	public override void resetProperty()
 	{
@@ -36,6 +46,7 @@ public class SafeHashSet<T> : ClassObject
 		mMainList.Clear();
 		mLastFileName = null;
 		mForeaching = false;
+		mIterationID = mIterationID + 1;
 	}
 	public bool isForeaching()		{ return mForeaching; }
 	// 安全遍历枚举器：foreach 时自动调用 startForeach，枚举器 Dispose 时自动调用 endForeach
@@ -46,14 +57,21 @@ public class SafeHashSet<T> : ClassObject
 	public HashSet<T> getMainList() { return mMainList; }
 	public bool contains(T value)	{ return mMainList.Contains(value); }
 	public int count()				{ return mMainList.Count; }
-	// 因为只能保证开始遍历时mUpdateList与mMainList一致,但是遍历结束后两个列表可能就不一致了,所以即使没有正在遍历时,也只能是记录操作,而不是直接修改mUpdateList
+	// 仅在遍历中延后同步,其余时候两个列表保持一致,不保留已删除对象的修改记录。
 	public bool add(T value)
 	{
 		if (!mMainList.Add(value))
 		{
 			return false;
 		}
-		mModifyList.Add(new(value, true));
+		if (mForeaching)
+		{
+			mModifyList.Add(new(value, true));
+		}
+		else
+		{
+			mUpdateList.Add(value);
+		}
 		return true;
 	}
 	public bool addIf(T value, bool condition)
@@ -70,7 +88,14 @@ public class SafeHashSet<T> : ClassObject
 		{
 			return false;
 		}
-		mModifyList.Add(new(value, false));
+		if (mForeaching)
+		{
+			mModifyList.Add(new(value, false));
+		}
+		else
+		{
+			mUpdateList.Remove(value);
+		}
 		return true;
 	}
 	public bool addOrRemove(T value, bool isAdd)
@@ -113,7 +138,11 @@ public class SafeHashSet<T> : ClassObject
 		}
 		mLastFileName = fileName;
 		mForeaching = true;
-
+		mIterationID = mIterationID + 1;
+		return mUpdateList;
+	}
+	private void syncUpdateList()
+	{
 		// 获取更新列表前,先同步主列表到更新列表,为了避免当列表过大时每次同步量太大
 		// 所以单独使用了添加列表和移除列表,用来存储主列表的添加和移除的元素
 		int mainCount = mMainList.Count;
@@ -144,8 +173,14 @@ public class SafeHashSet<T> : ClassObject
 			logError("同步失败");
 		}
 		mModifyList.Clear();
-		return mUpdateList;
 	}
-	// 仅在迭代器中被调用
-	protected void endForeach() { mForeaching = false; }
+	// 快照使用结束后立即同步,无需等待下次遍历才释放旧对象。
+	protected void endForeach()
+	{
+		mForeaching = false;
+		if (mModifyList.Count > 0)
+		{
+			syncUpdateList();
+		}
+	}
 }

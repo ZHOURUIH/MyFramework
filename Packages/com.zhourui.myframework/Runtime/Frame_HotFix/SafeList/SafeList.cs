@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using static UnityUtility;
@@ -16,13 +16,16 @@ public class SafeList<T> : ClassObject
 		private T mCurrent;
 		private int mIndex;
 		private int mCount;
+		private uint mIterationID;
 		public SafeListEnumerator(SafeList<T> safeList)
 		{
-			mOwner = safeList;
+			// 同一容器不支持嵌套遍历,失败的内层枚举器不能结束外层遍历。
+			mOwner = safeList.isForeaching() ? null : safeList;
 			mList = safeList.startForeach();
 			mCurrent = default;
 			mIndex = 0;
 			mCount = mList.Count;
+			mIterationID = mOwner?.mIterationID ?? 0;
 		}
 		public T Current => mCurrent;
 		// mUpdateList在一次SafeList foreach期间不会被修改,因此无需List<T>.Enumerator的version检查。
@@ -41,12 +44,25 @@ public class SafeList<T> : ClassObject
 			return false;
 		}
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Dispose() { mOwner.endForeach(); }
+		public void Dispose()
+		{
+			SafeList<T> owner = mOwner;
+			mOwner = null;
+			mList = null;
+			mCurrent = default;
+			mIndex = 0;
+			mCount = 0;
+			if (owner != null && owner.mForeaching && owner.mIterationID == mIterationID)
+			{
+				owner.endForeach();
+			}
+		}
 	}
 	protected List<SafeListModify<T>> mModifyList = new();  // 记录无法立即同步到更新列表的操作,通常只会在遍历过程中产生
 	protected List<T> mUpdateList = new();                  // 用于遍历更新的列表
 	protected List<T> mMainList = new();                    // 用于存储实时数据的列表
 	protected string mLastFileName;                         // 上一次开始遍历时的文件名
+	private uint mIterationID;											// 当前遍历的所有权版本
 	protected bool mForeaching;                             // 当前是否正在遍历中
 	public override void resetProperty()
 	{
@@ -56,6 +72,7 @@ public class SafeList<T> : ClassObject
 		mMainList.Clear();
 		mLastFileName = null;
 		mForeaching = false;
+		mIterationID = mIterationID + 1;
 	}
 	public bool isForeaching() { return mForeaching; }
 	public bool addOrRemove(T value, bool isAdd)
@@ -242,8 +259,7 @@ public class SafeList<T> : ClassObject
 		mMainList.Clear();
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	// 获取用于更新的列表。绝大多数foreach都没有待同步操作,先走极短快路径;
-	// 只有遍历过程中发生过修改时,下一次foreach才进入syncUpdateList。
+	// 未遍历时两个列表保持同步,开始遍历时直接使用更新列表的快照。
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	protected List<T> startForeach(string fileName = null)
 	{
@@ -253,6 +269,7 @@ public class SafeList<T> : ClassObject
 		}
 		mLastFileName = fileName;
 		mForeaching = true;
+		mIterationID = mIterationID + 1;
 		if (mModifyList.Count == 0)
 		{
 			if (isEditor() && mUpdateList.Count != mMainList.Count)
@@ -264,7 +281,14 @@ public class SafeList<T> : ClassObject
 		return syncUpdateList();
 	}
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	protected void endForeach() { mForeaching = false; }
+	protected void endForeach()
+	{
+		mForeaching = false;
+		if (mModifyList.Count > 0)
+		{
+			syncUpdateList();
+		}
+	}
 	private List<T> startForeachError(string fileName)
 	{
 		logError("当前列表正在遍历中,无法再次开始遍历, 上一次开始遍历的地方:" + (mLastFileName ?? "") + ", 当前遍历的地方:" + fileName);
