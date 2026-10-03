@@ -27,7 +27,7 @@ public static class MenuSetting
 	[MenuItem(MENU_NAME + "打开平台设置")]
 	public static void openPlatformSetting()
 	{
-		string path = P_RESOURCES_PATH + PlatformSettings.RESOURCE_PATH + ".asset";
+		string path = P_RESOURCES_PATH + MiniGameSettings.RESOURCE_PATH + ".asset";
 		if (!isFileExist(projectPathToFullPath(path)))
 		{
 			createPlatformSettingsFile();
@@ -36,12 +36,12 @@ public static class MenuSetting
 	}
 	public static void createPlatformSettingsFile()
 	{
-		string path = P_RESOURCES_PATH + PlatformSettings.RESOURCE_PATH + ".asset";
+		string path = P_RESOURCES_PATH + MiniGameSettings.RESOURCE_PATH + ".asset";
 		createDir(getFilePath(path));
-		var asset = AssetDatabase.LoadAssetAtPath<PlatformSettings>(path);
+		var asset = AssetDatabase.LoadAssetAtPath<MiniGameSettings>(path);
 		if (asset == null)
 		{
-			asset = ScriptableObject.CreateInstance<PlatformSettings>();
+			asset = ScriptableObject.CreateInstance<MiniGameSettings>();
 			AssetDatabase.CreateAsset(asset, path);
 		}
 		EditorUtility.SetDirty(asset);
