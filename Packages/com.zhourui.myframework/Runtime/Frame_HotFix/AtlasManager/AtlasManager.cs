@@ -173,7 +173,15 @@ public class AtlasManager : FrameSystem
 		if (mAtlasList.tryGetValue(atlasName, out AtlasBase atlas))
 		{
 			CLASS(out AtlasRef ptr).setAtlas(atlas);
-			callback?.Invoke(ptr);
+			if (callback != null)
+			{
+				callback(ptr);
+			}
+			else
+			{
+				// 没有接收方时不能遗留图集引用凭证。
+				unloadAtlas(ref ptr);
+			}
 			return op.setFinish();
 		}
 		if (loadIfNull)
@@ -183,9 +191,14 @@ public class AtlasManager : FrameSystem
 			param.mName = atlasName;
 			param.mCallback = (AtlasRef atlas) =>
 			{
-				if (assignID == (owner?.getAssignID() ?? 0))
+				if (callback != null && assignID == (owner?.getAssignID() ?? 0))
 				{
-					callback?.Invoke(atlas);
+					callback(atlas);
+				}
+				else
+				{
+					// 接收方已回收或未提供回调,由管理器释放本次请求的引用。
+					unloadAtlas(ref atlas);
 				}
 				op.setFinish();
 			};
