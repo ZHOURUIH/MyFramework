@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -30,3 +31,4 @@ public static class Rect3Test
 		assertEqual(50.0f, r.height, 0.001f, "height");
 	}
 }
+#endif

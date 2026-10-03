@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 public class DictionaryTypeTest
@@ -77,3 +78,4 @@ public class DictionaryTypeTest
 		assertFalse(a.Equals(b), "键值对换不相等");
 	}
 }
+#endif

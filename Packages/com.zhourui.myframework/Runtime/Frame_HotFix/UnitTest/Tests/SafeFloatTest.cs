@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // SafeFloat 安全浮点测试
@@ -305,3 +306,4 @@ public static class SafeFloatTest
 		assertEqual(0.0f, sf.get(), 0.001f, "set(0) 后 get 0");
 	}
 }
+#endif

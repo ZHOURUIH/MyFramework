@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
@@ -868,3 +869,4 @@ public static class StringExtensionTest
 		assertEqual(123, "123".SToI(), "initIntToString -> SToI 123");
 	}
 }
+#endif

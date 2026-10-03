@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static SerializeByteUtility;
 using static TestAssert;
@@ -861,3 +862,4 @@ public static class SerializeByteUtilityTest
 		assertEqual(0, ri, "readUIntBE overflow idx unchanged");
 	}
 }
+#endif

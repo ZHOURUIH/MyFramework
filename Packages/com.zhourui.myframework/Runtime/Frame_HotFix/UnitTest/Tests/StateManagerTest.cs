@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using static TestAssert;
 
@@ -598,3 +599,4 @@ public static class StateManagerTest
 	private class StateM { }
 	private class StateN { }
 }
+#endif

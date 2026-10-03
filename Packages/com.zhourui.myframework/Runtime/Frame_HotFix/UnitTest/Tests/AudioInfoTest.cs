@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // AudioInfo 单元测试：getClip优先级逻辑/resetProperty/字段重置
@@ -156,3 +157,4 @@ public static class AudioInfoTest
 		UnityEngine.Object.DestroyImmediate(clip);
 	}
 }
+#endif

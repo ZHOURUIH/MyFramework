@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using UnityEngine.U2D;
 #if UNITY_EDITOR
@@ -79,3 +80,4 @@ public static class SpriteAtlasExtensionTest
 #endif
 	}
 }
+#endif

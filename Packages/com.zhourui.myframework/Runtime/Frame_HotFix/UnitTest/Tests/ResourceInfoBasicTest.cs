@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -110,3 +111,4 @@ public static class ResourceInfoBasicTest
 	}
 	private class TestAsset : ScriptableObject {}
 }
+#endif

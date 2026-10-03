@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 public static class GameEventRegisteInfoTest
 {
@@ -90,3 +91,4 @@ public static class GameEventRegisteInfoTest
         }
     }
 }
+#endif

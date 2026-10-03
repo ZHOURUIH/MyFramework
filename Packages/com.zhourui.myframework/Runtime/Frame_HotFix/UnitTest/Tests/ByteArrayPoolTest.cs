@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // ByteArrayPool 单元测试 — byte[] 数组池的创建/销毁/复用/清理
@@ -134,3 +135,4 @@ public static class ByteArrayPoolTest
 		assertNotNull(pool.getPersistentInusedList(), "getPersistentInusedList 非空");
 	}
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using UObject = UnityEngine.Object;
 using static TestAssert;
@@ -352,3 +353,4 @@ public static class MyUGUIObjectGeometryTest
 		}
 	}
 }
+#endif

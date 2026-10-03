@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // AnimControl 单元测试：播放状态机/循环模式/方向/帧切换逻辑
@@ -350,3 +351,4 @@ public static class AnimControlTest
 		// 无 getter, 无异常即通过
 	}
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.IO;
 using System;
 using UnityEngine;
@@ -638,3 +639,4 @@ public class TestDragViewLayout : LayoutScript
 		base.resetProperty();
 	}
 }
+#endif

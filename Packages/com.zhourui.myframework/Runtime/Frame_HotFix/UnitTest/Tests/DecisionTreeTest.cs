@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using static TestAssert;
@@ -879,3 +880,4 @@ public static class DecisionTreeTest
         return d;
     }
 }
+#endif

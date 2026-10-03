@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if UNITY_EDITOR
+using System;
 using System.Collections.Generic;
 using static SerializeBitUtility;
 
@@ -125,3 +126,4 @@ public class SerializeBitExtremeTest
 		}
 	}
 }
+#endif

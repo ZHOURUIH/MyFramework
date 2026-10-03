@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 using UnityEngine;
 using TMPro;
@@ -201,3 +202,4 @@ public static class MyUGUITextTMPTest
 		return text;
 	}
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using static TestAssert;
@@ -327,3 +328,4 @@ public class BIT_USHORTSTest
 		assertEqual(ushort.MaxValue, instance[0]);
 	}
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using System.Text;
 using static TestAssert;
@@ -473,3 +474,4 @@ public static class AssetVersionSystemTest
 		};
 	}
 }
+#endif

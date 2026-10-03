@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using static TestAssert;
 using static FrameUtility;
@@ -538,3 +539,4 @@ public class HashSetExtensionTest
 		assertFalse(set.Contains(1), "setRange List old cleared");
 	}
 }
+#endif

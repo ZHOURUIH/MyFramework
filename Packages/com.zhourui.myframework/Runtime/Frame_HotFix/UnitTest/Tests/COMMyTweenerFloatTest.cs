@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // COMMyTweenerFloat / ComponentKeyFrame 状态逻辑测试
@@ -208,3 +209,4 @@ public class ComponentOwnerHost : ComponentOwner
 		return addComponent<COMMyTweenerFloat>(true);
 	}
 }
+#endif

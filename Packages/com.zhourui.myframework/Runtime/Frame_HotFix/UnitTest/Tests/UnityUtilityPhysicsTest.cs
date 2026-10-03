@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#if UNITY_EDITOR
+using System.Collections.Generic;
 using UnityEngine;
 using UObject = UnityEngine.Object;
 using static TestAssert;
@@ -762,3 +763,4 @@ public static class UnityUtilityPhysicsTest
 		Physics.SyncTransforms();
 	}
 }
+#endif

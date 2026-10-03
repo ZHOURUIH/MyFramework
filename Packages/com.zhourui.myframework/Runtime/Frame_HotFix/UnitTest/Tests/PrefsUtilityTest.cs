@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static PrefsUtility;
 using static TestAssert;
@@ -111,3 +112,4 @@ public static class PrefsUtilityTest
 		prefsDeleteKey(baseKey + "s");
 	}
 }
+#endif

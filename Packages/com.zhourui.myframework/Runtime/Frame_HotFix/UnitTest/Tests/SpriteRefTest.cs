@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 using static FrameBaseHotFix;
@@ -135,3 +136,4 @@ public static class SpriteRefTest
 		Object.DestroyImmediate(sprite);
 	}
 }
+#endif

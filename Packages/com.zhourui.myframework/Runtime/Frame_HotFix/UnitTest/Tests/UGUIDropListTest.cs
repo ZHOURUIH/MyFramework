@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using UnityEngine;
 using static TestAssert;
@@ -411,3 +412,4 @@ public class TestDropItem : IDropItem
 	public void setCustomValue(int value) { mCustomValue = value; }
 	public void setParent(UGUIDropListBase parent) { }
 }
+#endif

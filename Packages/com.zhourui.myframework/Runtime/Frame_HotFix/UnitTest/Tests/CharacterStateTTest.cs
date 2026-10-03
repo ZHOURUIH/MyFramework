@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // CharacterStateT 单元测试：setParam/getCustomParam/resetProperty
@@ -67,3 +68,4 @@ public static class CharacterStateTTest
 		assertNull(state.getCustomParam(), "setParam(null) 后 getCustomParam=null");
 	}
 }
+#endif

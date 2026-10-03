@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // myUGUINumber: 数字窗口——无图集环境下仅可测字段读写/截断/边界计算
@@ -100,3 +101,4 @@ public static class MyUGUINumberTest
 		assertTrue(number.getNumberStyle() == null, "直接 new 后 getNumberStyle 默认 null");
 	}
 }
+#endif

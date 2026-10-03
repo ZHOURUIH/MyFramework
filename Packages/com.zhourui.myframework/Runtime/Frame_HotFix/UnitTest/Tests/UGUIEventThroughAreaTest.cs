@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -137,3 +138,4 @@ public class TestEventThroughArea : UGUIEventThroughArea
 {
 	public Rect getPassOnlyRectForTest() { return mPassOnlyRect; }
 }
+#endif

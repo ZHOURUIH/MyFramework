@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using static TestAssert;
 
@@ -287,3 +288,4 @@ public static class SceneInstanceTest
 		assertNull(scene.getRoot());
 	}
 }
+#endif

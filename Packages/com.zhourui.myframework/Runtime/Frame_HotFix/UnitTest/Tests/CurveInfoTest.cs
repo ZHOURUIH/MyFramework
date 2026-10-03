@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -160,3 +161,4 @@ public static class CurveInfoTest
 		assertFalse(ReferenceEquals(a.mCurve, b.mCurve), "两实例曲线不同");
 	}
 }
+#endif

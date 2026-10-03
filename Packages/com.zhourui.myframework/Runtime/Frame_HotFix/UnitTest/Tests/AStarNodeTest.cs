@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // AStarNode 寻路节点结构体测试
@@ -32,3 +33,4 @@ public static class AStarNodeTest
         assertEqual(NODE_STATE.NONE, node.mState, "init state=NONE");
     }
 }
+#endif

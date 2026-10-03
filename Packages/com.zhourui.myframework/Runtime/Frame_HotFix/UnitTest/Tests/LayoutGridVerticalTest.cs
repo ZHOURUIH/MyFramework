@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -142,3 +143,4 @@ public class TestLayoutGridVertical : LayoutGridVertical
 		(transform as RectTransform).autoGridVertical(mInterval, 0.0f, 0.0f, 0.0f, true, false);
 	}
 }
+#endif

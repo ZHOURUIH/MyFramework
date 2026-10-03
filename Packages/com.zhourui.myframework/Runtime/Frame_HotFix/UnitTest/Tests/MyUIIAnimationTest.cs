@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -259,3 +260,4 @@ public static class MyUIIAnimationTest
 		}
 	}
 }
+#endif

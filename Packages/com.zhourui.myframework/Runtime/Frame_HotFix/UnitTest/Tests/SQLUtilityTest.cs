@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using UnityEngine;
 using static SQLUtility;
@@ -404,3 +405,4 @@ public static class SQLUtilityTest
 		assertEqual("\"\",", q, "ints 传 null 被 IsToS 空安全处理为引号空串");
 	}
 }
+#endif

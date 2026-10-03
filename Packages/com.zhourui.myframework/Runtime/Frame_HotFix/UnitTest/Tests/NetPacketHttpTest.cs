@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // NetPacketHttp: HTTP 消息基类(纯逻辑, 直接 new 可测)
@@ -337,3 +338,4 @@ public class TestHttpPacket : NetPacketHttp
 	}
 }
 
+#endif

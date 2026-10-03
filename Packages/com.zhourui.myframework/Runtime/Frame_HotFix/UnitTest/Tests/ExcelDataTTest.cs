@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // ExcelDataT<T>.setTable 单测
@@ -63,3 +64,4 @@ public static class ExcelDataTTest
 		}
 	}
 }
+#endif

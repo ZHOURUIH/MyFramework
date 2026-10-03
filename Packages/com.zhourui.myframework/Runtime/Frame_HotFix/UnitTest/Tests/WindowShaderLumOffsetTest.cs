@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // WindowShaderLumOffset: 亮度偏移 shader 参数类(纯 C# ClassObject, 构造只调 Shader.PropertyToID), 直接 new 可测
@@ -39,3 +40,4 @@ public static class WindowShaderLumOffsetTest
 		// 无异常即通过
 	}
 }
+#endif

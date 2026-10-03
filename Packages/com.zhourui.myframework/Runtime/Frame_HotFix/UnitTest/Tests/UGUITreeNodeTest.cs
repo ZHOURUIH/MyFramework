@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using static TestAssert;
 
@@ -150,3 +151,4 @@ public static class UGUITreeNodeTest
 		assertEqual(2, grandChild.getDepth(), "grandChild 深度 2");
 	}
 }
+#endif

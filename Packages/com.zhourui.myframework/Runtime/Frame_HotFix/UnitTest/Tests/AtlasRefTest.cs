@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -205,3 +206,4 @@ public static class AtlasRefTest
 		assertEqual(4.0f, size.y, "getFirstSpriteSize.y 应等于首个 sprite 的高 4");
 	}
 }
+#endif

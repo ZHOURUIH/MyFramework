@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // SafeInt 安全整型测试
@@ -297,3 +298,4 @@ public static class SafeIntTest
 		assertEqual(0, si.get(), "set(0) 后 get 0");
 	}
 }
+#endif

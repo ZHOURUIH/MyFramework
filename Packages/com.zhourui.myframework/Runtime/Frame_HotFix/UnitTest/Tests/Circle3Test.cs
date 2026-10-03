@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -24,3 +25,4 @@ public static class Circle3Test
 		assertEqual(0.0f, zero.mRadius, "zero radius");
 	}
 }
+#endif

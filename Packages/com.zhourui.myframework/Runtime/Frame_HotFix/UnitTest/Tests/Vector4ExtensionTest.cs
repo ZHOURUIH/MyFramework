@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -94,3 +95,4 @@ public static class Vector4ExtensionTest
                    v2.z.isEqual(3, 0.001f) && v2.w.isEqual(4, 0.001f), "clampMax no change");
     }
 }
+#endif

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if UNITY_EDITOR
+using System;
 
 // C++ / C# 按位协议兼容测试。
 // 这里不能使用C#生产Writer来构造所有输入，否则Writer和Reader同时存在同一种Bug时会假通过。
@@ -377,3 +378,4 @@ public class SerializeBitCompatibilityTest
 		}
 	}
 }
+#endif

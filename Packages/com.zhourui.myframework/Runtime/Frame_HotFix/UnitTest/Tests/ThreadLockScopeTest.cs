@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // ThreadLockScope 自动加锁解锁作用域测试
@@ -73,3 +74,4 @@ public static class ThreadLockScopeTest
 		}
 	}
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // Complex 复数结构体测试
@@ -45,3 +46,4 @@ public static class ComplexTest
         assertTrue(result.mImg.isEqual(4.0f), "sub img 7-3=4");
     }
 }
+#endif

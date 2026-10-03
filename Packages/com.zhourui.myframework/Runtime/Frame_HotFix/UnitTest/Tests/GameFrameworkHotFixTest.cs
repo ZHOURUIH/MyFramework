@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 using static FrameBaseHotFix;
 
@@ -111,3 +112,4 @@ public static class GameFrameworkHotFixTest
 		// 无异常即通过
 	}
 }
+#endif

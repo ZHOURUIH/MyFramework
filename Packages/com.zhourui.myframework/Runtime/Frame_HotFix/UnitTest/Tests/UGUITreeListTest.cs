@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -384,3 +385,4 @@ public class TestTreeNode : UGUITreeNode
 	public bool hasClickCallback() { return mNodeClickCallback != null; }
 	public void triggerClickCallback() { mNodeClickCallback?.Invoke(); }
 }
+#endif

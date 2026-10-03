@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // DoubleExtension 纯数学扩展方法测试
@@ -234,3 +235,4 @@ public static class DoubleExtensionTest
         assertEqual(0.0, v, "clampMin 负微值 → 0");
     }
 }
+#endif

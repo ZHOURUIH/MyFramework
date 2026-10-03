@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 using static FrameUtility;
 
@@ -274,3 +275,4 @@ public class CountingTweener : MyTweenerFloat
         updateCount = 0;
     }
 }
+#endif

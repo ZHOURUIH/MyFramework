@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 using static FrameUtility;
 
@@ -155,3 +156,4 @@ public static class LayoutLoadGroupTest
         // 无异常即通过
     }
 }
+#endif

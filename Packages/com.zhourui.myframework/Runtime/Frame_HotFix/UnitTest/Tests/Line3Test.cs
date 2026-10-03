@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -34,3 +35,4 @@ public static class Line3Test
 		assertEqual(new Vector2(6, 5), line2.mEnd, "end (z,y)");
 	}
 }
+#endif

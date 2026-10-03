@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 public static class MiscDataResetTest
@@ -121,3 +122,4 @@ public static class MiscDataResetTest
 		assertTrue(intID0 != stringID, "不同泛型类型的 ID 应不同");
 	}
 }
+#endif

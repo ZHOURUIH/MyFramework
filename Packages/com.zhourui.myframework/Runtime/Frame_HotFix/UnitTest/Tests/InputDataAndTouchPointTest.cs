@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using UnityEngine;
 using static TestAssert;
@@ -155,3 +156,4 @@ public static class InputDataAndTouchPointTest
 		assertTrue(!point.isDown(), "未 down 状态不变");
 	}
 }
+#endif

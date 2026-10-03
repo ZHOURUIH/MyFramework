@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -1042,3 +1043,4 @@ public static class ListExtensionTest
 
     public class TestListClass : ClassObject { }
 }
+#endif

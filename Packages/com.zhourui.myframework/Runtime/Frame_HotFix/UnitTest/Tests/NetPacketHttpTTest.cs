@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using Newtonsoft.Json;
 using static TestAssert;
 
@@ -291,3 +292,4 @@ public static class NetPacketHttpTTest
 		assertEqual(2, packet.mBody.code, "第二次 code 覆盖");
 	}
 }
+#endif

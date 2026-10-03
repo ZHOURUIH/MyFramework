@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // FrameSystem 静态排序比较方法单测(compareInit / compareUpdate / compareDestroy)
@@ -310,3 +311,4 @@ public static class FrameSystemTest
 		}
 	}
 }
+#endif

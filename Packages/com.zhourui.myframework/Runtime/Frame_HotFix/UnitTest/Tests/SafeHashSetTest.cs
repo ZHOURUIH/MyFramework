@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using static TestAssert;
 
@@ -654,3 +655,4 @@ public class SafeHashSetTest
 		assertTrue(set.contains(3), "3 保留");
 	}
 }
+#endif

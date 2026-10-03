@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -58,3 +59,4 @@ public static class HttpUtilityTest
 		assertNull(result, "downloadFile failure returns null");
 	}
 }
+#endif

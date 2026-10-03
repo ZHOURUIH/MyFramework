@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // 补充覆盖 DoubleBufferReader 自动清空读列表并结束读取
@@ -109,3 +110,4 @@ public static class DoubleBufferReaderTest
 		assertEqual(2, r2.mReadList[0], "第二轮内容是新数据");
 	}
 }
+#endif

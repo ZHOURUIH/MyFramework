@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -329,3 +330,4 @@ public class BIT_VECTOR2Test
 			"Expected " + expected.ToString() + ", got " + actual.ToString());
 	}
 }
+#endif

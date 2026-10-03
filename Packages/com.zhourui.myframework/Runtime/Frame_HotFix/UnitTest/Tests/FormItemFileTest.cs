@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // FormItemFile 表单文件内容测试
@@ -28,3 +29,4 @@ public static class FormItemFileTest
         assertEqual(0, item.mFileLength, "reset fileLength=0");
     }
 }
+#endif

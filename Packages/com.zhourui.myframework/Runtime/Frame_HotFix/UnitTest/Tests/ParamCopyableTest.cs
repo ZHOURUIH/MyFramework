@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // 补充覆盖 ParamBase / ParamCopyable / ParamCopyableT
@@ -74,3 +75,4 @@ public static class ParamCopyableTest
 	{
 	}
 }
+#endif

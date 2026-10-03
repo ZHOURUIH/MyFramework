@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using static TestAssert;
 
@@ -158,3 +159,4 @@ public class TestClass2 : ClassObject
 		mValue = 0;
 	}
 }
+#endif

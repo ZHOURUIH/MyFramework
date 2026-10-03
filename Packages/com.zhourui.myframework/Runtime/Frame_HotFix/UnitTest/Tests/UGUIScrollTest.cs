@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using UnityEngine;
 using static TestAssert;
@@ -639,3 +640,4 @@ public class TestScrollItem : IScrollItem
 	public float getLastPercent() { return mLastPercent; }
 	public IScrollContainer getLastCurContainer() { return mLastCur; }
 }
+#endif

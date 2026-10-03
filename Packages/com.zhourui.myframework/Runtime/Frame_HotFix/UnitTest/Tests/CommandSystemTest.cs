@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 using static FrameUtility;
 
@@ -676,3 +677,4 @@ public class TestCommand : Command
         mAction = null;
     }
 }
+#endif

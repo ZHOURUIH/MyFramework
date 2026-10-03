@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -72,3 +73,4 @@ public static class CheckLayerTest
 		assertEqual(3.3f, cl.mMinDistance, "minDistance 正确");
 	}
 }
+#endif

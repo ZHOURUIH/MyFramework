@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 using System;
@@ -477,3 +478,4 @@ public static class AStarMinHeapTest
 		}
 	}
 }
+#endif

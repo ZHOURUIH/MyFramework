@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // GameEvent 单元测试
@@ -37,3 +38,4 @@ public static class GameEventTest
 		assertFalse(a.Equals(b), "不同实例 Equals 应不相等");
 	}
 }
+#endif

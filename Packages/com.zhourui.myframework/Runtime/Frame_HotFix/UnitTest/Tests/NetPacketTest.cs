@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // NetPacket 基类单元测试 — 覆盖报文基类的连接/类型存取、实例唯一性、默认行为、重置
@@ -165,3 +166,4 @@ public static class NetPacketTest
 		// 无异常即通过
 	}
 }
+#endif

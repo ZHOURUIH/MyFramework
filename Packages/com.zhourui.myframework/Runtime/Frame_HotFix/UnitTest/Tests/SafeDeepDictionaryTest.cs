@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // SafeDeepDictionary: 可深度嵌套安全遍历的字典(纯 C# ClassObject, 直接 new 可测)
@@ -182,3 +183,4 @@ public static class SafeDeepDictionaryTest
 		assertTrue(dict.containsKey("b"), "主列表新增键可见");
 	}
 }
+#endif

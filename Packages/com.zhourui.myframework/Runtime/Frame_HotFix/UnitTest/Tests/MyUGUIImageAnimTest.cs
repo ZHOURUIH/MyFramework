@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 using System.Collections.Generic;
 using UnityEngine;
@@ -160,3 +161,4 @@ public static class MyUGUIImageAnimTest
 		// 无异常即通过
 	}
 }
+#endif

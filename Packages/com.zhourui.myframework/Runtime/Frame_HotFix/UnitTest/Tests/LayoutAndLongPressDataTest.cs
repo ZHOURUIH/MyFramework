@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 public static class LayoutAndLongPressDataTest
@@ -87,3 +88,4 @@ public static class LayoutAndLongPressDataTest
 		assertFalse(data.mFinish);
 	}
 }
+#endif

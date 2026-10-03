@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.IO;
 using UnityEngine;
 using UObject = UnityEngine.Object;
@@ -170,3 +171,4 @@ public static class GameLayoutLifecycleTest
 		}
 	}
 }
+#endif

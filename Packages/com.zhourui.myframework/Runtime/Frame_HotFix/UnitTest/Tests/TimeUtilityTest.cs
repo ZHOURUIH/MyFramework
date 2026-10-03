@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.Text.RegularExpressions;
 using static TestAssert;
@@ -615,3 +616,4 @@ public static class TimeUtilityTest
 		assertTrue(beginTs <= TimeUtility.getNowTimeStamp(), "今天0点应不晚于现在");
 	}
 }
+#endif

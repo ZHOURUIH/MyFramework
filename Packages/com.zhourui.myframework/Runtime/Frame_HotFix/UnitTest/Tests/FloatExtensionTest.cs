@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -359,3 +360,4 @@ public static class FloatExtensionTest
         assertTrue(4.0f.pow(0.5f).isEqual(2.0f), "4^0.5 = 2 (sqrt)");
     }
 }
+#endif

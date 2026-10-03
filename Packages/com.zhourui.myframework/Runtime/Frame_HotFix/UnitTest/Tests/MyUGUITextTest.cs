@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using UnityEngine.UI;
 using static TestAssert;
@@ -307,3 +308,4 @@ private static GameObject createText(out myUGUIText text)
 		return go;
 	}
 }
+#endif

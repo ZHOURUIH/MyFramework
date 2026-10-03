@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using static TestAssert;
 
@@ -181,3 +182,4 @@ public static class DoubleBufferTest
 		b.endGet();
 	}
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using static TestAssert;
 
@@ -45,3 +46,4 @@ public static class ThreadTimeLockTest
 		assertTrue(startTime <= DateTime.Now, "Frame start time should not be in the future");
 	}
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // LayoutInfo 布局加载参数信息单元测试
@@ -83,3 +84,4 @@ public static class LayoutInfoTest
 		assertEqual(0, info.mRenderOrder, "resetProperty 重置渲染顺序为 0");
 	}
 }
+#endif

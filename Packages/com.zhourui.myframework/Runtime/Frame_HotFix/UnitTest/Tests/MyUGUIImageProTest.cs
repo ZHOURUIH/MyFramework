@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // myUGUIImagePro: 带 shader 的 Image 封装, 大部分方法依赖 mImage/资源管理器(环境依赖不测),
@@ -29,3 +30,4 @@ public static class MyUGUIImageProTest
 		assertTrue(img.getWindowShader() == null, "setWindowShader(null) 清空");
 	}
 }
+#endif

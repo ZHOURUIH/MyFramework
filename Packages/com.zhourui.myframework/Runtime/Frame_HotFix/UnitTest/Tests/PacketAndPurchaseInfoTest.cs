@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 public static class PacketAndPurchaseInfoTest
@@ -45,3 +46,4 @@ public static class PacketAndPurchaseInfoTest
 		assertEqual(1, purchase.state);
 	}
 }
+#endif

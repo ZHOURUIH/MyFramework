@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -120,3 +121,4 @@ public static class AssetDataBaseLoadInfoTest
 		Object.DestroyImmediate(obj);
 	}
 }
+#endif

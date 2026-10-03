@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using UnityEngine;
 using static TestAssert;
@@ -538,3 +539,4 @@ public class TestMouseEventOwner : ComponentOwner, IMouseEventCollect
 	public bool isDraggable() { return false; }
 	public bool isChildOf(IMouseEventCollect parent) { return false; }
 }
+#endif

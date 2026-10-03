@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using static TestAssert;
@@ -607,3 +608,4 @@ public static class NetCoreTest
         assertEqual((ushort)0, manager.getPacketTypeID(typeof(TestPacket)), "classType still maps to 0");
     }
 }
+#endif

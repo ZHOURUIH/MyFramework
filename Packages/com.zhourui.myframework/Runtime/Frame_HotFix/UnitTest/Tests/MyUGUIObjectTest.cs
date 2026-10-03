@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 using UObject = UnityEngine.Object;
@@ -1758,3 +1759,4 @@ public static class MyUGUIObjectTest
 		}
 	}
 }
+#endif

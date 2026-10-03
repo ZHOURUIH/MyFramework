@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static RectTransformExtension;
 using static TestAssert;
@@ -415,3 +416,4 @@ public static class RectTransformExtensionTest
 		Object.DestroyImmediate(go);
 	}
 }
+#endif

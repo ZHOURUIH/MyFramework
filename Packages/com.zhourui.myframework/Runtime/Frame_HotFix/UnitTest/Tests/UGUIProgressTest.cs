@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using UnityEngine.UI;
 using static TestAssert;
@@ -342,3 +343,4 @@ public class TestUGUIProgress : UGUIProgress
 
 	public float getBarFillPercent() { return mProgressBar.getFillPercent(); }
 }
+#endif

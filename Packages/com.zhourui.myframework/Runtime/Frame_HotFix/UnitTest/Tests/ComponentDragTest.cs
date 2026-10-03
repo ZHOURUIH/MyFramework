@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -277,3 +278,4 @@ public class TestComponentDrag : ComponentDrag
 
 	public bool isCenterAlignForTest() { return mObjectCenterAlignMouse; }
 }
+#endif

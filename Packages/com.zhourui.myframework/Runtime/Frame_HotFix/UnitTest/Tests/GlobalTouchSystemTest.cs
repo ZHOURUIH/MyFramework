@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using UnityEngine;
 using static TestAssert;
@@ -262,3 +263,4 @@ public static class GlobalTouchSystemTest
 		public bool isChildOf(IMouseEventCollect parent) { return false; }
 	}
 }
+#endif

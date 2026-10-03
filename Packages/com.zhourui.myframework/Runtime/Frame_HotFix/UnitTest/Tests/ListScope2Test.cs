@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // ListScope2 单元测试
@@ -91,3 +92,4 @@ public static class ListScope2Test
 		}
 	}
 }
+#endif

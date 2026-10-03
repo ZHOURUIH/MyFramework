@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using UnityEngine.UI;
 using static TestAssert;
@@ -420,3 +421,4 @@ public class TestSliderUGUI : UGUISlider
 	public void onScreenMouseUpForTest(Vector3 pos, int touchID) { onScreenMouseUp(pos, touchID); }
 	public void setDraggingForTest(bool dragging) { mDragging = dragging; }
 }
+#endif

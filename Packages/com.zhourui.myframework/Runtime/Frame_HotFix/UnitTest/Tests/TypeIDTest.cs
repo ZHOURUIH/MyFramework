@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 public class TypeIDTest
@@ -36,3 +37,4 @@ public class TypeIDTest
 		assertTrue(idNew > 0);
 	}
 }
+#endif

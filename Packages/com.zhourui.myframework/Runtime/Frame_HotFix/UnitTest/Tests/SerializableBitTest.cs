@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using static TestAssert;
 
@@ -174,3 +175,4 @@ public class SerializableBitTest
 		assertTrue(bit2.mValue, "带 sign 参数往返值一致");
 	}
 }
+#endif

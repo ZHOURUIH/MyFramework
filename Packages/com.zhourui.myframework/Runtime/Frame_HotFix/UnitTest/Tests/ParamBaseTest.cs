@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // ParamBase 单元测试：registeParam/resetProperty/setParam/getParamCount/getParamSet
@@ -134,3 +135,4 @@ public static class ParamBaseTest
 		p.check();
 	}
 }
+#endif

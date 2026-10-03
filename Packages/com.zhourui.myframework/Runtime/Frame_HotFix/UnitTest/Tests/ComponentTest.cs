@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 using System;
 
@@ -597,3 +598,4 @@ public class TestGameComponent : GameComponent
         onNotifyOwnerActive = null;
     }
 }
+#endif

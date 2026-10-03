@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 using System.Collections.Generic;
 using UnityEngine;
@@ -196,3 +197,4 @@ public static class MyUGUISpriteAnimTest
 		anim.setUseTextureSize(false);
 	}
 }
+#endif

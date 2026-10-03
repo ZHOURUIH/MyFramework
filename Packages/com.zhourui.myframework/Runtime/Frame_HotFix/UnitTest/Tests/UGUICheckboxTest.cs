@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -253,3 +254,4 @@ public class TestUGUICheckbox : UGUICheckbox
 
 	public void onCheckClickForTest() { onCheckClick(); }
 }
+#endif

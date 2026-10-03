@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using UnityEngine;
 using static TestAssert;
@@ -173,3 +174,4 @@ public static class DistanceSortHelperTest
 		public bool isChildOf(IMouseEventCollect parent) { return false; }
 	}
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using static TestAssert;
@@ -1743,3 +1744,4 @@ public static class SceneProcedureTest
 		// 无异常即通过
 	}
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections;
 using System.Collections.Generic;
 using static TestAssert;
@@ -201,3 +202,4 @@ public static class AsyncTaskGroupTest
 		assertFalse(multi.keepWaiting, "Reset 清空子操作后 keepWaiting=false");
 	}
 }
+#endif

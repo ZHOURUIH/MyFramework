@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -1009,3 +1010,4 @@ public static class StringUtilityTest
         assertEqual("abcdefghijk", s, "strcat 11 args");
     }
 }
+#endif

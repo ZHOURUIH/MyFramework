@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using static TestAssert;
 
@@ -525,3 +526,4 @@ public static class ExcelTableTest
 		assertTrue(different, "不同表名输出应不同");
 	}
 }
+#endif

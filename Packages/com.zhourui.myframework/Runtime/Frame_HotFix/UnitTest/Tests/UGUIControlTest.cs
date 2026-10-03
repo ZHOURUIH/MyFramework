@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using UnityEngine.UI;
 using static TestAssert;
@@ -491,3 +492,4 @@ public class TestCheckbox : UGUICheckbox
 	public TestCheckbox(IWindowObjectOwner parent) : base(parent) { }
 	public void clickForTest() { onCheckClick(); }
 }
+#endif

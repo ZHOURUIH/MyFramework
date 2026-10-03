@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // WavSound.generateMixPCMData 纯逻辑测试
@@ -238,3 +239,4 @@ public static class WavSoundTest
     }
 #endif
 }
+#endif

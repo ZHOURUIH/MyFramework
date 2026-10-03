@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 public static class MostSafeLongTest
@@ -284,3 +285,4 @@ public static class MostSafeLongTest
 		assertTrue(a.Equals(a), "a.Equals(a) 反身性成立");
 	}
 }
+#endif

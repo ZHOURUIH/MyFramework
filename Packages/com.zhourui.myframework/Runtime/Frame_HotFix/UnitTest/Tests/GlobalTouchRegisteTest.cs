@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR
+using UnityEngine;
 using static FrameBaseHotFix;
 using static TestAssert;
 
@@ -219,3 +220,4 @@ public static class GlobalTouchRegisteTest
 	}
 
 }
+#endif

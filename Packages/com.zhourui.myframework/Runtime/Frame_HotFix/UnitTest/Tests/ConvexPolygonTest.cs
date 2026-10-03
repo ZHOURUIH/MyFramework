@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -62,3 +63,4 @@ public static class ConvexPolygonTest
 		assertTrue(true, "draw 应正常执行不抛异常");
 	}
 }
+#endif

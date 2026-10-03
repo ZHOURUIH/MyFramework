@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using static TestAssert;
 
@@ -182,3 +183,4 @@ public static class ListPoolTest
 		assertEqual(0, pool.getUnusedList().Count, "clearUnused 后未使用 HashSet 为空");
 	}
 }
+#endif

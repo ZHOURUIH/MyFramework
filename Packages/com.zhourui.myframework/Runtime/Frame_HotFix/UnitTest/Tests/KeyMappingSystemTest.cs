@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -279,3 +280,4 @@ public static class KeyMappingSystemTest
         assertEqual(KeyCode.A, sys.getDefaultMappingKey(1), "默认值 A 保留");
     }
 }
+#endif

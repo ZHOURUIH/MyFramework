@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -468,3 +469,4 @@ public static class Vector3ExtensionTest
         assertTrue(c.z.isEqual(1.0f), "cross z=1 (right-handed)");
     }
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -66,3 +67,4 @@ public static class PurchaseAndCurveInfoTest
 		assertEqual(curve, info.mCurve);
 	}
 }
+#endif

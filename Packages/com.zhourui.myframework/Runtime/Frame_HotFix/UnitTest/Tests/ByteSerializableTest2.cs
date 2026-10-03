@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using UnityEngine;
 using static TestAssert;
@@ -383,3 +384,4 @@ public static class ByteSerializableTest2
 		assertEqual(3.5f, vecDst.mValue.z, 0.0001f, "VECTOR3 round-trip z");
 	}
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -102,3 +103,4 @@ public static class ComplexPointTest
 		assertEqual(0f, point.mRelative, "默认 mRelative 为 0");
 	}
 }
+#endif

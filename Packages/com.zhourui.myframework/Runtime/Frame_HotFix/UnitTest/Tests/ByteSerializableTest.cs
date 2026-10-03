@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -313,3 +314,4 @@ public static class ByteSerializableTest
 		assertEqual("conv", strVal, "STRING 隐式转 string");
 	}
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static FrameDefine;
 using static TestAssert;
@@ -166,3 +167,4 @@ public static class GameObjectPoolTest
 		}
 	}
 }
+#endif

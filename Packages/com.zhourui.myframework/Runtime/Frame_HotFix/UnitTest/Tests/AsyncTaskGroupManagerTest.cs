@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.Collections;
 using static TestAssert;
@@ -155,3 +156,4 @@ public static class AsyncTaskGroupManagerTest
 		manager.destroyGroup(group2);
 	}
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using static TestAssert;
@@ -1334,3 +1335,4 @@ public static class GameSceneTest
 		assertTrue(s.getCurOrParentProcedure(typeof(DGParent)) is DGProc, "取到父流程");
 	}
 }
+#endif

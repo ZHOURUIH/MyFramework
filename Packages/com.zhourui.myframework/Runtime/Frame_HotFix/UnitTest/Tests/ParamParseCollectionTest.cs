@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using static TestAssert;
 
@@ -112,3 +113,4 @@ public static class ParamParseCollectionTest
         assertTrue(true, "registe single typeID does not throw");
     }
 }
+#endif

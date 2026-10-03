@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using UnityEngine.U2D;
 using UObject = UnityEngine.Object;
@@ -126,3 +127,4 @@ public static class AtlasUGUITest
 		}
 	}
 }
+#endif

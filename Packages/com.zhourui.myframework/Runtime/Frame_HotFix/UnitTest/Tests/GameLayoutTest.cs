@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 using System.Collections.Generic;
@@ -679,3 +680,4 @@ public static class GameLayoutTest
 		field.SetValue(layout, root);
 	}
 }
+#endif

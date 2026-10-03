@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // MostSafeFloat 安全浮点测试
@@ -260,3 +261,4 @@ public static class MostSafeFloatTest
 		assertTrue(a.Equals(a), "a.Equals(a) 反身性成立");
 	}
 }
+#endif

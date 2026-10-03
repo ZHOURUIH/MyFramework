@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using static TestAssert;
 
@@ -119,3 +120,4 @@ public static class GameEffectPoolTest
         assertTrue(true, "removeEffect on non-existent effect is safe");
     }
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -100,3 +101,4 @@ public static class Line2Test
 		assertEqual(0.0f, x, 0.001f, "水平线 x=0");
 	}
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Net;
 using UnityEngine.Networking;
 using static TestAssert;
@@ -182,3 +183,4 @@ public static class NetPacketJsonHttpTest
 		public override int timeout() { return 1234; }
 	}
 }
+#endif

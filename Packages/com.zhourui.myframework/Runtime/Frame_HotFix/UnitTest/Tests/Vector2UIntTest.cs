@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -52,3 +53,4 @@ public static class Vector2UIntTest
         assertEqual(7, result.y, "toVec2Int y=7");
     }
 }
+#endif

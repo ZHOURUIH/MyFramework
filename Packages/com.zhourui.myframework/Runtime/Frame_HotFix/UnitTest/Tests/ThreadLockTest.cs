@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // ThreadLock 线程锁测试
@@ -94,3 +95,4 @@ public static class ThreadLockTest
         lockObj.destroy();
     }
 }
+#endif

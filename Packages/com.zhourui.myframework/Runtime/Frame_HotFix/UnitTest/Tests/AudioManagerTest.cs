@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using static TestAssert;
 
@@ -131,3 +132,4 @@ public static class AudioManagerTest
 		assertFalse(mgr.unload(""), "unload(空名) 返回 false");
 	}
 }
+#endif

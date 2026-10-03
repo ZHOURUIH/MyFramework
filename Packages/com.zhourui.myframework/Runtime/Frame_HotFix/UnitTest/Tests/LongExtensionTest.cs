@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // LongExtension 纯数学扩展方法测试
@@ -139,3 +140,4 @@ public static class LongExtensionTest
         assertEqual(0UL, 0UL.clampMax(0UL), "clampMax ulong 0 max=0 -> 0");
     }
 }
+#endif

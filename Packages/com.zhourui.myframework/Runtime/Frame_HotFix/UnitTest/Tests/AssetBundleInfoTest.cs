@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 using System.Collections.Generic;
 
@@ -466,3 +467,4 @@ public static class AssetBundleInfoTest
         info.destroy();
     }
 }
+#endif

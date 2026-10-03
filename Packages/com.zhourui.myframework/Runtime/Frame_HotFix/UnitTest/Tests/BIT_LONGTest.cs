@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using static TestAssert;
@@ -383,3 +384,4 @@ public class BIT_LONGTest
 		assertTrue(instance.mValue < -999999999999998L);
 	}
 }
+#endif

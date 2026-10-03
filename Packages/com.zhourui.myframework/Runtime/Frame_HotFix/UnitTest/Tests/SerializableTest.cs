@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // Serializable 穷举测试
@@ -62,3 +63,4 @@ public class TestSerializable : Serializable
 	public override bool read(SerializerRead reader) { return true; }
 	public override void write(SerializerWrite writer) { }
 }
+#endif

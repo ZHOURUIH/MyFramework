@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 using static FrameDefine;
@@ -592,3 +593,4 @@ public class TestRecyclableWindow : WindowRecyclableUGUI
 	public TestRecyclableWindow(IWindowObjectOwner parent) : base(parent) { }
 	protected override void assignWindowInternal() { }
 }
+#endif

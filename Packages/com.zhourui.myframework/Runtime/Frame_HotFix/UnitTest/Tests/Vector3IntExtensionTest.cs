@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -50,3 +51,4 @@ public static class Vector3IntExtensionTest
         assertEqual(0, v2.z, "clampMax default z 9->0");
     }
 }
+#endif

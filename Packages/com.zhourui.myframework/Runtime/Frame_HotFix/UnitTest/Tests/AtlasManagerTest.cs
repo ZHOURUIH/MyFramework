@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // AtlasManager 纯逻辑单测(图集管理) + AtlasLoadParam
@@ -215,3 +216,4 @@ public static class AtlasManagerTest
 		public override string getName() { return "MockAtlas"; }
 	}
 }
+#endif

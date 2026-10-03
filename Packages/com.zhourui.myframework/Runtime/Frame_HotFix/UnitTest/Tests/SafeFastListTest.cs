@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using static TestAssert;
 
@@ -1256,3 +1257,4 @@ public class TestSafeFastClassObj : ClassObject
 		mValue = 0;
 	}
 }
+#endif

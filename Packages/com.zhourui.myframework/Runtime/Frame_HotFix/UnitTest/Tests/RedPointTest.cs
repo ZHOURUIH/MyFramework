@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -1880,3 +1881,4 @@ public static class RedPointTest
         assertEqual(0, root.getChildCount(), "root has no children");
     }
 }
+#endif

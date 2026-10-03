@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using static TestAssert;
 
@@ -267,3 +268,4 @@ public static class NetStructBitTest
 		assertEqual(0, ns.mParams.Count, "构造后 mParams 为空");
 	}
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // NetPacketByte 单元测试
@@ -340,3 +341,4 @@ public class TestBytePacketOptional : NetPacketByte
 		mBoolField.resetProperty();
 	}
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // GamePluginManager 空插件列表行为测试
@@ -68,3 +69,4 @@ public static class GamePluginManagerTest
 		// 无异常即通过
 	}
 }
+#endif

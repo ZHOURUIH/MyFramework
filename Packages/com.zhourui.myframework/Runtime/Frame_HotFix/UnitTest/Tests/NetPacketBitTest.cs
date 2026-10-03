@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static BinaryUtility;
 using static TestAssert;
 
@@ -723,3 +724,4 @@ public class TestSCPackItemPacket : NetPacketBit
 		return false;
 	}
 }
+#endif

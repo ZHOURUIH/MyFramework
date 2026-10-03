@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using UnityEngine.UI;
 using static TestAssert;
@@ -159,3 +160,4 @@ public static class MyUGUIRawImageTest
 		}
 	}
 }
+#endif

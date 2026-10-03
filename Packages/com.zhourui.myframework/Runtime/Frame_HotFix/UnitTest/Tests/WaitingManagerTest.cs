@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using static FrameUtility;
 using static TestAssert;
@@ -197,3 +198,4 @@ public static class WaitingManagerTest
 		assertEqual(0, mgr.GetListCount(), "destroyWait 后移除");
 	}
 }
+#endif

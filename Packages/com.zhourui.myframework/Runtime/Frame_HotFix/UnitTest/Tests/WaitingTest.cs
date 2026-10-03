@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 public static class WaitingTest
@@ -54,3 +55,4 @@ public static class WaitingTest
 		assertEqual(1.0f, waiting.getProgress());
 	}
 }
+#endif

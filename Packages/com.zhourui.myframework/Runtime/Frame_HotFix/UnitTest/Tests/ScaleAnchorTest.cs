@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 using static UnityUtility;
@@ -285,3 +286,4 @@ public class TestScaleAnchor3D : ScaleAnchor3D
 	public void setScreenScaleForTest(Vector2 scale) { mScreenScale = scale; }
 	public Vector2 getRealScaleForTest() { return generateScreenScaleByAspectBase(mScreenScale, mAspectBase); }
 }
+#endif

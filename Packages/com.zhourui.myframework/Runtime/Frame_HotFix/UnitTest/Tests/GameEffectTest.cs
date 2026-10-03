@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using UnityEngine;
 using static TestAssert;
@@ -438,3 +439,4 @@ public class GameEffectTestHelper : GameEffect
 {
 	public bool getDefaultIgnoreTimeScale() { return mDefaultIgnoreTimeScale; }
 }
+#endif

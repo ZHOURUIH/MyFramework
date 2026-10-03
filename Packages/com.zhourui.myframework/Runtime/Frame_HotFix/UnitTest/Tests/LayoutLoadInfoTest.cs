@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using static TestAssert;
 using static FrameUtility;
@@ -88,3 +89,4 @@ public static class LayoutLoadInfoTest
 		assertNull(info, "UN_CLASS 后外部引用置 null");
 	}
 }
+#endif

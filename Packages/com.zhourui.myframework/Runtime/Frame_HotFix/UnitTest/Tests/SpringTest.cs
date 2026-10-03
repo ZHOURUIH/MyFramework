@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // Spring 弹簧物理测试
@@ -636,3 +637,4 @@ public static class SpringTest
 		return 1000;
 	}
 }
+#endif

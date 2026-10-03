@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using System;
 using System.Collections.Generic;
@@ -177,3 +178,4 @@ public static class TouchPointTest
 		assertTrue(afterUp >= beforeUp, "pointUp 后 getUpTime 不早于抬起前");
 	}
 }
+#endif

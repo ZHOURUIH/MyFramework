@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using static SerializeBitUtility;
@@ -492,3 +493,4 @@ public static class SerializeBitUtilityTest
 	static bool isFloatNear(float a, float b, float eps) { return Math.Abs(a - b) < eps; }
 	static bool isDoubleNear(double a, double b, double eps) { return Math.Abs(a - b) < eps; }
 }
+#endif

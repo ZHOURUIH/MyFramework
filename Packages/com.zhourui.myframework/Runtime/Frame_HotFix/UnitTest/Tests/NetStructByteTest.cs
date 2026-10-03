@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using static TestAssert;
 
@@ -243,3 +244,4 @@ public static class NetStructByteTest
 		assertTrue(ns.mHasOptionalParams, "resetProperty 后 mHasOptionalParams 仍为 true（构造赋值不重置）");
 	}
 }
+#endif

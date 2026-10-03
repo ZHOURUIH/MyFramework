@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using static TestAssert;
 using static FrameBaseHotFix;
@@ -270,3 +271,4 @@ public static class NetPacketFactoryTest
 		mNetPacketFactory.destroyPacket(packet);
 	}
 }
+#endif

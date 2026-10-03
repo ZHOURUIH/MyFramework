@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -166,3 +167,4 @@ public static class MouseCastWindowSetTest
 		assertNull(set.getCamera(), "resetProperty 后 getCamera 应为 null");
 	}
 }
+#endif

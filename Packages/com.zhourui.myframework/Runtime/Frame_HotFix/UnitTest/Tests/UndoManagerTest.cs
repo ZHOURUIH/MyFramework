@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using static FrameUtility;
 using static TestAssert;
@@ -336,3 +337,4 @@ public static class UndoManagerTest
 		undo.clearAll();
 	}
 }
+#endif

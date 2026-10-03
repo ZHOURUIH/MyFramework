@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -268,3 +269,4 @@ public static class Vector2ExtensionTest
         assertTrue(dOrth.isZero(), "orthogonal dot=0");
     }
 }
+#endif

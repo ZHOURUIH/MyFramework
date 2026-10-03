@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 using UnityEngine;
 using static TestAssert;
@@ -724,3 +725,4 @@ public class TestLayoutScriptDeep : LayoutScript
 		lateUpdateCount = 0;
 	}
 }
+#endif

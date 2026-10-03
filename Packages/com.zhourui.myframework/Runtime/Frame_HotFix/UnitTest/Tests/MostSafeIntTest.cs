@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // MostSafeInt 双倍安全整型测试
@@ -209,3 +210,4 @@ public static class MostSafeIntTest
 		}
 	}
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using UnityEngine;
 using static TestAssert;
@@ -63,3 +64,4 @@ public static class ByteArrayPoolThreadTest
 		assertTrue(totalUnused == 0, "clearUnused 后所有未使用队列为空");
 	}
 }
+#endif

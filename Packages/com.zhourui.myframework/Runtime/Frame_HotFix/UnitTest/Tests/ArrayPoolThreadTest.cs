@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -76,3 +77,4 @@ public static class ArrayPoolThreadTest
 		assertTrue(pool.getUnusedList().Count == 0, "初始未使用列表为空");
 	}
 }
+#endif

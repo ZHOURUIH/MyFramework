@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -120,3 +121,4 @@ public static class GeometryStructTest
 		// 导致 x 与 z 重叠(都<<16), 不同分量组合可能产生相同哈希(实现固有碰撞), 故不断言不同对象哈希必不同
 	}
 }
+#endif

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if UNITY_EDITOR
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -132,3 +133,4 @@ public static class SafeListFastPathBenchmark
 			" | " + nsPerItem.ToString("F2").PadLeft(9) + " ns/item");
 	}
 }
+#endif

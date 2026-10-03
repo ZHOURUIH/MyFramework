@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 
 // ClassObject 生命周期测试
@@ -140,3 +141,4 @@ public class TestClassObj : ClassObject
         mCustomData = 0;
     }
 }
+#endif

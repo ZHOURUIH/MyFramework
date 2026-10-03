@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -458,3 +459,4 @@ public static class IntExtensionTest
         assertEqual(10u, 15u.clampMax(10u), "uint clampMax 15 max=10 -> 10");
     }
 }
+#endif

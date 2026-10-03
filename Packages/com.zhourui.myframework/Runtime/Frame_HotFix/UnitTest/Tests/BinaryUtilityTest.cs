@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.Text;
 using static TestAssert;
@@ -783,3 +784,4 @@ public static class BinaryUtilityTest
 		}
 	}
 }
+#endif

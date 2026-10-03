@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -90,3 +91,4 @@ public static class Vector2IntExtensionTest
         assertEqual(rad * Mathf.Rad2Deg, deg, 0.5f, "DEGREE 与 RADIAN 换算一致");
     }
 }
+#endif

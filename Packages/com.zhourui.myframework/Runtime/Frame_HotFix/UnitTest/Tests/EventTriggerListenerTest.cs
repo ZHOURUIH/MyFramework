@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using UnityEngine.EventSystems;
 using static TestAssert;
@@ -146,3 +147,4 @@ public static class EventTriggerListenerTest
 		}
 	}
 }
+#endif

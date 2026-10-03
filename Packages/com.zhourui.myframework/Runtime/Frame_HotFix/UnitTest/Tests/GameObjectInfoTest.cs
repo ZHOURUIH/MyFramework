@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using static TestAssert;
 
@@ -113,3 +114,4 @@ public static class GameObjectInfoTest
 		assertNull(info.getFileWithPath(), "默认 getFileWithPath=null");
 	}
 }
+#endif

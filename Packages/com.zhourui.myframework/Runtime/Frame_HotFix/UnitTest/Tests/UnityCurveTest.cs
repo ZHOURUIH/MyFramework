@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -71,3 +72,4 @@ public static class UnityCurveTest
 		float big = curve.evaluate(2.0f);
 	}
 }
+#endif

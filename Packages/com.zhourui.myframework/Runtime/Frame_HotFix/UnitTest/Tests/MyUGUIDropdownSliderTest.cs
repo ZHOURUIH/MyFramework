@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
@@ -203,3 +204,4 @@ public static class MyUGUIDropdownSliderTest
 		}
 	}
 }
+#endif

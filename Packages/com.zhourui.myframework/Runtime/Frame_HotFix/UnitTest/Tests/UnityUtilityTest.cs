@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using System.Collections.Generic;
 using static UnityUtility;
@@ -830,3 +831,4 @@ public static class UnityUtilityTest
 		}
 	}
 }
+#endif

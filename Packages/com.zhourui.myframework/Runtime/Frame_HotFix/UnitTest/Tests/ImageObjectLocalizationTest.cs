@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // ImageObjectLocalization: 图片对象本地化数据(纯 C# ClassObject, 直接 new 可测)
@@ -36,3 +37,4 @@ public static class ImageObjectLocalizationTest
 		assertTrue(info.mImageNameWithoutSuffix == null, "resetProperty 后 mImageNameWithoutSuffix null");
 	}
 }
+#endif

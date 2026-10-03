@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -189,3 +190,4 @@ public class Vector2IntMyTest
 		assertTrue(hashSet.Count > 0);
 	}
 }
+#endif

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if UNITY_EDITOR
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UObject = UnityEngine.Object;
@@ -1443,3 +1444,4 @@ public static class ResourceManagerTest
 		// ClassObject 已实现 IRecyclable, 直接使用即可
 	}
 }
+#endif

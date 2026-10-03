@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -77,3 +78,4 @@ public static class SQLiteDataTest
 	}
 #endif
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 public static class MyTimer1Test
@@ -103,3 +104,4 @@ public static class MyTimer1Test
 		return System.Math.Abs(a - b) < eps;
 	}
 }
+#endif

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if UNITY_EDITOR
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -236,3 +237,4 @@ public static class ComponentOwnerUpdateBenchmark
 		builder.AppendLine(name.PadRight(28) + ": " + ratio.ToString("F2") + "x | Save:" + saveNS.ToString("F2") + " ns/frame");
 	}
 }
+#endif

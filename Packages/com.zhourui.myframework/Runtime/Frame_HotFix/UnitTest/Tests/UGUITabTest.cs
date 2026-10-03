@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using UnityEngine.UI;
 using static TestAssert;
@@ -370,3 +371,4 @@ public class TestTabUGUI : UGUITab
 	public bool getSelectedActive() { return mSelected.isActive(); }
 	public LegendButton getButton() { return mButton; }
 }
+#endif

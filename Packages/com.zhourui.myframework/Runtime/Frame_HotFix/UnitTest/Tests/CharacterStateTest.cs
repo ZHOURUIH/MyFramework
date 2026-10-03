@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // CharacterState 基类单元测试 — 覆盖角色状态基类的字段存取 / 计时更新 / 离开回调 / 移出回调
@@ -497,3 +498,4 @@ public static class CharacterStateTest
 		public override bool canEnter() { base.canEnter(); return false; }
 	}
 }
+#endif

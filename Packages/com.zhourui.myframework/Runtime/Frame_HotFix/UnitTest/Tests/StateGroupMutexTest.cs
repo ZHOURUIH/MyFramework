@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using static TestAssert;
 
@@ -92,3 +93,4 @@ public static class StateGroupMutexTest
 	private class OtherState { }
 	private class ThirdState { }
 }
+#endif

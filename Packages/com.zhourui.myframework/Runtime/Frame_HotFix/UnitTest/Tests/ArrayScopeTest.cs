@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // ArrayScope 单元测试
@@ -111,3 +112,4 @@ public static class ArrayScopeTest
 		}
 	}
 }
+#endif

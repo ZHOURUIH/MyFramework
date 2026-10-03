@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using static TestAssert;
 
@@ -979,3 +980,4 @@ public static class EventSystemTest
 		UN_CLASS(evt);
 	}
 }
+#endif

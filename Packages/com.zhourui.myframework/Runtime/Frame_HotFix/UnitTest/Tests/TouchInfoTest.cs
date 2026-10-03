@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -113,3 +114,4 @@ public static class TouchInfoTest
 		public bool isChildOf(IMouseEventCollect parent) { return false; }
 	}
 }
+#endif

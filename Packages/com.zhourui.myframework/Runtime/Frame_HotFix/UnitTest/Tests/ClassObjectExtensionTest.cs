@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static ClassObjectExtension;
 using static TestAssert;
 
@@ -57,3 +58,4 @@ class TestClassObjExt : ClassObject
 {
 	public override void resetProperty() { base.resetProperty(); }
 }
+#endif

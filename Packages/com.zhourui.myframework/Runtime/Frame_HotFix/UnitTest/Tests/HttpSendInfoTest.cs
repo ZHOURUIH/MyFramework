@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using static TestAssert;
 
@@ -63,3 +64,4 @@ public static class HttpSendInfoTest
 		assertEqual(0, dst.mTimeout, "clone 后 timeout 为 0");
 	}
 }
+#endif

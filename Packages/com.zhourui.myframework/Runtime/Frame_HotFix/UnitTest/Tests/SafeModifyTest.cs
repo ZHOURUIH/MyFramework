@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // SafeListModify / SafeDictionaryModify / SafeHashSetModify 结构体测试
@@ -170,3 +171,4 @@ public static class SafeModifyTest
 		assertFalse(mod.mAdd, "默认 mAdd=false");
 	}
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 public static class UIDepthTest
@@ -59,3 +60,4 @@ public static class UIDepthTest
 		assertTrue(parent.toDepthString().Contains("8 "), "深层节点深度字符串应包含末级 order");
 	}
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
@@ -319,3 +320,4 @@ public class TestScrollListPanel : LayoutScript
 		updateCount = 0;
 	}
 }
+#endif

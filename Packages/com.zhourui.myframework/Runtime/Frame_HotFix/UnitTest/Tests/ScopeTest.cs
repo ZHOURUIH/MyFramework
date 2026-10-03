@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // Scope 作用域类单元测试 — 覆盖未纳入测试的 Scope 分配/释放结构
@@ -317,3 +318,4 @@ public static class ScopeTest
 		}
 	}
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 using UnityEngine;
 using System.Collections.Generic;
@@ -758,3 +759,4 @@ public class DeepPoolClass : ClassObject
 		mName = null;
 	}
 }
+#endif

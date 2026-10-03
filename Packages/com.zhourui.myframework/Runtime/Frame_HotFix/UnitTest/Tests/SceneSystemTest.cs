@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -471,3 +472,4 @@ public class MockScene : SceneInstance
 public class DifferentMockScene : SceneInstance
 {
 }
+#endif

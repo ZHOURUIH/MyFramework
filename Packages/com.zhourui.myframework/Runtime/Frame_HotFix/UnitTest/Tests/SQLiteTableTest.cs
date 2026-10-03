@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // SQLiteTable 中可脱离数据库实例测试的静态方法
@@ -20,3 +21,4 @@ public static class SQLiteTableTest
 #endif
     }
 }
+#endif

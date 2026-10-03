@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using UnityEngine;
 using static TestAssert;
@@ -291,3 +292,4 @@ public static class CharacterTest
 		}
 	}
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using static TestAssert;
 using static FrameUtility;
@@ -356,3 +357,4 @@ public class TestCmdReceiver : CommandReceiver
 		mHasDestroy = false;
 	}
 }
+#endif

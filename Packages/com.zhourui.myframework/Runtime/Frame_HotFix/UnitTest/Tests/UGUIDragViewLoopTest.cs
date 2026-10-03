@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -417,3 +418,4 @@ public class TestDragViewLoopLayout : LayoutScript
 {
 	public override void assignWindow() { }
 }
+#endif

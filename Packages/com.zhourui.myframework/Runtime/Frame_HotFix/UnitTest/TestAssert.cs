@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using UnityEngine;
 
@@ -64,3 +65,4 @@ public static class TestAssert
         }
     }
 }
+#endif

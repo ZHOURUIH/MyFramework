@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.IO;
 using UnityEngine;
 using static FrameBaseHotFix;
@@ -244,3 +245,4 @@ public class TestUpdateUIObject : myUGUIObject
 		removeSelfInUpdate = false;
 	}
 }
+#endif

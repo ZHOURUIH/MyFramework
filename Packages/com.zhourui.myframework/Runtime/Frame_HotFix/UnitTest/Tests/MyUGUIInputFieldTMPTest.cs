@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Reflection;
 using static TestAssert;
 
@@ -54,3 +55,4 @@ public static class MyUGUIInputFieldTMPTest
 		assertFalse(field.isVisible(), "直接 new 后 isVisible 默认 false(未 setObject, Transformable.mActive 构造为 false)");
 	}
 }
+#endif

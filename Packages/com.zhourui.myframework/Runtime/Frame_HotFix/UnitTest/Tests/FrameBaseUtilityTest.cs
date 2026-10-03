@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using static FrameBaseUtility;
 
@@ -101,3 +102,4 @@ public static class FrameBaseUtilityTest
 		}
 	}
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using static TestAssert;
 
@@ -216,3 +217,4 @@ public static class CmdGlobalDelayCallTest
 		public long getAssignID() { return mAssignID; }
 	}
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -809,3 +810,4 @@ public static class MathExtensionTest
 		assertTrue(inv3.isEqual(0.001f, 0.0001f), "inversePow10 3=0.001");
 	}
 }
+#endif

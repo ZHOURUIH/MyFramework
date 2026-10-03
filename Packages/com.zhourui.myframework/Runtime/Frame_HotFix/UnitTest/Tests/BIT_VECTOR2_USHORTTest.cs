@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using static TestAssert;
@@ -237,3 +238,4 @@ public class BIT_VECTOR2_USHORTTest
 		assertEqual(ushort.MaxValue, instance.mValue.y);
 	}
 }
+#endif

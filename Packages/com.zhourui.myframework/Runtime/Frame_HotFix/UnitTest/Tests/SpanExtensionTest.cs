@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.Text;
 using static TestAssert;
@@ -306,3 +307,4 @@ public class SpanExtensionTest
 		}
 	}
 }
+#endif

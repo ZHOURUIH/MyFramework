@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using static TestAssert;
 
@@ -53,3 +54,4 @@ public static class ListScope2TTest
 		// 无异常即通过
 	}
 }
+#endif

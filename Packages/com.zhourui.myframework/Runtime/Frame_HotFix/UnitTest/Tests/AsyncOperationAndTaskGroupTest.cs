@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections;
 using static TestAssert;
 
@@ -82,3 +83,4 @@ public static class AsyncOperationAndTaskGroupTest
 		}
 	}
 }
+#endif

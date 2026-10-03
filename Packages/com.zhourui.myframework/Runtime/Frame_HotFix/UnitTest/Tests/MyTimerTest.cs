@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // MyTimer / MyTimer1 计时器测试
@@ -373,3 +374,4 @@ public static class MyTimerTest
         assert(!t.mLoop, "二次 init 后 loop=false");
     }
 }
+#endif

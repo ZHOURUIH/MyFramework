@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using static FrameUtility;
@@ -825,3 +826,4 @@ public static class DictionaryExtensionTest
 
     public class TestDictClass : ClassObject { }
 }
+#endif

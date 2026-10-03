@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.IO;
 using UnityEngine;
 using static TestAssert;
@@ -101,3 +102,4 @@ public static class StructAndFormItemTest
 		assertEqual(0, item.mFileLength, "reset 后长度应为0");
 	}
 }
+#endif

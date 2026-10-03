@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // Undo 抽象类单元测试
@@ -43,3 +44,4 @@ public class TestUndo : MyUndo
 		mUndoCalled = true;
 	}
 }
+#endif

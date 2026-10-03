@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // 自定义属性标签单元测试(Frame_Base 层, 纯逻辑, 无 Unity 运行时依赖)
@@ -54,3 +55,4 @@ public static class AttributeLabelTest
 		assertNull(attrNull.getLabel(), "null label 应返回 null");
 	}
 }
+#endif

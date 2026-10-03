@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -346,3 +347,4 @@ public class SerializerBitWriteTest
 		assertEqual(0, w.getBitCount(), "clear 后 bitCount=0");
 	}
 }
+#endif

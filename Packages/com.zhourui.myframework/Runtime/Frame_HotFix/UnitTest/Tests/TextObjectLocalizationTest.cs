@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // TextObjectLocalization: 文本对象本地化数据(纯 C# ClassObject, 直接 new 可测)
@@ -49,3 +50,4 @@ public static class TextObjectLocalizationTest
 		assertTrue(info.mCallback == null, "resetProperty 后 mCallback null");
 	}
 }
+#endif

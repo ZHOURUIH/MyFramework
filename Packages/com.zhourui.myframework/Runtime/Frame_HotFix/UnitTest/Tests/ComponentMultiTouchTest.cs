@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -103,3 +104,4 @@ public class TestComponentMultiTouch : ComponentMultiTouch
 
 	public FloatCallback getRotateCallbackForTest() { return mTwoFingerRotateCallback; }
 }
+#endif

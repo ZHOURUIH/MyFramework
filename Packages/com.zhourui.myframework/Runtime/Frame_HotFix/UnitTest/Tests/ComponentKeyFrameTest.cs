@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -274,3 +275,4 @@ public class TestComponentKeyFrame : ComponentKeyFrame
 
 	public void setCurrentTimeForTest(float time) { mCurrentTime = time; }
 }
+#endif

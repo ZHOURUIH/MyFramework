@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using static TestAssert;
@@ -345,3 +346,4 @@ public class BIT_UINTSTest
 		assertEqual(uint.MaxValue, instance[0]);
 	}
 }
+#endif

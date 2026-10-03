@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // SafeLong 安全长整型测试
@@ -278,3 +279,4 @@ public static class SafeLongTest
 		assertEqual(0L, sl.get(), "set(0) 后 get 0");
 	}
 }
+#endif

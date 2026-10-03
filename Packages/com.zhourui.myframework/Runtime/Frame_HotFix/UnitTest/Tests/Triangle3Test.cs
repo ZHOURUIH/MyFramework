@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -20,3 +21,4 @@ public static class Triangle3Test
         assertTrue(tri.mPoint2.isEqual(p2), "point2");
     }
 }
+#endif

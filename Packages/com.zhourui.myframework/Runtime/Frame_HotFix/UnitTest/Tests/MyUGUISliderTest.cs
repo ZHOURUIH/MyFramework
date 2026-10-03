@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 using UnityEngine;
 using UnityEngine.UI;
@@ -155,3 +156,4 @@ public static class MyUGUISliderTest
 		return slider;
 	}
 }
+#endif

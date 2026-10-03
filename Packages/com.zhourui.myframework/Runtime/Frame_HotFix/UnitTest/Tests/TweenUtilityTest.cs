@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TweenUtility;
 using static TestAssert;
@@ -59,3 +60,4 @@ public class LinearTestCurve : MyCurve
 	public override float evaluate(float time) { return time; }
 	public override void resetProperty() { base.resetProperty(); }
 }
+#endif

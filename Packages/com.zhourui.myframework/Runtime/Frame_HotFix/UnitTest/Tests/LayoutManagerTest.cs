@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using System.Collections.Generic;
 using static TestAssert;
@@ -350,3 +351,4 @@ public static class LayoutManagerTest
 		assertTrue(mLayoutManager.getLayoutCount() >= 0);
 	}
 }
+#endif

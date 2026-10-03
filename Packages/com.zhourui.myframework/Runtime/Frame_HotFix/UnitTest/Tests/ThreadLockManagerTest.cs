@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Threading;
 using static TestAssert;
 
@@ -176,3 +177,4 @@ public static class ThreadLockManagerTest
 		}
 	}
 }
+#endif

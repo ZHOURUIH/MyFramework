@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // SafeFastDeepList: 非线程安全深遍历列表(纯 C# ClassObject, 直接 new 可测)
@@ -156,3 +157,4 @@ public static class SafeFastDeepListTest
 		assertTrue(list.contains(2), "主列表新增元素可见");
 	}
 }
+#endif

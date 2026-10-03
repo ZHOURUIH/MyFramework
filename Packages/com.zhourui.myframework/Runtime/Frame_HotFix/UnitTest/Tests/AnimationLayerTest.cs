@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using static TestAssert;
 
@@ -95,3 +96,4 @@ public static class AnimationLayerTest
 	// 仅用作 Type 标记, 不实例化
 	private class TestStateMarker { }
 }
+#endif

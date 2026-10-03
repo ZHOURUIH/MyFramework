@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 public static class StreamBufferTest
@@ -207,3 +208,4 @@ public static class StreamBufferTest
         buffer.destroy();
     }
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -1237,3 +1238,4 @@ public class FakeLocalizeText : IUGUIText
 
 	public void setText(long text) { mText = text.LToS(); }
 }
+#endif

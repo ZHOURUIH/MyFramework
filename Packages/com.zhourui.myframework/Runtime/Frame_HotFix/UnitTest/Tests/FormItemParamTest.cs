@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // FormItemParam 表单字段参数测试
@@ -24,3 +25,4 @@ public static class FormItemParamTest
         assertNull(param.mValue, "reset value=null");
     }
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // MyCurve 关键帧曲线数学测试: 直接 new 具体曲线子类(纯 C# 公式, 无外部依赖)
@@ -218,3 +219,4 @@ public static class MyCurveTest
 		assertEqual(0.96875f, curve.evaluate(0.5f), 0.0001f, "QuintOut(0.5)=1-0.5^5=0.96875");
 	}
 }
+#endif

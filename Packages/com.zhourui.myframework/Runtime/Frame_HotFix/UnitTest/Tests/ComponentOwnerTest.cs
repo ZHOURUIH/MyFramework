@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // ComponentOwner 深度测试: 生命周期转发链路
@@ -817,3 +818,4 @@ public class DeepTestComponentOwner : ComponentOwner
 		notifyCount = 0;
 	}
 }
+#endif

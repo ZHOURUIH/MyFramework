@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // EditorCurveFactory 编辑器曲线工厂(静态)
@@ -48,3 +49,4 @@ public static class EditorCurveFactoryTest
 		assertTrue(names != null && names.Length >= ids.Length, "getNames 与 ids 规模匹配");
 	}
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -70,3 +71,4 @@ public static class TileRenderDataTest
 		assertNull(data.mSpriteData.mTexture, "resetProperty 后 mSpriteData.mTexture 为 null");
 	}
 }
+#endif

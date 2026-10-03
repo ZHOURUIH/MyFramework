@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using static TestAssert;
 
@@ -192,3 +193,4 @@ public static class PacketInfoTest
 		assertNull(info.mClassType, "mClassType 可设为 null");
 	}
 }
+#endif

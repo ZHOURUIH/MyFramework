@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -70,3 +71,4 @@ public static class PointTest
 		assertEqual(hash1, hash2, "幂等");
 	}
 }
+#endif

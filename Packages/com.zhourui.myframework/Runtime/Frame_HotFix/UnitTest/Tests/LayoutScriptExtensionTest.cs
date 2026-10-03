@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 public static class LayoutScriptExtensionTest
@@ -30,3 +31,4 @@ public static class LayoutScriptExtensionTest
 
     // ─── safe<T>: 可见脚本返回自身 ────────────────────────────────────
 }
+#endif

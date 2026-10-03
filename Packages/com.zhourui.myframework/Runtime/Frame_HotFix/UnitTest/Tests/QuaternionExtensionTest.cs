@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -36,3 +37,4 @@ public static class QuaternionExtensionTest
         assertFalse(q9.isEqual(q10, 0.0001f), "isEqual different with strict precision");
     }
 }
+#endif

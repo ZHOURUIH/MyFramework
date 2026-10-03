@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // Vector4Int 结构体测试
@@ -44,3 +45,4 @@ public static class Vector4IntTest
         assertEqual(0, Vector4Int.zero.w, "zero w=0");
     }
 }
+#endif

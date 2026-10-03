@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using UnityEngine;
 using static TestAssert;
@@ -126,3 +127,4 @@ public static class MyUGUITileImageTest
 		}
 	}
 }
+#endif
