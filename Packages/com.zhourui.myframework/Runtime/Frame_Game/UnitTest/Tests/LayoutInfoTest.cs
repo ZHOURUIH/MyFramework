@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using static TestAssert;
 
@@ -52,3 +53,4 @@ public static class LayoutInfoTest
 		assertTrue(called, "回调被调用");
 	}
 }
+#endif

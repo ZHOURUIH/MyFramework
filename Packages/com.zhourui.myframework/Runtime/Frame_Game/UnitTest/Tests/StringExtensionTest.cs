@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // Frame_Game 精简层 StringExtension 测试(纯字符串逻辑)
@@ -141,3 +142,4 @@ public static class StringExtensionTest
 		assertEqual("ABCDEF", "ABCDEF".removeStartString("abc"), "敏感不移除");
 	}
 }
+#endif

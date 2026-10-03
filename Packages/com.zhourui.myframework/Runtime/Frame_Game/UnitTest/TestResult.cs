@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 
 // Frame_Game 运行时集成测试结果
 public class TestResult
@@ -14,3 +15,4 @@ public class TestResult
 		mElapsedMs = ms;
 	}
 }
+#endif

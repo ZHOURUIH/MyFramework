@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using static TestAssert;
 
@@ -44,3 +45,4 @@ public static class FrameCallbackTest
 		checkDelegate(typeof(GameDownloadTipCallback), 1);
 	}
 }
+#endif

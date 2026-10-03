@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using static TestAssert;
@@ -154,3 +155,4 @@ public static class FileUtilityTest
 		assertFalse(deleteList.Contains("a.txt"), "一致 → 不删");
 	}
 }
+#endif

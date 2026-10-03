@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using UnityEngine;
 using UObject = UnityEngine.Object;
@@ -103,3 +104,4 @@ public static class ResourceLoadInfoTest
 		}
 	}
 }
+#endif

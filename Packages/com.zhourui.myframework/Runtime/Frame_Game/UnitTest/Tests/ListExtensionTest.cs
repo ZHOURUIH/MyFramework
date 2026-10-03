@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using static TestAssert;
 
@@ -83,3 +84,4 @@ public static class ListExtensionTest
 		assertEqual(3, list.count(), "count 3");
 	}
 }
+#endif

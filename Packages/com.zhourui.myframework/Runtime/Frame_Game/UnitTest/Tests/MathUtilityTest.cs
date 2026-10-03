@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using static TestAssert;
 
@@ -56,3 +57,4 @@ public static class MathUtilityTest
 		assertEqual(new Vector3(-6f, 0f, -4f), r, "负/零分量");
 	}
 }
+#endif

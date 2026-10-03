@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // Frame_Game 精简层 FontSizeInfo 结构体测试(语言+字号)
@@ -36,3 +37,4 @@ public static class FontSizeInfoTest
 		assertEqual(30, b.mFontSize, "b 独立");
 	}
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using static TestAssert;
 
 // Frame_Game 精简层 SceneProcedure 生命周期测试
@@ -67,3 +68,4 @@ public static class SceneProcedureTest
 		assertEqual(4, proc.mOrder, "willDestroy 执行");
 	}
 }
+#endif

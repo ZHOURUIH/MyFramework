@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using System.Text;
 using static TestAssert;
@@ -169,3 +170,4 @@ public static class StringUtilityTest
 		assertEqual("c.txt", StringUtility.getFileNameWithSuffix("a/b/c.txt"), "带后缀文件名");
 	}
 }
+#endif

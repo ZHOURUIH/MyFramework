@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using static TestAssert;
 
@@ -130,3 +131,4 @@ public static class DictionaryExtensionTest
 		assertEqual(0, map.Count, "null 清空");
 	}
 }
+#endif
