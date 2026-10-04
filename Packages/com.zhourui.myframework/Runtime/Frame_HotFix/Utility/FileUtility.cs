@@ -165,6 +165,7 @@ public class FileUtility
 				}
 				return fileBuffer;
 			}
+#if UNITY_WEBGL
 			else if (isWebGL())
 			{
 				if (isByteDance())
@@ -184,6 +185,7 @@ public class FileUtility
 					logError("not supported openFileSync");
 				}
 			}
+#endif
 		}
 		catch (Exception e)
 		{
@@ -261,6 +263,7 @@ public class FileUtility
 		{
 			AndroidAssetLoader.writeFile(fileName, buffer, size, false);
 		}
+#if UNITY_WEBGL
 		else if (isWebGL())
 		{
 			if (buffer.Length > size)
@@ -294,6 +297,7 @@ public class FileUtility
 				logError("not supported writeFile");
 			}
 		}
+#endif
 	}
 	// 写一个文本文件,fileName为绝对路径,content是写入的字符串
 	public static void writeTxtFile(string fileName, string content, bool addBOM = false)
@@ -312,6 +316,7 @@ public class FileUtility
 			createDir(getFilePath(fileName));
 			AndroidAssetLoader.writeTxtFile(fileName, content, false);
 		}
+#if UNITY_WEBGL
 		else if (isWebGL())
 		{
 			if (isWeiXin())
@@ -332,14 +337,17 @@ public class FileUtility
 				logError("not supported writeTxtFile");
 			}
 		}
+#endif
 	}
 	// 重命名文件,参数为绝对路径
 	public static bool renameFile(string fileName, string newName)
 	{
+#if UNITY_WEBGL
 		if (!isEditor() && isWebGL() && (isOppo() || isVivo()))
 		{
 			return QuickGameFileSystem.renameFile(fileName, newName);
 		}
+#endif
 		if (!isEditor() && (isAndroid() || isWebGL()))
 		{
 			logError("can not rename file on android or webgl!");
@@ -389,6 +397,7 @@ public class FileUtility
 				logWarning("删除目录失败:" + path);
 			}
 		}
+#if UNITY_WEBGL
 		else if (isWebGL())
 		{
 			if (isByteDance())
@@ -408,6 +417,7 @@ public class FileUtility
 				logError("not supported deleteFolder");
 			}
 		}
+#endif
 	}
 	// 删除path中的所有空目录,参数为绝对路径,deleteSelfIfEmpty表示path本身为空时是否需要删除
 	public static bool deleteEmptyFolder(string path, bool deleteSelfIfEmpty = true)
@@ -435,6 +445,7 @@ public class FileUtility
 	// 移动文件,参数为绝对路径
 	public static bool moveFile(string source, string dest, bool overwrite = true)
 	{
+#if UNITY_WEBGL
 		if (!isEditor() && isWebGL() && (isOppo() || isVivo()))
 		{
 			if (!isFileExist(source) || !overwrite && isFileExist(dest))
@@ -445,6 +456,7 @@ public class FileUtility
 			QuickGameFileSystem.deleteFile(source);
 			return true;
 		}
+#endif
 		if (!isEditor() && (isAndroid() || isWebGL()))
 		{
 			logError("can not move file on android or webgl!");
@@ -503,6 +515,7 @@ public class FileUtility
 			{
 				return AndroidAssetLoader.deleteFile(path);
 			}
+#if UNITY_WEBGL
 			else if (isWebGL())
 			{
 				if (isByteDance())
@@ -522,6 +535,7 @@ public class FileUtility
 					logError("not supported deleteFile");
 				}
 			}
+#endif
 		}
 		catch (Exception e)
 		{
@@ -544,6 +558,7 @@ public class FileUtility
 			{
 				return AndroidAssetLoader.getFileSize(file);
 			}
+#if UNITY_WEBGL
 			else if (isWebGL())
 			{
 				if (isOppo() || isVivo())
@@ -552,6 +567,7 @@ public class FileUtility
 				}
 				logError("not supported getFileSize");
 			}
+#endif
 			return 0;
 		}
 		catch (Exception e)
@@ -588,6 +604,7 @@ public class FileUtility
 			logError("isDirExist invalid path : " + dir);
 			return false;
 		}
+#if UNITY_WEBGL
 		else if (isWebGL())
 		{
 			// 由于小游戏的接口本身无法访问StreamingAssets,所以只要是StreamingAssets中的就直接返回true
@@ -612,6 +629,7 @@ public class FileUtility
 				logError("not supported isDirExist");
 			}
 		}
+#endif
 		return false;
 	}
 	// 文件是否存在,fileName为绝对路径
@@ -641,6 +659,7 @@ public class FileUtility
 			logError("isFileExist invalid path : " + fileName);
 			return false;
 		}
+#if UNITY_WEBGL
 		else if (isWebGL())
 		{
 			// 由于小游戏的接口本身无法访问StreamingAssets,所以只要是StreamingAssets中的就直接返回true
@@ -665,6 +684,7 @@ public class FileUtility
 				logError("not supported isFileExist");
 			}
 		}
+#endif
 		return false;
 	}
 	// 创建文件夹,dir绝对路径
@@ -688,6 +708,7 @@ public class FileUtility
 		{
 			AndroidAssetLoader.createDirectoryRecursive(dir);
 		}
+#if UNITY_WEBGL
 		else if (isWebGL())
 		{
 			if (isByteDance())
@@ -707,6 +728,7 @@ public class FileUtility
 				logError("not supported createDir");
 			}
 		}
+#endif
 	}
 	// 查找指定目录下的所有文件,path为GameResources下的相对路径
 	public static List<string> findResourcesFilesNonAlloc(string path, string pattern, bool recursive = true, bool keepAbsolutePath = false)
@@ -782,7 +804,11 @@ public class FileUtility
 	// 查找指定目录下的所有文件,path为StreamingAssets下的相对路径,返回的路径列表为绝对路径
 	public static void findStreamingAssetsFiles(string path, List<string> fileList, List<string> patterns = null, bool recursive = true, bool keepAbsolutePath = false)
 	{
+#if UNITY_WEBGL
 		if (isEditor() || isIOS() || isWindows() || isWebGL() && (isOppo() || isVivo()))
+#else
+		if (isEditor() || isIOS() || isWindows())
+#endif
 		{
 			path = path.ensurePrefix(F_STREAMING_ASSETS_PATH);
 			findFilesInternal(path, fileList, patterns, null, recursive);
@@ -809,15 +835,21 @@ public class FileUtility
 				}
 			}
 		}
+#if UNITY_WEBGL
 		else if (isWebGL())
 		{
 			logError("not supported findStreamingAssetsFiles");
 		}
+#endif
 	}
 	// 查找指定目录下的所有目录,path为StreamingAssets下的相对路径,返回的路径列表为绝对路径
 	public static void findStreamingAssetsFolders(string path, List<string> folderList, bool recursive = true, bool keepAbsolutePath = false)
 	{
+#if UNITY_WEBGL
 		if (isEditor() || isIOS() || isWindows() || isWebGL() && (isOppo() || isVivo()))
+#else
+		if (isEditor() || isIOS() || isWindows())
+#endif
 		{
 			// 非安卓平台则查找普通的文件夹
 			path = path.ensurePrefix(F_STREAMING_ASSETS_PATH);
@@ -845,10 +877,12 @@ public class FileUtility
 				}
 			}
 		}
+#if UNITY_WEBGL
 		else if (isWebGL() && !isOppo() && !isVivo())
 		{
 			logError("not supported findStreamingAssetsFolders");
 		}
+#endif
 	}
 	// 查找指定目录下的所有文件,path为绝对路径
 	public static List<string> findFilesNonAlloc(string path, string pattern, bool recursive = true)
@@ -946,6 +980,7 @@ public class FileUtility
 			{
 				AndroidAssetLoader.findFiles(path, fileList, patterns, recursive);
 			}
+#if UNITY_WEBGL
 			else if (isWebGL())
 			{
 				if (isOppo() || isVivo())
@@ -957,6 +992,7 @@ public class FileUtility
 					logError("not supported findFilesInternal");
 				}
 			}
+#endif
 		}
 		// 此处暂时不抛出异常信息
 		catch (Exception e)
@@ -997,6 +1033,7 @@ public class FileUtility
 			{
 				AndroidAssetLoader.findFolders(path, dirList, recursive);
 			}
+#if UNITY_WEBGL
 			else if (isWebGL())
 			{
 				if (isOppo() || isVivo())
@@ -1008,6 +1045,7 @@ public class FileUtility
 					logError("not supported findFolders");
 				}
 			}
+#endif
 		}
 		// 只捕获异常,暂时不抛出报错信息
 		catch (Exception e)

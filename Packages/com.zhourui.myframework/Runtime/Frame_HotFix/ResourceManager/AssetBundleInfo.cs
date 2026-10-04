@@ -196,6 +196,7 @@ public class AssetBundleInfo : ClassObject
 		{
 			item.Value?.loadAssetBundle();
 		}
+#if UNITY_WEBGL
 		if (isWebGL())
 		{
 			if (isWeiXin() || isByteDance() || isOppo() || isVivo())
@@ -209,6 +210,7 @@ public class AssetBundleInfo : ClassObject
 			}
 		}
 		else
+#endif
 		{
 			mAssetBundle = AssetBundle.LoadFromFile(availableReadPath(mBundleFileName));
 		}

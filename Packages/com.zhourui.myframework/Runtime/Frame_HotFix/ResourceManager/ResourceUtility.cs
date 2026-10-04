@@ -107,6 +107,7 @@ public class ResourceUtility
 	public static IEnumerator loadAssetBundleWithURL(string url, AssetLoadCallback callback)
 	{
 		// 小游戏中读取PersistentDataPath中的文件需要使用小游戏提供的接口
+#if UNITY_WEBGL
 		if ((isByteDance() || isWeiXin() || isOppo() || isVivo()) && url.startWith(F_PERSISTENT_ASSETS_PATH))
 		{
 			yield return openFileAsyncInternal(url, true, (byte[] bytes) =>
@@ -122,6 +123,7 @@ public class ResourceUtility
 			});
 		}
 		else
+#endif
 		{
 			float timer = 0.0f;
 			ulong lastDownloaded = 0;
@@ -238,6 +240,7 @@ public class ResourceUtility
 	public static IEnumerator loadFileWithURL(string url, AssetLoadCallback callback, DownloadCallback downloadingCallback)
 	{
 		// 这里由于需要计算下载进度,就不再支持小游戏上读取本地文件了
+#if UNITY_WEBGL
 		if ((isByteDance() || isWeiXin() || isOppo() || isVivo()) &&
 			(url.startWith(F_ASSET_BUNDLE_PATH) || url.startWith(F_PERSISTENT_ASSETS_PATH)))
 		{
@@ -252,6 +255,7 @@ public class ResourceUtility
 			}
 			yield break;
 		}
+#endif
 		float timer = 0.0f;
 		ulong lastDownloaded = 0;
 		using var www = unityWebRequest(url);
