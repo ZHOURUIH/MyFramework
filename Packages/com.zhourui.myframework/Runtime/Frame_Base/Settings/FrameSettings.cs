@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Security.Cryptography;
@@ -13,7 +13,7 @@ public class FrameSettings : ScriptableObject
 	public Vector2Int UISizeStandalone = new(1920, 1080);
 	[Tooltip("移动端UI标准分辨率宽高,根据此设置来决定UI的适配")]
 	public Vector2Int UISizeMobile = new(1920, 1080);
-	[Tooltip("允许动态下载的目录列表,GameResources下的相对路径,此列表中的文件不会打包到包体中,也不会在游戏启动时从服务器下载,而是在加载资源时才会进行下载")]
+	[Tooltip("打包时排除的资源目录或AB文件,使用资源输出根目录的相对路径;发布时生成远端动态下载列表,启动更新只使用当前远端版本的列表;初期资源及其依赖必须内置")]
 	public List<string> DynamicDownloadList = new();
 	[Tooltip("需要热更的asmdef列表,需要注意顺序,被依赖的asmdef需要排在前面,启动的主要程序集名字固定为HotFix")]
 	public List<string> HotFixList = new() { "Frame_HotFix", "HotFix" };

@@ -472,18 +472,27 @@ public class AssetBundleLoader
 		}
 		string bundleFileName = bundleInfo.getBundleFileName();
 		string fullPath = availableReadPath(bundleFileName);
-		byte[] assetBundleBytes = null;
 		bundleInfo.setLoadState(LOAD_STATE.LOADING);
-		// 返回空表示本地没有此文件,需要先下载
-		if (fullPath == null)
+		AssetBundleCreateRequest createRequest;
+		if (isWindows() && fullPath != null)
 		{
-			yield return downloadAssetBundleCoroutine(bundleInfo, (byte[] bytes) => { assetBundleBytes = bytes; });
+			// PC本地资源直接从文件加载,避免整包复制到托管堆及临时内存文件。
+			createRequest = AssetBundle.LoadFromFileAsync(fullPath);
 		}
 		else
 		{
-			yield return openFileAsyncInternal(fullPath, true, (byte[] bytes)=> { assetBundleBytes = bytes; });
+			byte[] assetBundleBytes = null;
+			// 返回空表示本地没有此文件,需要先下载
+			if (fullPath == null)
+			{
+				yield return downloadAssetBundleCoroutine(bundleInfo, (byte[] bytes) => { assetBundleBytes = bytes; });
+			}
+			else
+			{
+				yield return openFileAsyncInternal(fullPath, true, (byte[] bytes)=> { assetBundleBytes = bytes; });
+			}
+			createRequest = AssetBundle.LoadFromMemoryAsync(assetBundleBytes);
 		}
-		AssetBundleCreateRequest createRequest = AssetBundle.LoadFromMemoryAsync(assetBundleBytes);
 		yield return createRequest;
 		AssetBundle assetBundle = createRequest.assetBundle;
 		if (isDevOrEditor() && assetBundle != null)

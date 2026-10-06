@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using static FrameBaseDefine;
@@ -12,6 +12,7 @@ public class AssetVersionSystem : FrameSystem
 	protected Dictionary<string, GameFileInfo> mStreamingAssetsFileList = new();    // StreamingAssets中的文件列表,从StreamingAssets中获取
 	protected Dictionary<string, GameFileInfo> mPersistentAssetsFileList = new();   // PersistentPath中的文件列表,从PersistentPath中获取
 	protected Dictionary<string, GameFileInfo> mRemoteAssetsFileList = new();       // 远端服务器上的文件列表,从远端服务器获取
+	protected List<string> mRemoteDynamicDownloadList = new();
 	protected List<string> mTotalDownloadedFiles = new();   // 已经下载的文件列表,用于统计下载文件记录
 	protected long mTotalDownloadByteCount;                 // 已经消耗的总下载量,单位字节,用于统计下载字节数
 	protected Action mRemoteFileListFailCallback;           // 获取远端文件列表失败的回调,当获取远端文件列表失败后会回调,一般是网络异常或者远端服务器异常导致无法获取到远端文件列表
@@ -50,6 +51,18 @@ public class AssetVersionSystem : FrameSystem
 	}
 	public long getTotalDownloadedByteCount() { return mTotalDownloadByteCount; }
 	public List<string> getTotalDownloadedFiles() { return mTotalDownloadedFiles; }
+	public List<string> getRemoteDynamicDownloadList()
+	{
+		return mRemoteDynamicDownloadList;
+	}
+	public void setRemoteDynamicDownloadList(IEnumerable<string> directories)
+	{
+		mRemoteDynamicDownloadList.Clear();
+		if (directories != null)
+		{
+			mRemoteDynamicDownloadList.AddRange(directories);
+		}
+	}
 	public void addDownloadedInfo(int byteCount, string fileName)
 	{
 		mTotalDownloadByteCount += byteCount;

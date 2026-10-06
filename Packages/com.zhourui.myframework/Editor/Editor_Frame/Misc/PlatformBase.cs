@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+using UnityEditor;
+using UnityEngine;
 using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
 using UnityEditorInternal;
@@ -95,7 +96,7 @@ public abstract class PlatformBase
 			{
 				string relativePath = file.removeStart(mAssetBundleFullPath);
 				// 删除指定
-				if (relativePath != FILE_LIST && !containOnlyFileList.contains(relativePath))
+				if (relativePath != FILE_LIST && relativePath != DYNAMIC_DOWNLOAD_LIST && !containOnlyFileList.contains(relativePath))
 				{
 					deleteFile(dest + relativePath);
 					newList.Remove(file);
@@ -184,10 +185,30 @@ public abstract class PlatformBase
 		mLocalVersion = mBuildVersion;
 		return true;
 	}
-	public bool writeFileList(string path)
+	public bool writeFileList(string path, bool includeDynamicAssets = true)
 	{
-		string content = generateFileList(path, mIgnoreFile, FrameSettings.getDynamicDownloadList());
+		if (!writeDynamicDownloadList(path))
+		{
+			return false;
+		}
+		string content = generateResourceFileList(path, includeDynamicAssets ? null : FrameSettings.getDynamicDownloadList());
 		writeTxtFile(path + FILE_LIST, content);
+		return true;
+	}
+	public bool writeDynamicDownloadList(string path)
+	{
+		string version = openTxtFile(path + VERSION, false)?.Trim();
+		DynamicDownloadConfig config = new()
+		{
+			Version = version,
+			Directories = new List<string>(FrameSettings.getDynamicDownloadList()),
+		};
+		if (!DynamicDownloadConfig.tryParse(JsonUtility.ToJson(config), version, out DynamicDownloadConfig normalized))
+		{
+			logError("动态下载列表或资源版本无效,请检查FrameSettings和Version:" + path);
+			return false;
+		}
+		writeTxtFile(path + DYNAMIC_DOWNLOAD_LIST, JsonUtility.ToJson(normalized));
 		return true;
 	}
 	// 检查所有的热更dll,以及AOT的dll是否都存在
@@ -332,6 +353,10 @@ public abstract class PlatformBase
 			dialog("错误", "上传的资源路径不存在:" + uploadLocalPath, "确定");
 			return false;
 		}
+		if (!writeDynamicDownloadList(uploadLocalPath))
+		{
+			return false;
+		}
 		string remotePath = getRemotePathInEditor(mLocalVersion);
 		log("上传远端路径:" + remotePath);
 		string displayTitle = "上传游戏资源";
@@ -340,6 +365,7 @@ public abstract class PlatformBase
 		progressBar(displayTitle, "正在获取远端文件列表");
 		var remoteFileList = mObjectStorageSystem?.getFileList(remotePath);
 		remoteFileList.remove(mIgnoreFile);
+		remoteFileList?.Remove(DYNAMIC_DOWNLOAD_LIST);
 		log("远端共" + remoteFileList.count() + "个文件");
 		progressBar(displayTitle, "正在计算本地文件列表");
 		// 对比远端和本地的文件,删除远端无用的文件
@@ -352,7 +378,7 @@ public abstract class PlatformBase
 			clearProgress();
 			return false;
 		}
-		string generatedContent = generateFileList(uploadLocalPath, mIgnoreFile, FrameSettings.getDynamicDownloadList());
+		string generatedContent = generateResourceFileList(uploadLocalPath, null);
 		// 如果扫描出来不一样就更新本地文件列表
 		if (generatedContent != content)
 		{
@@ -383,6 +409,7 @@ public abstract class PlatformBase
 		// 要将资源列表文件上传上去
 		// 版本号文件不上传
 		modifyList.add(FILE_LIST);
+		modifyList.add(DYNAMIC_DOWNLOAD_LIST);
 		modifyList.Remove(VERSION);
 		Dictionary<string, string> uploadList = new();
 		foreach (string item in modifyList)
@@ -431,6 +458,14 @@ public abstract class PlatformBase
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 获取打包时的宏配置,不包含getDefaultPlatformDefine的宏,会拼接以后设置到当前宏定义
 	protected abstract string getBuildTimePlatformDefineInternal();
+	protected string generateResourceFileList(string path, List<string> ignorePath)
+	{
+		List<string> ignoreFiles = mIgnoreFile == null ? new() : new(mIgnoreFile);
+		ignoreFiles.addUnique(VERSION);
+		ignoreFiles.addUnique(FILE_LIST);
+		ignoreFiles.addUnique(DYNAMIC_DOWNLOAD_LIST);
+		return generateFileList(path, ignoreFiles, ignorePath);
+	}
 	protected void updateEditVersionNumber()
 	{
 		mVersionNumber = mRemoteVersion.split('.');
@@ -485,7 +520,10 @@ public abstract class PlatformBase
 		// 需要先更新版本号文件
 		writeVersion();
 		// 在备份文件之前计算文件列表
-		writeFileList(mAssetBundleFullPath);
+		if (!writeFileList(mAssetBundleFullPath, false))
+		{
+			return false;
+		}
 		backupAssets();
 		return true;
 	}
@@ -497,6 +535,7 @@ public abstract class PlatformBase
 			EditorBuildSettings.scenes[i].enabled = true;
 		}
 		recoverAssets();
+		writeFileList(mAssetBundleFullPath);
 		// 还原宏定义
 		string platformDefine = getDefaultPlatformDefine();
 		log("还原宏:" + platformDefine);
