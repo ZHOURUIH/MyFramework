@@ -1,4 +1,4 @@
-﻿using UnityEditor;
+using UnityEditor;
 using UnityEngine;
 using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
@@ -347,6 +347,11 @@ public abstract class PlatformBase
 	public abstract string getRemotePathInEditor(string version);
 	public bool uploadResources(bool autoUploadVersion, string uploadLocalPath = null, int rertyCount = 5)
 	{
+		if (mObjectStorageSystem == null)
+		{
+			logError("资源上传配置未就绪，未发布版本");
+			return false;
+		}
 		if (uploadLocalPath.isEmpty())
 		{
 			uploadLocalPath = mAssetBundleFullPath;
@@ -354,6 +359,12 @@ public abstract class PlatformBase
 		if (!isDirExist(uploadLocalPath))
 		{
 			dialog("错误", "上传的资源路径不存在:" + uploadLocalPath, "确定");
+			return false;
+		}
+		validPath(ref uploadLocalPath);
+		if (openTxtFile(uploadLocalPath + VERSION, false)?.Trim() != mLocalVersion)
+		{
+			logError("上传资源版本与当前版本不一致");
 			return false;
 		}
 		if (!writeDynamicDownloadList(uploadLocalPath))
@@ -404,7 +415,10 @@ public abstract class PlatformBase
 
 		// 对比远端需要删除的文件
 		progressBar(displayTitle, "正在删除远端文件");
-		bool hasError = doDelete(checkDeleteFile(localFileInfoList, remoteFileList), remotePath, displayTitle);
+		if (doDelete(checkDeleteFile(localFileInfoList, remoteFileList), remotePath, displayTitle))
+		{
+			return false;
+		}
 
 		// 对比需要上传的文件,计算出上传的文件列表
 		progressBar(displayTitle, "正在上传文件");
@@ -433,7 +447,7 @@ public abstract class PlatformBase
 		doUpload(uploadList, displayTitle, (int failedCount) =>
 		{
 			log("上传完毕:" + uploadLocalPath + ", 失败数量:" + failedCount);
-			if (failedCount > 0 || hasError)
+			if (failedCount > 0)
 			{
 				if (rertyCount > 0)
 				{

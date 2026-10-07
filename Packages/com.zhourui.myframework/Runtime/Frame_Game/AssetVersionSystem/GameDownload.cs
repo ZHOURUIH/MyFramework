@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using static StringUtility;
 using static FileUtility;
@@ -22,6 +22,13 @@ public class GameDownload
 	protected int mRemainRetryCount = 3;							// 当前文件剩余自动重试次数,没有剩余次数时才会提示玩家是否重试
 	protected bool mAllFinish = true;								// 是否已经全部完成
 	protected bool mNeedWritePersistentFileList;					// 是否在完成时写入Persist的文件列表
+	public void cancel()
+	{
+		++mDownloadGeneration;
+		setProgressCallback(null);
+		setErrorCallback(null);
+		willDestroy();
+	}
 	public void willDestroy()
 	{
 		// 如果在未更新完成就关闭了程序,则尽量先提交当前FileList,最后再写版本号。

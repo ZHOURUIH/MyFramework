@@ -1,4 +1,4 @@
-﻿#if USE_QI_NIU_YUN
+#if USE_QI_NIU_YUN
 using Qiniu.CDN;
 using Qiniu.Http;
 using Qiniu.Storage;
@@ -62,20 +62,27 @@ public class QiNiuYunSystem : IObjectStorageSystem
 	public Dictionary<string, GameFileInfo> getFileList(string remotePath)
 	{
 		BucketManager bucketManager = new(new(mAccessKey, mSecretKey), generateConfig());
-		ListResult result = bucketManager.ListFiles(mBucket, remotePath, "", 1000, "");
 		Dictionary<string, GameFileInfo> fileList = new();
-		foreach (ListItem item in (result?.Result?.Items).safe())
+		string marker = "";
+		do
 		{
-			if (item.Key == remotePath)
+			ListResult result = bucketManager.ListFiles(mBucket, remotePath, marker, 1000, "");
+			if (result.Code != (int)HttpCode.OK || result.Result == null)
 			{
-				continue;
+				throw new System.InvalidOperationException("CDN bucket listing failed: HTTP " + result.Code);
 			}
-			GameFileInfo info = new();
-			info.mFileName = item.Key.removeStart(remotePath);
-			info.mFileSize = item.Fsize;
-			info.mMD5 = item.Md5;
-			fileList.Add(info.mFileName, info);
+			foreach (ListItem item in result.Result.Items.safe())
+			{
+				if (!item.Key.StartsWith(remotePath, System.StringComparison.Ordinal) || item.Key == remotePath)
+				{
+					continue;
+				}
+				string relative = item.Key.Substring(remotePath.Length);
+				fileList[relative] = new GameFileInfo { mFileName = relative, mFileSize = item.Fsize, mMD5 = item.Md5 };
+			}
+			marker = result.Result.Marker;
 		}
+		while (!string.IsNullOrEmpty(marker));
 		return fileList;
 	}
 	public bool delete(string remotePath)
