@@ -27,9 +27,9 @@ public class PlatformInternal_Vivo
 	{
 		return QGGameBuild.Instance.SetPlayer(useWebgl2);
 	}
-	public bool BuildWebGL(string srcPath, QGGameConfig config, string buildVersion, bool isTest)
+	public bool BuildWebGL(string srcPath, QGGameConfig config, string buildVersion, bool isTest, string gameNameCN)
 	{
-		configureGame(config, buildVersion, isTest);
+		configureGame(config, buildVersion, isTest, gameNameCN);
 		QGGameTools.SaveEditorConfigLocal(config);
 		BuildReport previousReport = BuildReport.GetLatestReport();
 		bool built = QGGameBuild.Instance.BuildWebGL(srcPath, config);
