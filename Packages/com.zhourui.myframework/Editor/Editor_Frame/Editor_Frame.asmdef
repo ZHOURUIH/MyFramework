@@ -10,7 +10,7 @@
         "Obfuz.Editor",
         "Unity.2D.Sprite.Editor",
 		"OppoGameSDK_Editor",
-		"VCORE-EDITOR"
+		"vcore-editor"
     ],
     "includePlatforms": [
         "Editor"
