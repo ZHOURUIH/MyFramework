@@ -9,7 +9,8 @@
         "Unity.TextMeshPro",
         "Obfuz.Editor",
         "Unity.2D.Sprite.Editor",
-		"OppoGameSDK_Editor"
+		"OppoGameSDK_Editor",
+		"VCORE-EDITOR"
     ],
     "includePlatforms": [
         "Editor"
