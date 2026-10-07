@@ -93,7 +93,7 @@ public class PlatformInternal_Oppo
 		PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.WebGL, MiniGameSettings.get().OppoPackageName);
 		return true;
 #else
-		logError("构建 OPPO 快游戏需要启用 OPPO_MINI_GAME 宏");
+		logError("构建 OPPO 快游戏需要启用 " + FrameMacro.OPPO_MINI_GAME+ " 宏");
 		return false;
 #endif
 	}

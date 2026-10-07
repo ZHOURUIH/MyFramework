@@ -54,7 +54,7 @@ public class PlatformInternal_Vivo
 		parameters["签名证书"] = getSignPath("certificate.pem");
 		parameters["签名私钥"] = getSignPath("private.pem");
 	}
-	public bool preBuild(string buildVersion, string outputPath, string folderPreName, bool isTest)
+	public bool preBuild(string buildVersion, string outputPath, string folderPreName, bool isTest, string gameNameCN)
 	{
 #if VIVO_MINI_GAME
 		QGEditorWindowNew.OnInitEnv();
@@ -66,7 +66,7 @@ public class PlatformInternal_Vivo
 			logError("vivo SDK 配置初始化失败");
 			return false;
 		}
-		configureGame(mConfig, buildVersion, isTest);
+		configureGame(mConfig, buildVersion, isTest, gameNameCN);
 		if (mConfig.envConfig.package.isEmpty() || mConfig.envConfig.name.isEmpty() || QuickGameBuildUtility.getVersionCode(buildVersion) == 0)
 		{
 			logError("请检查 MiniGameSettings 中的 vivo 包名、游戏名称以及打包版本号（三段数字，后两段小于 1000，版本整数不超过 int.MaxValue）");
@@ -146,7 +146,7 @@ public class PlatformInternal_Vivo
 			helper.SetIsBuildRpk(true);
 		}
 #else
-		logError("构建 vivo 快游戏需要启用 VIVO_MINI_GAME 宏");
+		logError("构建 vivo 快游戏需要启用 " + FrameMacro.VIVO_MINI_GAME + " 宏");
 #endif
 		return UBuilResult.Failed;
 	}
@@ -160,10 +160,10 @@ public class PlatformInternal_Vivo
 		return Path.GetFullPath(Path.Combine(outputPath, folderPreName + "_Vivo_" + version));
 	}
 #if VIVO_MINI_GAME
-	protected void configureGame(QGGameConfig config, string buildVersion, bool isTest)
+	protected void configureGame(QGGameConfig config, string buildVersion, bool isTest, string gameNameCN)
 	{
 		config.envConfig.package = MiniGameSettings.get().VivoPackageName;
-		config.envConfig.name = GAME_NAME_CN;
+		config.envConfig.name = gameNameCN;
 		config.envConfig.icon = Path.Combine(F_PROJECT_PATH, QuickGameBuildUtility.ICON_PATH);
 		config.envConfig.versionName = buildVersion;
 		config.envConfig.versionCode = QuickGameBuildUtility.getVersionCode(buildVersion).ToString();
