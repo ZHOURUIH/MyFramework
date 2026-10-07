@@ -8,7 +8,8 @@
         "Frame_Base",
         "Unity.TextMeshPro",
         "Obfuz.Editor",
-        "Unity.2D.Sprite.Editor"
+        "Unity.2D.Sprite.Editor",
+		"OppoGameSDK_Editor"
     ],
     "includePlatforms": [
         "Editor"
