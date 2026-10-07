@@ -32,6 +32,7 @@ public class AssetVersionSystem : FrameSystem
 	}
 	// 未启用热更或者本地版本号大于远端版本号时,都应该设置为强制从StreamingAssets中加载
 	public void setAssetReadPath(ASSET_READ_PATH pathType) { mReadPathType = pathType; }
+	public ASSET_READ_PATH getAssetReadPath() { return mReadPathType; }
 	// 获取文件的加载路径,filePath是StreamingAssets下的相对路径
 	public string getFileReadPath(string filePath)
 	{
@@ -93,7 +94,15 @@ public class AssetVersionSystem : FrameSystem
 		}
 		return mPersistentAssetsVersion;
 	}
-	public void addPersistentFile(GameFileInfo info) { mPersistentAssetsFileList.TryAdd(info.mFileName, info); }
+	public void addPersistentFile(GameFileInfo info)
+	{
+		mPersistentAssetsFileList[info.mFileName] = info;
+	}
+	public GameFileInfo getRemoteFileInfo(string fileName)
+	{
+		mRemoteAssetsFileList.TryGetValue(fileName, out GameFileInfo info);
+		return info;
+	}
 	public string generatePersistentAssetFileList()
 	{
 		StringBuilder fileString = new();

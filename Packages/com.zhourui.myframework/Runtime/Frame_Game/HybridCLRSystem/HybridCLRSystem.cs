@@ -16,6 +16,8 @@ public class HybridCLRSystem
 {
 	protected static bool mHotFixLaunching;
 	protected static bool mHotFixLaunched;
+	// 项目可在解密后解码压缩传输格式；未设置时使用原始 DLL。
+	public static Func<byte[], byte[]> mDecodeHotFixAssembly;
 	public static void launchHotFix(Action errorCallback = null)
 	{
 		if (mHotFixLaunched)
@@ -57,6 +59,10 @@ public class HybridCLRSystem
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected static void preLaunch(Action callback, Action errorCallback)
 	{
+#if !USE_OBFUZ
+		callback?.Invoke();
+		return;
+#else
 		if (isEditor())
 		{
 			callback?.Invoke();
@@ -125,6 +131,7 @@ public class HybridCLRSystem
 				notifyLaunchFailed(errorCallback);
 			}
 		});
+#endif
 	}
 	protected static void backupFrameParam()
 	{
@@ -210,7 +217,8 @@ public class HybridCLRSystem
 				Assembly hotfix = null;
 				foreach (var item in downloadFiles)
 				{
-					Assembly assembly = Assembly.Load(decryptAES(item.Value, FrameSettings.getAESKey(), FrameSettings.getAESIV()));
+					byte[] assemblyBytes = decryptAES(item.Value, FrameSettings.getAESKey(), FrameSettings.getAESIV());
+					Assembly assembly = Assembly.Load(mDecodeHotFixAssembly != null ? mDecodeHotFixAssembly(assemblyBytes) : assemblyBytes);
 					if (item.Key == "HotFix.dll.bytes")
 					{
 						hotfix = assembly;

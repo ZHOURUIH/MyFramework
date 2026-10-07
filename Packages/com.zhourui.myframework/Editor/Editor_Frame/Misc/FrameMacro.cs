@@ -2,6 +2,7 @@
 // 框架中会用到的自定义宏,这里不包括引擎自己的宏
 public class FrameMacro
 {
+	public const string USE_QI_NIU_YUN = "USE_QI_NIU_YUN";          // 项目中是否使用七牛云
 	public const string USE_HYBRID_CLR = "USE_HYBRID_CLR";			// 项目中是否用到了HybridCLR
 	public const string USE_OBFUZ = "USE_OBFUZ";                    // 项目中是否用到了Obfuz
     public const string USE_SQLITE = "USE_SQLITE";                  // 项目中是否用到了SQLite

@@ -70,6 +70,10 @@ public class MenuInit
 	{
 		doInit(true);
 	}
+	public static void applyRequiredProjectDefines()
+	{
+		addDefineSymbols(USE_QI_NIU_YUN);
+	}
 	//---------------------------------------------------------------------------------------------------------------------------
 	// Unity重新编译并DomainReload以后,继续执行初始化中断的挂接流程
 	[InitializeOnLoadMethod]
@@ -88,6 +92,7 @@ public class MenuInit
 			return;
 		}
 
+		applyRequiredProjectDefines();
 		FrameEditorSettings.save();
 		MenuSetting.createRuntimeSettinsFile();
 

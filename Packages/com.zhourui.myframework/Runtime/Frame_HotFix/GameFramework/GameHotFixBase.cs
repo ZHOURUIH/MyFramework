@@ -130,6 +130,9 @@ public abstract class GameHotFixBase<T> where T : GameHotFixBase<T>
 #endif
 	protected static void preStart(Action callback)
 	{
+#if !USE_OBFUZ
+		callback?.Invoke();
+#else
 		if (isEditor())
 		{
 			callback?.Invoke();
@@ -152,5 +155,6 @@ public abstract class GameHotFixBase<T> where T : GameHotFixBase<T>
 				Debug.LogException(e);
 			}
 		}));
+#endif
 	}
 }

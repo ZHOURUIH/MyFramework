@@ -115,6 +115,7 @@ public class ResourceManager : FrameSystem
 	public string getDownloadURL() { return mAssetBundleLoader.getDownloadURL(); }
 	// 获取所有AssetBundle信息列表
 	public Dictionary<string, AssetBundleInfo> getAssetBundleInfoList() { return mAssetBundleLoader.getAssetBundleInfoList(); }
+	public LOAD_SOURCE getLoadSource() { return mLoadSource; }
 	// 检查指定AssetBundle是否被标记为禁止卸载
 	public bool isDontUnloadAssetBundle(string bundleFileName) { return mAssetBundleLoader.isDontUnloadAssetBundle(bundleFileName); }
 	// 根据名称获取AssetBundle信息

@@ -1,4 +1,4 @@
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
@@ -214,17 +214,16 @@ public abstract class PlatformBase
 	// 检查所有的热更dll,以及AOT的dll是否都存在
 	public bool checkAllDllExist()
 	{
+#if USE_HYBRID_CLR
 		List<string> dllList = new();
 		foreach (string name in FrameSettings.getHotFixList())
 		{
 			dllList.add(mAssetBundleFullPath + name + ".dll.bytes");
 		}
-#if USE_HYBRID_CLR
 		foreach (string aotFile in AOTGenericReferences.PatchedAOTAssemblyList)
 		{
 			dllList.Add(mAssetBundleFullPath + aotFile + ".bytes");
 		}
-#endif
 		bool allExist = true;
 		foreach (string file in dllList)
 		{
@@ -235,6 +234,10 @@ public abstract class PlatformBase
 			}
 		}
 		return allExist;
+#else
+		// 资源更新不要求DLL；未启用HybridCLR时业务程序集已编译进程序。
+		return true;
+#endif
 	}
 	// 框架中只根据是否启用热更和是否为测试客户端来增加对应的宏
 	public string getBuildTimePlatformDefine()
@@ -332,7 +335,7 @@ public abstract class PlatformBase
 	public bool uploadVersion()
 	{
 		string remotePath = getRemotePathInEditor("") + VERSION;
-		uploadSingleFile(mAssetBundleFullPath + VERSION, remotePath, true);
+		if (!uploadSingleFile(mAssetBundleFullPath + VERSION, remotePath, true)) return false;
 		// 上传版本号以后立即刷新cdn
 		mObjectStorageSystem?.refreshCDN(remotePath);
 		updateRemoteVersion();
@@ -425,33 +428,28 @@ public abstract class PlatformBase
 			}
 		}
 
-		// 将文件全部上传,如果上传失败,则最多重试5次
+		// doUpload同步完成；将上传、重试和版本发布的结果传回打包流水线。
+		bool success = false;
 		doUpload(uploadList, displayTitle, (int failedCount) =>
 		{
 			log("上传完毕:" + uploadLocalPath + ", 失败数量:" + failedCount);
-			if (failedCount > 0)
+			if (failedCount > 0 || hasError)
 			{
-				// 还有重试次数就自动重试,没有次数了就手动点击重试
 				if (rertyCount > 0)
 				{
 					log("上传完成后有失败,正在自动重试");
-					uploadResources(autoUploadVersion, uploadLocalPath, rertyCount - 1);
+					success = uploadResources(autoUploadVersion, uploadLocalPath, rertyCount - 1);
 				}
-				else if (messageYesNo("上传失败数量:" + failedCount + ", 是否重试?"))
+				else if (!Application.isBatchMode && messageYesNo("上传失败数量:" + failedCount + ", 是否重试?"))
 				{
-					uploadResources(autoUploadVersion, uploadLocalPath, rertyCount - 1);
+					success = uploadResources(autoUploadVersion, uploadLocalPath, rertyCount - 1);
 				}
+				return;
 			}
-			else
-			{
-				// 最后上传版本号
-				if (autoUploadVersion)
-				{
-					uploadVersion();
-				}
-			}
+			// 资源、文件列表及动态策略全部成功后才发布顶层版本号。
+			success = !autoUploadVersion || uploadVersion();
 		});
-		return hasError;
+		return success;
 	}
 	// 除了动态配置以外的宏,比如USE_HYBRID_CLR,USE_OBFUZ等基本固定的宏,一般都是使用FrameMacro中定义的值,由应用层自己决定,也是用于打包完以后的宏配置还原
 	public abstract string getDefaultPlatformDefine();
@@ -502,9 +500,9 @@ public abstract class PlatformBase
 		log("设置宏:" + platformDefine);
 		PlayerSettings.SetScriptingDefineSymbols(getNameBuildTarget(), platformDefine);
 
-		if (mBuildHybridCLR)
+		if (mBuildHybridCLR && !buildHotFix(true))
 		{
-			buildHotFix(true);
+			return false;
 		}
 
 		createDir(mOutputPath);

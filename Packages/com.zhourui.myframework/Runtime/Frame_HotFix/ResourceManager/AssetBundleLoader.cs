@@ -439,6 +439,13 @@ public class AssetBundleLoader
 			string bundleFileName = bundleInfo.getBundleFileName();
 			yield return loadAssetsFromUrlWaiting(mDownloadURL + bundleFileName, (byte[] bytes) =>
 			{
+				GameFileInfo expected = mAssetVersionSystem.getRemoteFileInfo(bundleFileName);
+				if (bytes != null && expected != null && (bytes.Length != expected.mFileSize ||
+					!string.Equals(generateFileMD5(bytes), expected.mMD5, StringComparison.OrdinalIgnoreCase)))
+				{
+					logError("下载资源校验失败:" + bundleFileName);
+					bytes = null;
+				}
 				if (bytes != null)
 				{
 					// 写入到本地,并且更新资源列表
@@ -490,6 +497,11 @@ public class AssetBundleLoader
 			else
 			{
 				yield return openFileAsyncInternal(fullPath, true, (byte[] bytes)=> { assetBundleBytes = bytes; });
+			}
+			if (assetBundleBytes == null || assetBundleBytes.Length == 0)
+			{
+				bundleInfo.notifyAssetBundleAsyncLoaded(null);
+				yield break;
 			}
 			createRequest = AssetBundle.LoadFromMemoryAsync(assetBundleBytes);
 		}

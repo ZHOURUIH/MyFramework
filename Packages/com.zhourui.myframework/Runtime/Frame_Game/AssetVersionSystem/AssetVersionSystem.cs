@@ -49,6 +49,17 @@ public class AssetVersionSystem : FrameSystem
 			callback?.Invoke();
 		}
 	}
+	// 取消检查并使旧回调失效；已经验证的资源表保留给离线回退。
+	public void cancelFileListCheck()
+	{
+		++mCheckFileListGeneration;
+		mSuccessCallback = null;
+		mRemoteFileListFailCallback = null;
+		mPersistentDone = false;
+		mStreamingDone = false;
+		mRemoteDone = false;
+		mCheckFileListFailed = false;
+	}
 	public long getTotalDownloadedByteCount() { return mTotalDownloadByteCount; }
 	public List<string> getTotalDownloadedFiles() { return mTotalDownloadedFiles; }
 	public List<string> getRemoteDynamicDownloadList()

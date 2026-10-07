@@ -369,7 +369,19 @@ public class AssetBundleInfo : ClassObject
 	public void notifyAssetBundleAsyncLoaded(AssetBundle assetBundle)
 	{
 		mAssetBundle = assetBundle;
-		if (mLoadState != LOAD_STATE.NONE)
+		if (assetBundle == null)
+		{
+			mLoadState = LOAD_STATE.NONE;
+			using var failedAssets = new ListScope<AssetInfo>(out var assets);
+			assets.AddRange(mLoadAsyncList);
+			mLoadAsyncList.Clear();
+			foreach (AssetInfo item in assets)
+			{
+				item.setLoadState(LOAD_STATE.NONE);
+				item.callbackAll();
+			}
+		}
+		else if (mLoadState != LOAD_STATE.NONE)
 		{
 			mLoadState = LOAD_STATE.LOADED;
 			// 异步加载请求的资源

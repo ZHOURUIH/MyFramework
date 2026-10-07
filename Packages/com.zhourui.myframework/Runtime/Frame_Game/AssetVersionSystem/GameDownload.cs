@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using static StringUtility;
 using static FileUtility;
@@ -124,6 +124,8 @@ public class GameDownload
 		// Persistent中需要删除列表记录,删除文件
 		DateTime start = DateTime.Now;
 		List<string> deleteFileList = checkDeleteFile(remoteFiles, persistentFiles);
+		// Keep changed files until verified replacement; SAME_TO_REMOTE rejects their old hashes.
+		deleteFileList.RemoveAll(file => remoteFiles.ContainsKey(file));
 		logBase("需要删除" + deleteFileList.Count + "个文件");
 		foreach (string fileToDelete in deleteFileList)
 		{
@@ -140,6 +142,10 @@ public class GameDownload
 		// StreamingAssets中无法删除文件,只能删除列表记录
 		foreach (string fileToDelete in checkDeleteFile(remoteFiles, streamingFiles))
 		{
+			if (remoteFiles.ContainsKey(fileToDelete))
+			{
+				continue;
+			}
 			streamingFiles.Remove(fileToDelete);
 		}
 
