@@ -276,17 +276,40 @@ public class QuickGameBuildUtility
 		}
 		return valid;
 	}
-	public static bool checkUploadPackageBudget(string rpkPath, long maxBytes)
+	public static bool checkUploadPackageBudget(string rpkPath, long maxBytes, string platformName = "OPPO")
 	{
 		long packageSize = new FileInfo(rpkPath).Length;
-		log("OPPO 最终上传 RPK:" + (packageSize / 1024.0 / 1024.0).ToString("F2") + " MiB，" + packageSize +
-			" bytes；总包上限:" + maxBytes + " bytes（包含兼容整包）");
+		log(platformName + " 最终上传 RPK:" + (packageSize / 1024.0 / 1024.0).ToString("F2") + " MiB，" + packageSize +
+			" bytes；总包上限:" + maxBytes + " bytes");
 		if (packageSize == 0 || packageSize > maxBytes)
 		{
-			logError("OPPO 最终上传 RPK 超过大小限制或文件为空:" + rpkPath);
+			logError(platformName + " 最终上传 RPK 超过大小限制或文件为空:" + rpkPath);
 			return false;
 		}
 		return true;
+	}
+	public static void prepareWholePackage(string contentRoot, string entryFileName = "main.js", bool markUnityGame = true)
+	{
+		string manifestPath = Path.Combine(contentRoot, "manifest.json");
+		JObject manifest = JObject.Parse(File.ReadAllText(manifestPath));
+		manifest.Remove("subpackages");
+		File.WriteAllText(manifestPath, manifest.ToString(), new UTF8Encoding(false));
+		string entry = Path.Combine(contentRoot, entryFileName);
+		string original = Path.Combine(contentRoot, "sdk-" + entryFileName);
+		string script = File.ReadAllText(entry);
+		if (script.StartsWith(SUBPACKAGE_LOADER_MARKER, StringComparison.Ordinal))
+		{
+			script = File.ReadAllText(original);
+		}
+		if (markUnityGame && !script.StartsWith("qg.setIsUnityGame(true);", StringComparison.Ordinal))
+		{
+			script = "qg.setIsUnityGame(true);\n" + script;
+		}
+		File.WriteAllText(entry, script, new UTF8Encoding(false));
+		if (File.Exists(original))
+		{
+			File.Delete(original);
+		}
 	}
 	//---------
 	protected static void prepareSubpackageLoader(string contentRoot, string entryFileName, string[] packageNames, bool markUnityGame)

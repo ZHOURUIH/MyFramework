@@ -10,6 +10,7 @@ using UBuilResult = UnityEditor.Build.Reporting.BuildResult;
 
 public class PlatformInternal_ByteDance
 {
+	public bool mPortrait;
 	public bool mCompress = true;
 	public bool preBuild()
 	{
@@ -25,7 +26,7 @@ public class PlatformInternal_ByteDance
 #endif
 		return true;
 	}
-	public UBuilResult buildInternal(string outputFullPath)
+	public UBuilResult buildInternal(string outputFullPath, string cdnURL = "")
 	{
 #if BYTE_DANCE
 		var settings = StarkBuilderSettings.Instance;
@@ -35,10 +36,10 @@ public class PlatformInternal_ByteDance
 		settings.isWebGL2 = true;
 		settings.wasmMemorySize = 512;
 		settings.needCompress = mCompress;
-		settings.orientation = StarkBuilderSettings.Orientation.Landscape;
+		settings.orientation = mPortrait ? StarkBuilderSettings.Orientation.Portrait : StarkBuilderSettings.Orientation.Landscape;
 		settings.symbolMode = WebGLDebugSymbolMode.Off;
 		settings.buildOptions = BuildOptions.CompressWithLz4HC | BuildOptions.CleanBuildCache;
-		settings.urlCacheList = new string[1] { CDN_URL.removeStart("https://").removeEnd("/") };
+		settings.urlCacheList = cdnURL.isEmpty() ? System.Array.Empty<string>() : new string[] { cdnURL.removeStart("https://").removeEnd("/") };
 		settings.dontCacheFileNames = new string[] { "Version", "FileList", "StreamingAssets.bytes" };
 		string result = BuildManager.Build(Framework.Wasm, false).GetAwaiter().GetResult();
 		log("build result:" + result);

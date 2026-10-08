@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -23,7 +23,6 @@ public class AssetBundleLoader
 	protected HashSet<Coroutine> mCoroutineList = new();                            // 当前的协程列表
 	protected HashSet<string> mDontUnloadAssetBundle = new();                       // 即使没有引用也不会调用卸载的AssetBundle
 	protected List<AssetBundleInfo> mDelayUnloadAssetBundleList = new();             // 当前正在等待延迟卸载的AssetBundle,只有这些AssetBundle需要每帧更新
-	protected WaitForEndOfFrame mWaitForEndOfFrame = new();                         // 用于避免GC
 	protected string mDownloadURL;                                                  // 资源包下载的地址
 	protected bool mAutoLoad = true;                                                // 当资源可用时是否自动初始化AssetBundle
 	protected bool mInited;                                                         // AssetBundleLoader是否已经初始化
@@ -515,7 +514,7 @@ public class AssetBundleLoader
 		{
 			logError("can not load asset bundle async : " + fullPath);
 		}
-		yield return mWaitForEndOfFrame;
+		yield return null;
 		// 通知AssetBundleInfo
 		try
 		{

@@ -16,7 +16,9 @@ using UBuilResult = UnityEditor.Build.Reporting.BuildResult;
 
 public class PlatformInternal_Oppo
 {
-	public static string SDK_PATH = "Assets/OPPO-GAME-SDK/";
+	public bool mPortrait;
+	public bool mUseSubpackages;
+	public static string SDK_PATH = Directory.Exists("Assets/OPPO-GAME-SDK") ? "Assets/OPPO-GAME-SDK/" : "Assets/3rdParty/OPPO-GAME-SDK/";
 	protected const string SIGN_DIRECTORY = "BuildSigning/OPPO";
 	protected const string BUILD_PACKAGE = "Build";
 	protected const string RESOURCE_PACKAGE = "StreamingAssets";
@@ -26,6 +28,7 @@ public class PlatformInternal_Oppo
 	public void getBuildParameters(Dictionary<string, string> parameters, string nameNameCN)
 	{
 		parameters["游戏名称"] = nameNameCN;
+		parameters["打包方式"] = mUseSubpackages ? "分包" : "不分包";
 		parameters["签名证书"] = getSignPath("certificate.pem");
 		parameters["签名私钥"] = getSignPath("private.pem");
 	}
@@ -46,7 +49,8 @@ public class PlatformInternal_Oppo
 		config.projectVersionName = buildVersion;
 		config.projectVersion = versionCode;
 		config.minPlatformVersion = BuildFundamentalConfig.MIN_PLATFORM_VERSION;
-		config.orientation = (int)GlobalDefines.Orientation.Landscape;
+		config.orientation = (int)(PlayerSettings.defaultInterfaceOrientation == UIOrientation.Portrait ?
+			GlobalDefines.Orientation.Portrait : GlobalDefines.Orientation.Landscape);
 		config.useRemoteStreamingAssets = false;
 		config.streamingAssetsURL = "";
 		config.useCustomSign = !isTest;
@@ -82,11 +86,13 @@ public class PlatformInternal_Oppo
 			return false;
 		}
 		Directory.CreateDirectory(config.exportPath);
+		SpritePackerMode atlasMode = EditorSettings.spritePackerMode;
 		QGGameTools.SetPlayer();
+		PlayerSettings.defaultInterfaceOrientation = mPortrait ? UnityEditor.UIOrientation.Portrait : UnityEditor.UIOrientation.LandscapeLeft;
+		EditorSettings.spritePackerMode = atlasMode;
 		QuickGameBuildUtility.prepareWebGL();
 		// 在 HybridCLR/Generate/All 前设置，补充元数据与最终程序必须使用相同裁剪规则。
 		PlayerSettings.stripEngineCode = true;
-		PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.WebGL, ManagedStrippingLevel.High);
 		// Unity 的 DiskSize 默认使用 -Os；最终链接使用 -Oz 进一步减少 WASM 体积。
 		PlayerSettings.WebGL.emscriptenArgs = Regex.Replace(PlayerSettings.WebGL.emscriptenArgs ?? "",
 			@"(^|\s)-O(?:[0-3sgz])(?=\s|$)", "$1").Trim() + " -Oz";
@@ -115,7 +121,14 @@ public class PlatformInternal_Oppo
 				return UBuilResult.Failed;
 			}
 			QuickGameBuildUtility.stripWasmDebugNames(Path.Combine(packagePath, BUILD_PACKAGE, "webgl.wasm"));
-			QuickGameBuildUtility.prepareSubpackages(packagePath, "main.js", new[] { BUILD_PACKAGE, RESOURCE_PACKAGE }, true);
+			if (mUseSubpackages)
+			{
+				QuickGameBuildUtility.prepareSubpackages(packagePath, "main.js", new[] { BUILD_PACKAGE, RESOURCE_PACKAGE }, true);
+			}
+			else
+			{
+				QuickGameBuildUtility.prepareWholePackage(packagePath);
+			}
 			if (!prepare(packagePath))
 			{
 				return UBuilResult.Failed;
@@ -125,8 +138,8 @@ public class PlatformInternal_Oppo
 			string fileName = config.packageName + (config.useCustomSign ? ".signed.rpk" : ".rpk");
 			if (!QuickGameBuildUtility.runNodeCli("@oppo-minigame/cli/lib/bin/quickgame", config.useCustomSign ? "pack release" : "pack", packagePath, "OPPO") ||
 				!QuickGameBuildUtility.checkPackages(packagePath, previousPackages) ||
-				!QuickGameBuildUtility.checkSubpackages(Path.Combine(packagePath, "dist", fileName), Path.Combine(packagePath, "manifest.json"),
-					"OPPO", MAX_MAIN_PACKAGE_SIZE, MAX_SUBPACKAGES_SIZE) ||
+				(mUseSubpackages && !QuickGameBuildUtility.checkSubpackages(Path.Combine(packagePath, "dist", fileName),
+					Path.Combine(packagePath, "manifest.json"), "OPPO", MAX_MAIN_PACKAGE_SIZE, MAX_SUBPACKAGES_SIZE)) ||
 				!QuickGameBuildUtility.checkUploadPackageBudget(Path.Combine(packagePath, "dist", fileName), MAX_UPLOAD_PACKAGE_SIZE))
 			{
 				return UBuilResult.Failed;

@@ -13,7 +13,9 @@ using UBuilResult = UnityEditor.Build.Reporting.BuildResult;
 
 public class PlatformInternal_Vivo
 {
-	public static string SDK_PATH = "Assets/VIVO-GAME-SDK/";
+	public bool mPortrait;
+	public bool mUseSubpackages = true;
+	public static string SDK_PATH = Directory.Exists("Assets/VIVO-GAME-SDK") ? "Assets/VIVO-GAME-SDK/" : "Assets/3rdParty/VIVO-GAME-SDK/";
 	protected const string SIGN_DIRECTORY = "BuildSigning/VIVO";
 	protected const string CLI_PRELOAD_PATH = "Tools/Build/VivoCliPreload.cjs";
 	protected const string MIN_PLATFORM_VERSION = "1104";
@@ -25,14 +27,27 @@ public class PlatformInternal_Vivo
 	protected QGGameConfig mConfig;
 	public bool SetPlayer(bool useWebgl2)
 	{
-		return QGGameBuild.Instance.SetPlayer(useWebgl2);
+		bool result = QGGameBuild.Instance.SetPlayer(useWebgl2);
+		PlayerSettings.defaultInterfaceOrientation = mPortrait ? UnityEditor.UIOrientation.Portrait : UnityEditor.UIOrientation.LandscapeLeft;
+		return result;
 	}
 	public bool BuildWebGL(string srcPath, QGGameConfig config, string buildVersion, bool isTest, string gameNameCN)
 	{
 		configureGame(config, buildVersion, isTest, gameNameCN);
 		QGGameTools.SaveEditorConfigLocal(config);
 		BuildReport previousReport = BuildReport.GetLatestReport();
-		bool built = QGGameBuild.Instance.BuildWebGL(srcPath, config);
+		bool built;
+        string previousCores = Environment.GetEnvironmentVariable("BINARYEN_CORES");
+        try
+        {
+            if (UnityEngine.Application.platform == UnityEngine.RuntimePlatform.WindowsEditor)
+                Environment.SetEnvironmentVariable("BINARYEN_CORES", "1");
+            built = QGGameBuild.Instance.BuildWebGL(srcPath, config);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("BINARYEN_CORES", previousCores);
+        }
 		BuildReport report = BuildReport.GetLatestReport();
 		if (!built || report == null || report == previousReport || report.summary.result != UBuilResult.Succeeded)
 		{
@@ -51,12 +66,14 @@ public class PlatformInternal_Vivo
 	public void getBuildParameters(Dictionary<string, string> parameters, string gameNameCN)
 	{
 		parameters["游戏名称"] = gameNameCN;
+		parameters["打包方式"] = mUseSubpackages ? "分包" : "不分包";
 		parameters["签名证书"] = getSignPath("certificate.pem");
 		parameters["签名私钥"] = getSignPath("private.pem");
 	}
 	public bool preBuild(string buildVersion, string outputPath, string folderPreName, bool isTest, string gameNameCN)
 	{
 #if VIVO_MINI_GAME
+		PlayerSettings.defaultInterfaceOrientation = mPortrait ? UnityEditor.UIOrientation.Portrait : UnityEditor.UIOrientation.LandscapeLeft;
 		QGEditorWindowNew.OnInitEnv();
 		var helper = QGWindowHepler.Instance;
 		helper.OnConfigSetting();
@@ -95,7 +112,9 @@ public class PlatformInternal_Vivo
 		mConfig.buildSrc = exportPath;
 		QGSettingsHelperInterface.helper.SetBuildSrc(exportPath);
 		QGGameTools.SaveEditorConfigLocal(mConfig);
+		SpritePackerMode atlasMode = EditorSettings.spritePackerMode;
 		QGGameBuild.Instance.SetPlayer(mConfig.useWebgl2);
+		EditorSettings.spritePackerMode = atlasMode;
 		QuickGameBuildUtility.prepareWebGL(WebGLDebugSymbolMode.External);
 		PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.WebGL, MiniGameSettings.get().VivoPackageName);
 		return true;
@@ -167,13 +186,13 @@ public class PlatformInternal_Vivo
 		config.envConfig.icon = Path.Combine(F_PROJECT_PATH, QuickGameBuildUtility.ICON_PATH);
 		config.envConfig.versionName = buildVersion;
 		config.envConfig.versionCode = QuickGameBuildUtility.getVersionCode(buildVersion).ToString();
-		config.envConfig.orientation = "landscape";
+		config.envConfig.orientation = PlayerSettings.defaultInterfaceOrientation == UIOrientation.Portrait ? "portrait" : "landscape";
 		config.envConfig.minPlatformVersion = MIN_PLATFORM_VERSION;
 		config.projectConf.il2CppOptimizeSize = true;
 		config.projectConf.profilingFuncs = false;
 		config.useReleaseSign = !isTest;
 		config.useSelfLoading = false;
-		config.useSubPkgLoading = true;
+		config.useSubPkgLoading = mUseSubpackages;
 		config.envConfig.wasmUrl = "";
 		config.envConfig.wasmDataUrl = "";
 	}
@@ -192,11 +211,19 @@ public class PlatformInternal_Vivo
 		{
 			QuickGameBuildUtility.stripWasmDebugNames(wasmPath);
 		}
-		QuickGameBuildUtility.prepareSubpackages(contentRoot, "game.js", new[] { RESOURCE_PACKAGE });
+		if (mUseSubpackages)
+		{
+			QuickGameBuildUtility.prepareSubpackages(contentRoot, "game.js", new[] { RESOURCE_PACKAGE });
+		}
+		else
+		{
+			QuickGameBuildUtility.prepareWholePackage(contentRoot, "game.js", false);
+		}
 		string fileName = mConfig.envConfig.package + (mConfig.useReleaseSign ? ".signed.rpk" : ".rpk");
 		return QuickGameBuildUtility.runNodeCli("@vivo-minigame/cli/bin/cli-service.js", mConfig.useReleaseSign ? "release" : "build", projectPath, "vivo", Path.Combine(F_PROJECT_PATH, CLI_PRELOAD_PATH)) &&
-			QuickGameBuildUtility.checkSubpackages(Path.Combine(projectPath, "dist", fileName),
-				Path.Combine(contentRoot, "manifest.json"), "vivo", MAX_MAIN_PACKAGE_SIZE, MAX_SUBPACKAGES_SIZE);
+			(mUseSubpackages ? QuickGameBuildUtility.checkSubpackages(Path.Combine(projectPath, "dist", fileName),
+				Path.Combine(contentRoot, "manifest.json"), "vivo", MAX_MAIN_PACKAGE_SIZE, MAX_SUBPACKAGES_SIZE) :
+				QuickGameBuildUtility.checkUploadPackageBudget(Path.Combine(projectPath, "dist", fileName), MAX_MAIN_PACKAGE_SIZE, "vivo"));
 	}
 #endif
 }

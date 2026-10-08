@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -254,7 +254,7 @@ public class AssetDataBaseLoader
 			{
 				logError("文件不存在:" + filePath);
 			}
-			yield return new WaitForEndOfFrame();
+			yield return null;
 		}
 		else
 		{

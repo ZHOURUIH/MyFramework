@@ -1,4 +1,4 @@
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
@@ -10,6 +10,7 @@ using HybridCLR.Editor.Settings;
 #endif
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Threading;
 using static FileUtility;
@@ -146,7 +147,7 @@ public abstract class PlatformBase
 		}
 		// 拷贝补充数据dll
 		string aotDllSrcPath = SettingsUtil.GetAssembliesPostIl2CppStripDir(EditorUserBuildSettings.activeBuildTarget) + "/";
-		foreach (string aotFile in AOTGenericReferences.PatchedAOTAssemblyList)
+		foreach (string aotFile in getRequiredAOTAssemblies())
 		{
 			copyFile(aotDllSrcPath + aotFile, mAssetBundleFullPath + aotFile + ".bytes");
 		}
@@ -212,6 +213,21 @@ public abstract class PlatformBase
 		return true;
 	}
 	// 检查所有的热更dll,以及AOT的dll是否都存在
+	public List<string> getRequiredAOTAssemblies()
+	{
+		List<string> names = new();
+#if USE_HYBRID_CLR
+		string source = File.ReadAllText(Path.Combine(Application.dataPath, HybridCLRSettings.Instance.outputAOTGenericReferenceFile));
+		int start = source.IndexOf("PatchedAOTAssemblyList", StringComparison.Ordinal);
+		int end = start < 0 ? -1 : source.IndexOf("};", start, StringComparison.Ordinal);
+		if (end < 0) throw new InvalidDataException("Generated AOT assembly list is missing");
+		foreach (string value in source.Substring(start, end - start).Split('"'))
+		{
+			if (value.EndsWith(".dll", StringComparison.Ordinal)) names.Add(value);
+		}
+#endif
+		return names;
+	}
 	public bool checkAllDllExist()
 	{
 #if USE_HYBRID_CLR
@@ -220,7 +236,7 @@ public abstract class PlatformBase
 		{
 			dllList.add(mAssetBundleFullPath + name + ".dll.bytes");
 		}
-		foreach (string aotFile in AOTGenericReferences.PatchedAOTAssemblyList)
+		foreach (string aotFile in getRequiredAOTAssemblies())
 		{
 			dllList.Add(mAssetBundleFullPath + aotFile + ".bytes");
 		}
