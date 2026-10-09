@@ -22,6 +22,7 @@ public class ADManager : FrameSystem
 	protected long mNextConfigRefreshTimeMS;
 	protected bool mConfigRequestPending;
 	protected bool mInterstitialConfigLoaded;
+	protected bool mInterstitialReviewPassed;
 	protected bool mHasShownInterstitial;
 	protected bool mAdRequestPending;
 	protected bool mShowing;
@@ -71,7 +72,7 @@ public class ADManager : FrameSystem
 			return true;
 		}
 		long now = getNowUTCTimeStampMS();
-		return mInterstitialConfigLoaded &&
+		return mInterstitialConfigLoaded && mInterstitialReviewPassed &&
 			(now - mSessionStartTimeMS) / 1000.0 >= mInterstitialFirstDelay &&
 			(!mHasShownInterstitial || (now - mLastInterstitialTimeMS) / 1000.0 >= mInterstitialInterval);
 #endif
@@ -97,7 +98,13 @@ public class ADManager : FrameSystem
 		{
 			JObject request = new();
 			request["switchIdList"] = new JArray(switchID);
+			request["gameId"] = MiniGameSettings.getAppID();
 			request["pkgName"] = MiniGameSettings.getPackageName();
+#if OPPO_MINI_GAME
+			request["platform"] = "oppo";
+#elif VIVO_MINI_GAME
+			request["platform"] = "vivo";
+#endif
 			request["version"] = Application.version;
 			HttpUtility.httpPostAsyncWebGL(settings.InterstitialConfigURL, request.ToString(Formatting.None),
 				(result, status, code) => onConfigReceived(requestID, result, status, code));
@@ -344,13 +351,19 @@ public class ADManager : FrameSystem
 			{
 				return false;
 			}
-			JObject config = JObject.Parse(data[0].Value<string>());
-			if (!tryReadSeconds(config["firstDelay"], out double firstDelay) || !tryReadSeconds(config["interval"], out double interval))
+			string value = data[0].Value<string>();
+			if (string.IsNullOrWhiteSpace(value))
 			{
 				return false;
 			}
-			mInterstitialFirstDelay = firstDelay;
-			mInterstitialInterval = interval;
+			Vector3 config = value.SToV3();
+			if (config.x < 0.0f || config.y < 0.0f || config.z != 0.0f && config.z != 1.0f)
+			{
+				return false;
+			}
+			mInterstitialFirstDelay = config.x;
+			mInterstitialInterval = config.y;
+			mInterstitialReviewPassed = config.z == 1.0f;
 			mInterstitialConfigLoaded = true;
 			return true;
 		}
@@ -358,15 +371,5 @@ public class ADManager : FrameSystem
 		{
 			return false;
 		}
-	}
-	protected static bool tryReadSeconds(JToken token, out double seconds)
-	{
-		seconds = 0.0;
-		if (token == null || token.Type != JTokenType.Integer && token.Type != JTokenType.Float)
-		{
-			return false;
-		}
-		seconds = token.Value<double>();
-		return seconds >= 0.0 && !double.IsNaN(seconds) && !double.IsInfinity(seconds);
 	}
 }
