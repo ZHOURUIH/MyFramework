@@ -10,21 +10,27 @@ public class MiniGameSettings : ScriptableObject
 	public string ByteDanceAppID = "";
 	public string ByteDanceRewardedVideoID = "";
 	public string ByteDanceInterstitialID = "";
+	public string ByteDanceInterstitialSwitchID = "";
 	[Header("Oppo快游戏")]
 	public string OppoPackageName = "";
 	public string OppoAppID = "";
 	public string OppoRewardedVideoID = "";
 	public string OppoInterstitialID = "";
+	public string OppoInterstitialSwitchID = "";
 	[Header("Vivo快游戏")]
 	public string VivoPackageName = "";
 	public string VivoAppID = "";
 	public string VivoRewardedVideoID = "";
 	public string VivoInterstitialID = "";
+	public string VivoInterstitialSwitchID = "";
 	[Header("微信小游戏")]
 	public string WeXinPackageName = "";
 	public string WeXinAppID = "";
 	public string WeXinRewardedVideoID = "";
 	public string WeXinInterstitialID = "";
+	[Header("插屏后台控制")]
+	public string InterstitialConfigURL = "";
+	public float InterstitialConfigRefreshSeconds = 60.0f;
 	protected static MiniGameSettings mPlatformSettings;
 	public static MiniGameSettings get()
 	{
@@ -99,6 +105,23 @@ public class MiniGameSettings : ScriptableObject
 		{
 			return "";
 		}
+	}
+	public static string getInterstitialSwitchID()
+	{
+		MiniGameSettings settings = get();
+		if (isByteDance())
+		{
+			return settings.ByteDanceInterstitialSwitchID;
+		}
+		else if (isOppo())
+		{
+			return settings.OppoInterstitialSwitchID;
+		}
+		else if (isVivo())
+		{
+			return settings.VivoInterstitialSwitchID;
+		}
+		return "";
 	}
 	public static string getPackageName()
 	{
