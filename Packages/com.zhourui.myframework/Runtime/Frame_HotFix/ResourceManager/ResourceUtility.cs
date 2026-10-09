@@ -294,15 +294,16 @@ public class ResourceUtility
 		}
 		try
 		{
-			if (www.error != null || www.downloadHandler?.data == null)
+			byte[] datas = www.downloadHandler?.data;
+			if (www.error != null || datas == null)
 			{
 				log("下载失败 : " + url + ", info : " + www.error);
 				callback?.Invoke(null, null, null, url);
 			}
 			else
 			{
-				log("下载成功:" + url + ", size:" + www.downloadHandler.data.Length);
-				callback?.Invoke(null, null, www.downloadHandler.data, url);
+				log("下载成功:" + url + ", size:" + datas.Length);
+				callback?.Invoke(null, null, datas, url);
 			}
 		}
 		catch (Exception e)

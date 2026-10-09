@@ -923,12 +923,13 @@ public class FrameBaseUtility
 			checkDownloadPath(ref fileName);
 			using var www = unityWebRequest(fileName);
 			yield return www.SendWebRequest();
-			if (errorIfNull && www.downloadHandler.data == null)
+			byte[] datas = www.downloadHandler.data;
+			if (errorIfNull && datas == null)
 			{
 				logErrorBase("open file failed:" + fileName + ", info:" + www.error + ", error:" + www.downloadHandler.error);
 			}
 			logBase("打开文件耗时:" + (int)(DateTime.Now - start).TotalMilliseconds + "毫秒,file:" + fileName);
-			callBytesCallback(callback, www.downloadHandler.data);
+			callBytesCallback(callback, datas);
 		}
 	}
 	//------------------------------------------------------------------------------------------------------------------------------

@@ -63,15 +63,16 @@ public class ResourceUtility
 		}
 		try
 		{
-			if (timeout || www.result != UnityEngine.Networking.UnityWebRequest.Result.Success || www.downloadHandler?.data == null)
+			byte[] datas = www.downloadHandler?.data;
+			if (timeout || www.result != UnityEngine.Networking.UnityWebRequest.Result.Success || datas == null)
 			{
 				logBase("下载失败 : " + url + ", info : " + www.error);
 				callback?.Invoke(null, null, null, url);
 			}
 			else
 			{
-				logBase("下载成功:" + url + ", size:" + www.downloadHandler.data.Length);
-				callback?.Invoke(null, null, www.downloadHandler.data, url);
+				logBase("下载成功:" + url + ", size:" + datas.Length);
+				callback?.Invoke(null, null, datas, url);
 			}
 		}
 		catch (Exception e)
