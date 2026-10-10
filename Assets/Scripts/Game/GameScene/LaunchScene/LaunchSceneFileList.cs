@@ -1,6 +1,7 @@
-﻿using static FrameBaseDefine;
+using static FrameBaseDefine;
 using static StringUtility;
 using static FrameBase;
+using static FrameBaseUtility;
 
 public class LaunchSceneFileList : SceneProcedure
 {
@@ -8,6 +9,7 @@ public class LaunchSceneFileList : SceneProcedure
 	public override void init()
 	{
 		base.init();
+		mAssetVersionSystem.setRemoteDynamicDownloadList(null);
 		//mUIDownload.setDownloadInfo("正在获取资源信息...");
 		// 这里需要自己构造一个远端路径和url
 		ObsSystem.getFileMD5(/*OBS_URL*/"", /*getRemoteFolder(mAssetVersionSystem.getRemoteVersion()) +*/ FILE_LIST, (string md5)=>
@@ -19,7 +21,16 @@ public class LaunchSceneFileList : SceneProcedure
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onSuccess()
 	{
-		mGameSceneManager.getCurScene().changeProcedure<LaunchSceneDownload>();
+		ResourceUtility.loadAssetsFromUrl(mResourceManager.getDownloadURL() + DYNAMIC_DOWNLOAD_LIST, bytes =>
+		{
+			if (bytes == null || !DynamicDownloadConfig.tryParse(bytesToString(bytes), mAssetVersionSystem.getRemoteVersion(), out DynamicDownloadConfig config))
+			{
+				logErrorBase("动态下载列表获取失败，停止更新");
+				return;
+			}
+			mAssetVersionSystem.setRemoteDynamicDownloadList(config.Directories);
+			mGameSceneManager.getCurScene().changeProcedure<LaunchSceneDownload>();
+		});
 	}
 	protected void onFailed()
 	{

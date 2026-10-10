@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 
 // Game 层测试运行器
 public class GameTest
@@ -7,3 +8,4 @@ public class GameTest
         FrameGameTest.runAll();
     }
 }
+#endif

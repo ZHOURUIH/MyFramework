@@ -85,51 +85,9 @@ public abstract class PlatformInfo : PlatformBase
 		}
 		mFolderPreName = folderPreName;
 	}
-	public override string getRemotePathInEditor(string version)
-	{
-		string folder = "Assets_";
-		if (mTestClient)
-		{
-			folder += "Test_";
-		}
-		if (isAndroid())
-		{
-			folder += "Android";
-			if (mGameChannel != GAME_CHANNEL.NONE)
-			{
-				folder += GAME_CHANNEL_NAME_LIST[mGameChannel];
-			}
-			folder += "/";
-		}
-		else if (isWindows())
-		{
-			folder += "Windows/";
-		}
-		else if (isIOS())
-		{
-			folder += "iOS/";
-		}
-		else if (isMacOS())
-		{
-			folder += "MacOS/";
-		}
-		else if (isWebGL())
-		{
-			folder += "WebGL/";
-		}
-		else
-		{
-			Debug.LogError("未知平台");
-		}
-		if (version.isEmpty())
-		{
-			return folder;
-		}
-		return folder + version + "/";
-	}
 	public override string getDefaultPlatformDefine()
 	{
-		return USE_HYBRID_CLR + ";" + USE_OBFUZ + ";" + PROJECT_2D + ";" + USE_URP + ";" + USE_SQLITE;
+		return USE_HYBRID_CLR + ";" + USE_OBFUZ + ";" + PROJECT_2D + ";" + USE_URP + ";" + USE_SQLITE + ";" + USE_QI_NIU_YUN;
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected override string getBuildTimePlatformDefineInternal()
