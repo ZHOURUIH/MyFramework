@@ -389,7 +389,7 @@ public abstract class PlatformBase
 	// 比如本地StreamingAssets/1.txt对应的远端位置是domain/ProjectName/Verison/1.txt,那么这里返回的就应该是ProjectName/Verison/
 	public string getRemotePathInEditor(string version)
 	{
-		string folder = "Assets_";
+		string folder = FrameSettings.getGameName() + "/Assets_";
 		if (mTestClient)
 		{
 			folder += "Test_";
