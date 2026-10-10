@@ -9,6 +9,10 @@ using static FrameBaseUtility;
 // 运行时可读取的框架设置资源
 public class FrameSettings : ScriptableObject
 {
+	[Tooltip("游戏英文名称,用于构建输出文件名")]
+	public string GameName = "";
+	[Tooltip("游戏中文名称,用于游戏显示名")]
+	public string GameNameCN = "";
 	[Tooltip("桌面端UI标准分辨率宽高,根据此设置来决定UI的适配")]
 	public Vector2Int UISizeStandalone = new(1920, 1080);
 	[Tooltip("移动端UI标准分辨率宽高,根据此设置来决定UI的适配")]
@@ -53,6 +57,8 @@ public class FrameSettings : ScriptableObject
 		mFrameSettings = CreateInstance<FrameSettings>();
 		return mFrameSettings;
 	}
+	public static string getGameName() { return get().GameName; }
+	public static string getGameNameCN() { return get().GameNameCN; }
 	public static Vector2Int getUISize()
 	{
 		if (isMobile())

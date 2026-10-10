@@ -8,7 +8,13 @@ public class QuickGamePluginScope : IDisposable
 	private readonly List<(PluginImporter importer, bool compatible)> mChanged = new();
 	public QuickGamePluginScope(string sdkDirectory)
 	{
-		if (sdkDirectory != PlatformInternal_Oppo.SDK_PATH && sdkDirectory != PlatformInternal_Vivo.SDK_PATH)
+		MiniGameSettings settings = MiniGameSettings.get();
+		string oppoSDKPath = normalizeSDKPath(settings.OppoSDKPath);
+		string vivoSDKPath = normalizeSDKPath(settings.VivoSDKPath);
+		sdkDirectory = normalizeSDKPath(sdkDirectory);
+		if (string.IsNullOrEmpty(sdkDirectory) ||
+			(sdkDirectory != oppoSDKPath && sdkDirectory != vivoSDKPath) ||
+			(!string.IsNullOrEmpty(oppoSDKPath) && oppoSDKPath == vivoSDKPath))
 		{
 			throw new ArgumentException("未知快游戏 SDK 目录:" + sdkDirectory);
 		}
@@ -17,9 +23,10 @@ public class QuickGamePluginScope : IDisposable
 			foreach (PluginImporter importer in PluginImporter.GetAllImporters())
 			{
 				string path = importer.assetPath.Replace('\\', '/');
+				bool isOppoPlugin = !string.IsNullOrEmpty(oppoSDKPath) && path.StartsWith(oppoSDKPath, StringComparison.Ordinal);
+				bool isVivoPlugin = !string.IsNullOrEmpty(vivoSDKPath) && path.StartsWith(vivoSDKPath, StringComparison.Ordinal);
 				if (!path.EndsWith(".jslib", StringComparison.OrdinalIgnoreCase) ||
-					(!path.StartsWith(PlatformInternal_Oppo.SDK_PATH, StringComparison.Ordinal) &&
-					 !path.StartsWith(PlatformInternal_Vivo.SDK_PATH, StringComparison.Ordinal)))
+					(!isOppoPlugin && !isVivoPlugin))
 				{
 					continue;
 				}
@@ -40,6 +47,14 @@ public class QuickGamePluginScope : IDisposable
 			Dispose();
 			throw;
 		}
+	}
+	public static string normalizeSDKPath(string path)
+	{
+		if (string.IsNullOrWhiteSpace(path))
+		{
+			return "";
+		}
+		return path.Trim().Replace('\\', '/').TrimEnd('/') + "/";
 	}
 	public void Dispose()
 	{

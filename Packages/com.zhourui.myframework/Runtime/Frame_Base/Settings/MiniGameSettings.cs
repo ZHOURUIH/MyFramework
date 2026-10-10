@@ -17,12 +17,19 @@ public class MiniGameSettings : ScriptableObject
 	public string OppoRewardedVideoID = "";
 	public string OppoInterstitialID = "";
 	public string OppoInterstitialSwitchID = "";
+	public string OppoSDKPath = "";
+	public string OppoSignDirectory = "";
 	[Header("Vivo快游戏")]
 	public string VivoPackageName = "";
 	public string VivoAppID = "";
 	public string VivoRewardedVideoID = "";
 	public string VivoInterstitialID = "";
 	public string VivoInterstitialSwitchID = "";
+	public string VivoSDKPath = "";
+	public string VivoSignDirectory = "";
+	public string VivoCliPreloadPath = "";
+	[Header("快游戏共用构建配置")]
+	public string QuickGameIconPath = "";
 	[Header("微信小游戏")]
 	public string WeXinPackageName = "";
 	public string WeXinAppID = "";

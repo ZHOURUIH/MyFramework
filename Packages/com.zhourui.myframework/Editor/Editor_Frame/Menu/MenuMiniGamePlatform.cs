@@ -31,7 +31,7 @@ public class MenuMiniGamePlatform
 		HashSet<string> defines = new(PlayerSettings.GetScriptingDefineSymbolsForGroup(BuildTargetGroup.WebGL).Split(';'));
 		defines.Remove("");
 		defines.Remove(BYTE_DANCE);
-		defines.Remove("UNITY_WEIXINMINIGAME");
+		defines.Remove(UNITY_WEIXINMINIGAME);
 		defines.Remove(OPPO_MINI_GAME);
 		defines.Remove(VIVO_MINI_GAME);
 		defines.Add(platform);

@@ -12,39 +12,47 @@ using QGMiniGame;
 #endif
 using static FrameDefine;
 using static UnityUtility;
+using static QuickGameBuildUtility;
 using UBuilResult = UnityEditor.Build.Reporting.BuildResult;
 
 public class PlatformInternal_Oppo
 {
 	public bool mPortrait;
 	public bool mUseSubpackages;
-	public static string SDK_PATH = Directory.Exists("Assets/OPPO-GAME-SDK") ? "Assets/OPPO-GAME-SDK/" : "Assets/3rdParty/OPPO-GAME-SDK/";
-	protected const string SIGN_DIRECTORY = "BuildSigning/OPPO";
 	protected const string BUILD_PACKAGE = "Build";
 	protected const string RESOURCE_PACKAGE = "StreamingAssets";
 	protected const long MAX_MAIN_PACKAGE_SIZE = 6 * 1024 * 1024;
 	protected const long MAX_SUBPACKAGES_SIZE = 32 * 1024 * 1024;
 	protected const long MAX_UPLOAD_PACKAGE_SIZE = 30 * 1000 * 1000;
-	public void getBuildParameters(Dictionary<string, string> parameters, string nameNameCN)
+	public void getBuildParameters(Dictionary<string, string> parameters)
 	{
-		parameters["游戏名称"] = nameNameCN;
 		parameters["打包方式"] = mUseSubpackages ? "分包" : "不分包";
+		parameters["SDK 目录"] = MiniGameSettings.get().OppoSDKPath;
+		parameters["游戏图标"] = MiniGameSettings.get().QuickGameIconPath;
 		parameters["签名证书"] = getSignPath("certificate.pem");
 		parameters["签名私钥"] = getSignPath("private.pem");
 	}
-	public bool preBuild(string buildVersion, bool isTest, string nameNameCN, string outputPath, string folderPreName)
+	public bool preBuild(string buildVersion, bool isTest, string outputPath, string folderPreName)
 	{
 #if OPPO_MINI_GAME
-		int versionCode = QuickGameBuildUtility.getVersionCode(buildVersion);
-		if (MiniGameSettings.get().OppoPackageName.isEmpty() || nameNameCN.isEmpty() || versionCode == 0)
+		MiniGameSettings miniGameSettings = MiniGameSettings.get();
+		int versionCode = getVersionCode(buildVersion);
+		if (miniGameSettings.OppoPackageName.isEmpty() || versionCode == 0)
 		{
 			logError("请检查 MiniGameSettings 中的 OPPO 包名、游戏名称和三段数字版本号；后两段必须小于 1000，版本整数不能超过 int.MaxValue");
 			return false;
 		}
+		string sdkPath = QuickGamePluginScope.normalizeSDKPath(miniGameSettings.OppoSDKPath);
+		if (!sdkPath.StartsWith("Assets/", StringComparison.Ordinal) || !Directory.Exists(Path.Combine(F_PROJECT_PATH, sdkPath)))
+		{
+			logError("请在 MiniGameSettings 中配置有效的 OPPO SDK 目录:" + miniGameSettings.OppoSDKPath);
+			return false;
+		}
 		var config = BuildConfigAsset.Fundamentals;
-		config.packageName = MiniGameSettings.get().OppoPackageName;
-		config.projectName = nameNameCN;
-		config.iconPath = Path.Combine(F_PROJECT_PATH, QuickGameBuildUtility.ICON_PATH);
+		config.packageName = miniGameSettings.OppoPackageName;
+		config.projectName = FrameSettings.getGameNameCN();
+		config.iconPath = string.IsNullOrWhiteSpace(miniGameSettings.QuickGameIconPath) ? "" :
+			Path.Combine(F_PROJECT_PATH, miniGameSettings.QuickGameIconPath);
 		config.exportPath = getExportPath(buildVersion, outputPath, folderPreName);
 		config.projectVersionName = buildVersion;
 		config.projectVersion = versionCode;
@@ -69,7 +77,7 @@ public class PlatformInternal_Oppo
 		}
 		if (config.useCustomSign && (!File.Exists(config.signCertificate) || !File.Exists(config.signPrivate)))
 		{
-			logError("OPPO 正式包需要固定签名，请将 certificate.pem 和 private.pem 放入:" + Path.Combine(F_PROJECT_PATH, SIGN_DIRECTORY));
+			logError("OPPO 正式包需要固定签名，请检查 MiniGameSettings.OppoSignDirectory:" + miniGameSettings.OppoSignDirectory);
 			return false;
 		}
 		try
@@ -90,13 +98,13 @@ public class PlatformInternal_Oppo
 		QGGameTools.SetPlayer();
 		PlayerSettings.defaultInterfaceOrientation = mPortrait ? UnityEditor.UIOrientation.Portrait : UnityEditor.UIOrientation.LandscapeLeft;
 		EditorSettings.spritePackerMode = atlasMode;
-		QuickGameBuildUtility.prepareWebGL();
+		prepareWebGL();
 		// 在 HybridCLR/Generate/All 前设置，补充元数据与最终程序必须使用相同裁剪规则。
 		PlayerSettings.stripEngineCode = true;
 		// Unity 的 DiskSize 默认使用 -Os；最终链接使用 -Oz 进一步减少 WASM 体积。
 		PlayerSettings.WebGL.emscriptenArgs = Regex.Replace(PlayerSettings.WebGL.emscriptenArgs ?? "",
 			@"(^|\s)-O(?:[0-3sgz])(?=\s|$)", "$1").Trim() + " -Oz";
-		PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.WebGL, MiniGameSettings.get().OppoPackageName);
+		PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.WebGL, miniGameSettings.OppoPackageName);
 		return true;
 #else
 		logError("构建 OPPO 快游戏需要启用 " + FrameMacro.OPPO_MINI_GAME+ " 宏");
@@ -112,7 +120,7 @@ public class PlatformInternal_Oppo
 			string exportPath = BuildConfigAsset.Fundamentals.exportPath;
 			string packagePath = Path.Combine(exportPath, "quickgame");
 			bool built;
-			using (new QuickGamePluginScope(SDK_PATH))
+			using (new QuickGamePluginScope(MiniGameSettings.get().OppoSDKPath))
 			{
 				built = QGGameTools.BuildGame();
 			}
@@ -120,27 +128,27 @@ public class PlatformInternal_Oppo
 			{
 				return UBuilResult.Failed;
 			}
-			QuickGameBuildUtility.stripWasmDebugNames(Path.Combine(packagePath, BUILD_PACKAGE, "webgl.wasm"));
+			stripWasmDebugNames(Path.Combine(packagePath, BUILD_PACKAGE, "webgl.wasm"));
 			if (mUseSubpackages)
 			{
-				QuickGameBuildUtility.prepareSubpackages(packagePath, "main.js", new[] { BUILD_PACKAGE, RESOURCE_PACKAGE }, true);
+				prepareSubpackages(packagePath, "main.js", new[] { BUILD_PACKAGE, RESOURCE_PACKAGE }, true);
 			}
 			else
 			{
-				QuickGameBuildUtility.prepareWholePackage(packagePath);
+				prepareWholePackage(packagePath);
 			}
 			if (!prepare(packagePath))
 			{
 				return UBuilResult.Failed;
 			}
-			var previousPackages = QuickGameBuildUtility.capturePackages(packagePath);
+			var previousPackages = capturePackages(packagePath);
 			var config = BuildConfigAsset.Fundamentals;
 			string fileName = config.packageName + (config.useCustomSign ? ".signed.rpk" : ".rpk");
-			if (!QuickGameBuildUtility.runNodeCli("@oppo-minigame/cli/lib/bin/quickgame", config.useCustomSign ? "pack release" : "pack", packagePath, "OPPO") ||
-				!QuickGameBuildUtility.checkPackages(packagePath, previousPackages) ||
-				(mUseSubpackages && !QuickGameBuildUtility.checkSubpackages(Path.Combine(packagePath, "dist", fileName),
+			if (!runNodeCli("@oppo-minigame/cli/lib/bin/quickgame", config.useCustomSign ? "pack release" : "pack", packagePath, "OPPO") ||
+				!checkPackages(packagePath, previousPackages) ||
+				(mUseSubpackages && !checkSubpackages(Path.Combine(packagePath, "dist", fileName),
 					Path.Combine(packagePath, "manifest.json"), "OPPO", MAX_MAIN_PACKAGE_SIZE, MAX_SUBPACKAGES_SIZE)) ||
-				!QuickGameBuildUtility.checkUploadPackageBudget(Path.Combine(packagePath, "dist", fileName), MAX_UPLOAD_PACKAGE_SIZE))
+				!checkUploadPackageBudget(Path.Combine(packagePath, "dist", fileName), MAX_UPLOAD_PACKAGE_SIZE))
 			{
 				return UBuilResult.Failed;
 			}
@@ -163,11 +171,12 @@ public class PlatformInternal_Oppo
 	}
 	protected static string getSignPath(string fileName)
 	{
-		return Path.Combine(F_PROJECT_PATH, SIGN_DIRECTORY, fileName);
+		string directory = MiniGameSettings.get().OppoSignDirectory;
+		return string.IsNullOrWhiteSpace(directory) ? "" : Path.Combine(F_PROJECT_PATH, directory, fileName);
 	}
 	protected static bool prepare(string packagePath)
 	{
-		string nodePath = QuickGameBuildUtility.getNodeExecutable();
+		string nodePath = getNodeExecutable();
 		if (string.IsNullOrEmpty(nodePath))
 		{
 			throw new FileNotFoundException("OPPO 运行时适配需要 Node.js，请将 Node 加入 PATH");

@@ -152,6 +152,10 @@ public abstract class PlatformBase
 			copyFile(aotDllSrcPath + aotFile, mAssetBundleFullPath + aotFile + ".bytes");
 		}
 		checkAccessMissingMetadata();
+		if (mEnableHotFix && !AOTMetadataBuildUtility.optimize(mAssetBundleFullPath, AOTGenericReferences.PatchedAOTAssemblyList))
+		{
+			logError("AOT 补充元数据精简失败");
+		}
 
 #if USE_OBFUZ
 		// 对dll进行混淆,dll顺序很重要,被依赖的需要在前面
@@ -220,7 +224,10 @@ public abstract class PlatformBase
 		string source = File.ReadAllText(Path.Combine(Application.dataPath, HybridCLRSettings.Instance.outputAOTGenericReferenceFile));
 		int start = source.IndexOf("PatchedAOTAssemblyList", StringComparison.Ordinal);
 		int end = start < 0 ? -1 : source.IndexOf("};", start, StringComparison.Ordinal);
-		if (end < 0) throw new InvalidDataException("Generated AOT assembly list is missing");
+		if (end < 0)
+		{
+			throw new InvalidDataException("Generated AOT assembly list is missing");
+		}
 		foreach (string value in source.Substring(start, end - start).Split('"'))
 		{
 			if (value.EndsWith(".dll", StringComparison.Ordinal)) names.Add(value);
@@ -269,6 +276,22 @@ public abstract class PlatformBase
 			buildDefine += ";";
 		}
 		string platformDefine = defaultDefine + buildDefine;
+		if (isByteDance())
+		{
+			platformDefine += BYTE_DANCE + ";";
+		}
+		else if (isOppo())
+		{
+			platformDefine += OPPO_MINI_GAME + ";";
+		}
+		else if (isVivo())
+		{
+			platformDefine += VIVO_MINI_GAME + ";";
+		}
+		else if (isWeiXin())
+		{
+			platformDefine += UNITY_WEIXINMINIGAME + ";";
+		}
 		if (mEnableHotFix)
 		{
 			platformDefine += ENABLE_HOTFIX + ";";
@@ -351,7 +374,11 @@ public abstract class PlatformBase
 	public bool uploadVersion()
 	{
 		string remotePath = getRemotePathInEditor("") + VERSION;
-		if (!uploadSingleFile(mAssetBundleFullPath + VERSION, remotePath, true)) return false;
+		log("上传远端版本号:" + openTxtFile(mAssetBundleFullPath + VERSION, true));
+		if (!uploadSingleFile(mAssetBundleFullPath + VERSION, remotePath, true))
+		{
+			return false;
+		}
 		// 上传版本号以后立即刷新cdn
 		mObjectStorageSystem?.refreshCDN(remotePath);
 		updateRemoteVersion();
@@ -360,7 +387,62 @@ public abstract class PlatformBase
 	// 获取在远端资源的路径,一般都会根据版本号来隔离每个版本的资源,而且在应用层最好自己再实现一个利用宏来判断的路径
 	// 在编辑器非运行模式下就不要用宏来判断了,因为此时本身就要去添加编译宏,所以编辑器非运行模式下的宏可能更新没那么及时,会导致获取到错误的值
 	// 比如本地StreamingAssets/1.txt对应的远端位置是domain/ProjectName/Verison/1.txt,那么这里返回的就应该是ProjectName/Verison/
-	public abstract string getRemotePathInEditor(string version);
+	public string getRemotePathInEditor(string version)
+	{
+		string folder = "Assets_";
+		if (mTestClient)
+		{
+			folder += "Test_";
+		}
+		if (isAndroid())
+		{
+			folder += "Android/";
+		}
+		else if (isWindows())
+		{
+			folder += "Windows/";
+		}
+		else if (isIOS())
+		{
+			folder += "iOS/";
+		}
+		else if (isMacOS())
+		{
+			folder += "MacOS/";
+		}
+		else if (isWebGL())
+		{
+			if (isByteDance())
+			{
+				folder += "ByteDance/";
+			}
+			else if (isOppo())
+			{
+				folder += "Oppo/";
+			}
+			else if (isVivo())
+			{
+				folder += "Vivo/";
+			}
+			else if (isWeiXin())
+			{
+				folder += "WeChat";
+			}
+			else
+			{
+				folder += "WebGL/";
+			}
+		}
+		else
+		{
+			logErrorBase("未知平台");
+		}
+		if (!version.isEmpty())
+		{
+			version += "/";
+		}
+		return folder + version;
+	}
 	public bool uploadResources(bool autoUploadVersion, string uploadLocalPath = null, int rertyCount = 5)
 	{
 		if (mObjectStorageSystem == null)
@@ -484,8 +566,8 @@ public abstract class PlatformBase
 	// 除了动态配置以外的宏,比如USE_HYBRID_CLR,USE_OBFUZ等基本固定的宏,一般都是使用FrameMacro中定义的值,由应用层自己决定,也是用于打包完以后的宏配置还原
 	public abstract string getDefaultPlatformDefine();
 	//------------------------------------------------------------------------------------------------------------------------------
-	// 获取打包时的宏配置,不包含getDefaultPlatformDefine的宏,会拼接以后设置到当前宏定义
-	protected abstract string getBuildTimePlatformDefineInternal();
+	// 获取打包时的宏配置,不包含getDefaultPlatformDefine的宏,会拼接以后设置到当前宏定义,可能使用频率不高
+	protected virtual string getBuildTimePlatformDefineInternal() { return ""; }
 	protected string generateResourceFileList(string path, List<string> ignorePath)
 	{
 		List<string> ignoreFiles = mIgnoreFile == null ? new() : new(mIgnoreFile);
@@ -607,11 +689,6 @@ public abstract class PlatformBase
 				else if (file.EndsWith(VERSION))
 				{
 					backupDest = BACKUP_TARGET.NONE;
-				}
-				// webgl中需要将所有文件都备份到临时目录,这些文件不打包到包体中,这是需要上传到cdn
-				else if (isWebGL())
-				{
-					backupDest = BACKUP_TARGET.BUILD_TEMP;
 				}
 				// 启用热更时,动态下载的文件备份到临时目录,其他不进行备份
 				else if (mEnableHotFix)

@@ -5,6 +5,8 @@ using UnityEngine;
 #if USE_HYBRID_CLR
 using HybridCLR.Editor.AOT;
 #endif
+using static UnityUtility;
+
 public class AOTMetadataBuildUtility
 {
 	public static bool optimize(string resourcePath, IReadOnlyList<string> assemblyNames)
@@ -28,14 +30,14 @@ public class AOTMetadataBuildUtility
 				File.WriteAllBytes(backup, original);
 				File.WriteAllBytes(path, optimized);
 				savedBytes += original.Length - optimized.Length;
-				Debug.Log("AOT 补充元数据精简:" + assemblyName + "，" + original.Length + " -> " + optimized.Length + " bytes");
+				log("AOT 补充元数据精简:" + assemblyName + "，" + original.Length + " -> " + optimized.Length + " bytes");
 			}
-			Debug.Log("AOT 补充元数据合计减少:" + savedBytes + " bytes");
+			log("AOT 补充元数据合计减少:" + savedBytes + " bytes");
 			return true;
 		}
 		catch (Exception e)
 		{
-			Debug.LogError("AOT 补充元数据精简失败，停止打包:" + e);
+			logError("AOT 补充元数据精简失败，停止打包:" + e);
 			return false;
 		}
 #else

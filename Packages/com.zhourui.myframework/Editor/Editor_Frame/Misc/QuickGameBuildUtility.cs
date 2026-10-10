@@ -15,7 +15,6 @@ using static UnityUtility;
 
 public class QuickGameBuildUtility
 {
-	public const string ICON_PATH = "Assets/GameResources/GameIcon/Icon.png";
 	private const string SUBPACKAGE_LOADER_MARKER = "// bundled resource loader";
 	public static string getNodeExecutable()
 	{

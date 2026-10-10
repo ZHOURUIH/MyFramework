@@ -22,7 +22,6 @@ public class ADManager : FrameSystem
 	protected long mNextConfigRefreshTimeMS;
 	protected bool mConfigRequestPending;
 	protected bool mInterstitialConfigLoaded;
-	protected bool mInterstitialReviewPassed;
 	protected bool mHasShownInterstitial;
 	protected bool mAdRequestPending;
 	protected bool mShowing;
@@ -72,7 +71,7 @@ public class ADManager : FrameSystem
 			return true;
 		}
 		long now = getNowUTCTimeStampMS();
-		return mInterstitialConfigLoaded && mInterstitialReviewPassed &&
+		return mInterstitialConfigLoaded &&
 			(now - mSessionStartTimeMS) / 1000.0 >= mInterstitialFirstDelay &&
 			(!mHasShownInterstitial || (now - mLastInterstitialTimeMS) / 1000.0 >= mInterstitialInterval);
 #endif
@@ -357,13 +356,12 @@ public class ADManager : FrameSystem
 				return false;
 			}
 			Vector3 config = value.SToV3();
-			if (config.x < 0.0f || config.y < 0.0f || config.z != 0.0f && config.z != 1.0f)
+			if (config.x < 0.0f || config.y < 0.0f)
 			{
 				return false;
 			}
 			mInterstitialFirstDelay = config.x;
 			mInterstitialInterval = config.y;
-			mInterstitialReviewPassed = config.z == 1.0f;
 			mInterstitialConfigLoaded = true;
 			return true;
 		}

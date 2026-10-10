@@ -11,17 +11,24 @@ public class MenuQuickGameSigning
 	[MenuItem("游戏平台/生成正式签名/OPPO")]
 	public static void generateOppoSigning()
 	{
-		generateSigning("OPPO", MiniGameSettings.get().OppoPackageName);
+		MiniGameSettings settings = MiniGameSettings.get();
+		generateSigning("OPPO", settings.OppoPackageName, settings.OppoSignDirectory);
 	}
 	[MenuItem("游戏平台/生成正式签名/vivo")]
 	public static void generateVivoSigning()
 	{
-		generateSigning("VIVO", MiniGameSettings.get().VivoPackageName);
+		MiniGameSettings settings = MiniGameSettings.get();
+		generateSigning("VIVO", settings.VivoPackageName, settings.VivoSignDirectory);
 	}
 	//--------------------------------------------------------------------------------------------------------------
-	private static void generateSigning(string platform, string packageName)
+	private static void generateSigning(string platform, string packageName, string signDirectory)
 	{
-		string signPath = Path.GetFullPath(Path.Combine(F_PROJECT_PATH, "BuildSigning", platform));
+		if (string.IsNullOrWhiteSpace(signDirectory))
+		{
+			logError("请先在 MiniGameSettings 中填写 " + platform + " 签名目录");
+			return;
+		}
+		string signPath = Path.GetFullPath(Path.Combine(F_PROJECT_PATH, signDirectory));
 		if (Directory.Exists(signPath) && Directory.GetFileSystemEntries(signPath).Length > 0)
 		{
 			EditorUtility.DisplayDialog("保留已有签名", "签名目录已有文件，不会重新生成或覆盖。后续版本请复用原证书和私钥；文件不完整时请恢复备份。\n" + signPath, "确定");
