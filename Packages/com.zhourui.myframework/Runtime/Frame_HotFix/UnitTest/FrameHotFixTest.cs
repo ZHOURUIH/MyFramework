@@ -230,7 +230,6 @@ public class FrameHotFixTest
 		Register("MyUGUIObjectTest", MyUGUIObjectTest.Run);
 		Register("MyUGUIObjectGeometryTest", MyUGUIObjectGeometryTest.Run);
 		Register("MyUGUIObjectParentTest", MyUGUIObjectParentTest.Run);
-		Register("MyUGUISliderTest", MyUGUISliderTest.Run);
 		Register("MyUGUINumberTest", MyUGUINumberTest.Run);
 		Register("MyUGUICanvasTest", MyUGUICanvasTest.Run);
 		Register("MyUGUISpriteAnimTest", MyUGUISpriteAnimTest.Run);
@@ -286,12 +285,8 @@ public class FrameHotFixTest
         Register("CharacterManagerTest", CharacterManagerTest.Run);
         Register("CharacterTest", CharacterTest.Run);
         Register("AudioManagerTest", AudioManagerTest.Run);
-        Register("MyUGUIScrollRectTest", MyUGUIScrollRectTest.Run);
-        Register("MyUGUIDropdownSliderTest", MyUGUIDropdownSliderTest.Run);
         Register("MyUGUIRawImageTest", MyUGUIRawImageTest.Run);
-        Register("MyScrollListPanelComboTest", MyScrollListPanelComboTest.Run);
         Register("MyUGUIImageButtonTest", MyUGUIImageButtonTest.Run);
-        Register("MyUGUIScrollBarTest", MyUGUIScrollBarTest.Run);
         Register("MyUGUITileImageTest", MyUGUITileImageTest.Run);
         Register("MyUGUIDragViewTest", MyUGUIDragViewTest.Run);
         Register("MyUGUISpriteTest", MyUGUISpriteTest.Run);
@@ -307,7 +302,6 @@ public class FrameHotFixTest
         Register("UGUIScrollTest", UGUIScrollTest.Run);
         Register("UGUIDropListTest", UGUIDropListTest.Run);
         Register("ScaleAnchorTest", ScaleAnchorTest.Run);
-        Register("MyUGUIButtonTest", MyUGUIButtonTest.Run);
         Register("PaddingAnchorTest", PaddingAnchorTest.Run);
         Register("LayoutAutoGridTest", LayoutAutoGridTest.Run);
         Register("LayoutGridVerticalTest", LayoutGridVerticalTest.Run);
@@ -315,7 +309,6 @@ public class FrameHotFixTest
         Register("UGUIEventThroughAreaTest", UGUIEventThroughAreaTest.Run);
         Register("ImageNumberTest", ImageNumberTest.Run);
         Register("EventTriggerListenerTest", EventTriggerListenerTest.Run);
-        Register("MyUGUIDropdownTest", MyUGUIDropdownTest.Run);
         Register("UGUICheckboxTest", UGUICheckboxTest.Run);
         Register("UGUIProgressTest", UGUIProgressTest.Run);
         Register("MyUGUIInputFieldTest", MyUGUIInputFieldTest.Run);

@@ -11,7 +11,6 @@ using static FrameBaseUtility;
 [LayoutScriptBase]
 public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, IWindowObjectOwner
 {
-	protected HashSet<myUGUIScrollRect> mScrollViewRegisteList;		// 用于检测ScrollView合法性的列表
 	protected HashSet<IInputField> mInputFieldRegisteList;			// 用于检测InputField合法性的列表
 	protected HashSet<WindowStructPoolBase> mPoolRootList;          // 由LayoutScript直接持有的对象池
 	protected HashSet<WindowPoolBase> mWindowPoolRootList;          // 由LayoutScript直接持有的窗口对象池
@@ -49,7 +48,6 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 	public override void resetProperty()
 	{
 		base.resetProperty();
-		mScrollViewRegisteList?.Clear();
 		mInputFieldRegisteList?.Clear();
 		mPoolRootList?.Clear();
 		mWindowPoolRootList?.Clear();
@@ -104,16 +102,6 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 	public void notifyUIObjectNeedUpdate(myUGUIObject uiObj, bool needUpdate)
 	{
 		mLayout.notifyUIObjectNeedUpdate(uiObj, needUpdate);
-	}
-	// 由于基本都是使用了自定义的滑动列表,所以基本不再使用UGUI自带的ScrollRect了
-	public void registeScrollRect(myUGUIScrollRect scrollRect, myUGUIObject viewport, myUGUIObject content, float verticalPivot = 1.0f, float horizontalPivot = 0.5f)
-	{
-		mScrollViewRegisteList ??= new();
-		mScrollViewRegisteList.addIf(scrollRect, isEditor());
-		scrollRect.initScrollRect(viewport, content, verticalPivot, horizontalPivot);
-		// 所有的可滑动列表都是不能穿透射线的
-		scrollRect.registeCollider();
-		bindPassOnlyParent(viewport);
 	}
 	public void registeInputField(IInputField inputField)
 	{
@@ -267,17 +255,6 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		if (isEditor() && !mRegisterChecked)
 		{
 			mRegisterChecked = true;
-			// 检查是否注册了所有的ScrollRect
-			using var a = new ListScope<ScrollRect>(out var scrollViewList);
-			mRoot.getGameObject().GetComponentsInChildren(scrollViewList);
-			foreach (ScrollRect item in scrollViewList)
-			{
-				if (!mScrollViewRegisteList.contains(mLayout.getUIObject(item.gameObject) as myUGUIScrollRect))
-				{
-					logError("滑动列表未注册:" + item.gameObject.name + ", layout:" + mLayout.getName());
-				}
-			}
-
 			// 所有的原生UGUI输入框
 			using var b = new ListScope<InputField>(out var inputFieldList);
 			mRoot.getGameObject().GetComponentsInChildren(inputFieldList);

@@ -715,13 +715,8 @@ public class UGUIGeneratorUtility
 		// 根据优先级放入类型列表,一般有这些组件就是要用特定的功能,所以会优先加进去
 		// 其他的组件可能不会在代码中进行访问,所以优先级较低
 		mTempAvailableTypeList.addIf(typeof(myUGUICanvas).ToString(), go.TryGetComponent<Canvas>(out _));
-		mTempAvailableTypeList.addIf(typeof(myUGUIButton).ToString(), go.TryGetComponent<Button>(out _));
 		mTempAvailableTypeList.addIf(typeof(myUGUICustomLine).ToString(), go.TryGetComponent<CustomLine>(out _));
-		mTempAvailableTypeList.addIf(typeof(myUGUIDropdown).ToString(), go.TryGetComponent<Dropdown>(out _));
 		mTempAvailableTypeList.addIf(typeof(myUGUIImageNumber).ToString(), go.TryGetComponent<ImageNumber>(out _));
-		mTempAvailableTypeList.addIf(typeof(myUGUIScrollBar).ToString(), go.TryGetComponent<Scrollbar>(out _));
-		mTempAvailableTypeList.addIf(typeof(myUGUIScrollRect).ToString(), go.TryGetComponent<ScrollRect>(out _));
-		mTempAvailableTypeList.addIf(typeof(myUGUISlider).ToString(), go.TryGetComponent<Slider>(out _));
 		mTempAvailableTypeList.addIf(typeof(myUGUITextImage).ToString(), go.TryGetComponent<TextImage>(out _));
 #if USE_AVPRO_VIDEO
 		mTempAvailableTypeList.addIf(typeof(myUGUIVideo).ToString(), go.TryGetComponent<MediaPlayer>(out _));

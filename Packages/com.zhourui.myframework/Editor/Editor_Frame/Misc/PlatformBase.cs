@@ -387,7 +387,7 @@ public abstract class PlatformBase
 	// 获取在远端资源的路径,一般都会根据版本号来隔离每个版本的资源,而且在应用层最好自己再实现一个利用宏来判断的路径
 	// 在编辑器非运行模式下就不要用宏来判断了,因为此时本身就要去添加编译宏,所以编辑器非运行模式下的宏可能更新没那么及时,会导致获取到错误的值
 	// 比如本地StreamingAssets/1.txt对应的远端位置是domain/ProjectName/Verison/1.txt,那么这里返回的就应该是ProjectName/Verison/
-	public string getRemotePathInEditor(string version)
+	public virtual string getRemotePathInEditor(string version)
 	{
 		string folder = FrameSettings.getGameName() + "/Assets_";
 		if (mTestClient)
