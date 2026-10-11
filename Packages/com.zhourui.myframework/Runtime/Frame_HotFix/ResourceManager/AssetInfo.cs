@@ -56,8 +56,9 @@ public class AssetInfo : ClassObject
 		{
 			callbackAll();
 		}
-		else
+		else if (mLoadState != LOAD_STATE.WAIT_FOR_LOAD && mLoadState != LOAD_STATE.LOADING)
 		{
+			// 同一资源只提交一次加载,后续请求等待callbackAll统一返回
 			mLoadState = LOAD_STATE.WAIT_FOR_LOAD;
 			mResourceManager.requestLoadAsset(mParentAssetBundle, mAssetName);
 		}

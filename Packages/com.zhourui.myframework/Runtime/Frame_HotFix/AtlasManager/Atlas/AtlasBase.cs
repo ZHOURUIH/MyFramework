@@ -8,6 +8,7 @@ using static FrameBaseHotFix;
 public abstract class AtlasBase
 {
 	protected Dictionary<string, Sprite> mSpriteList = new();		// 图集中包含的所有图片列表
+	protected Dictionary<string, List<Sprite>> mAnimationSpriteList; // 按动画名缓存序列帧,由图集持有
 	protected HashSet<Sprite> mSpriteSet = new();					// 用于查找是否有指定图片
 	protected HashSet<long> mReferenceTokenList = new();			// 引用凭证,用于判断是否在其他地方被引用
 	protected ResourceRef<UObject> mMainAsset;						// 图集中精灵的主资源,不一定与mTexture一致,用于卸载资源
@@ -29,6 +30,21 @@ public abstract class AtlasBase
 	{
 		mSpriteList.Add(name, sprite);
 		mSpriteSet.add(sprite);
+		mAnimationSpriteList?.Clear();
+	}
+	// 同一图集的动画序列只解析一次,调用者复制到自己的播放列表。
+	public List<Sprite> getAnimationSpriteList(string textureSetName)
+	{
+		mAnimationSpriteList ??= new();
+		if (!mAnimationSpriteList.TryGetValue(textureSetName, out var spriteList))
+		{
+			spriteList = new();
+			int index = 0;
+			while (spriteList.addNotNull(getSprite(textureSetName + "_" + index++.IToS())))
+			{}
+			mAnimationSpriteList.Add(textureSetName, spriteList);
+		}
+		return spriteList;
 	}
 	public Vector2 getFirstSpriteSize()
 	{
@@ -38,6 +54,7 @@ public abstract class AtlasBase
 	public void destroy()
 	{
 		mSpriteList.Clear();
+		mAnimationSpriteList?.Clear();
 		mFilePath = null;
 		mResourceManager.unload(ref mMainAsset);
 	}

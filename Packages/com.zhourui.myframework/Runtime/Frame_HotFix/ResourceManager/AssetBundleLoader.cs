@@ -480,9 +480,9 @@ public class AssetBundleLoader
 		string fullPath = availableReadPath(bundleFileName);
 		bundleInfo.setLoadState(LOAD_STATE.LOADING);
 		AssetBundleCreateRequest createRequest;
-		if (isWindows() && fullPath != null)
+		if (fullPath != null && (isWindows() || ((isAndroid() || isIOS()) && !fullPath.Contains("://"))))
 		{
-			// PC本地资源直接从文件加载,避免整包复制到托管堆及临时内存文件。
+			// 普通本地文件直接加载,避免整包读入byte[],APK内路径仍使用原有读取方式。
 			createRequest = AssetBundle.LoadFromFileAsync(fullPath);
 		}
 		else

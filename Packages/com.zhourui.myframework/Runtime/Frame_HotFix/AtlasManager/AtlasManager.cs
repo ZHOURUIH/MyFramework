@@ -23,6 +23,8 @@ public class AtlasManager : FrameSystem
 	protected Dictionary<string, string> mAtlasPathList = new();                    // 根据图集名字查找SpriteAtlas文件的路径
 	protected float mCheckTimer;                                                    // 检查的计时器
 	protected const int MAX_LOADING_COUNT = 20;                                     // 同时加载的最大数量
+	protected const int MAX_REQUESTS_PER_UPDATE = 4;                         		// 每帧最多处理的图集请求
+	protected const double REQUEST_TIME_BUDGET = 0.001;                       		// 每帧请求处理时间预算,秒
 	protected const float CHECK_INTERVAL = 2.0f;                                    // 检查的间隔时间
 	public AtlasManager()
 	{
@@ -81,6 +83,8 @@ public class AtlasManager : FrameSystem
 			}
 		}
 
+		int processedCount = 0;
+		double startTime = Time.realtimeSinceStartupAsDouble;
 		do
 		{
 			// 同一时间只能允许一定数量的图集正在加载
@@ -113,12 +117,18 @@ public class AtlasManager : FrameSystem
 					// 根据图集名字找到加载该图集的所有请求,然后通知这些请求,如果不在加载中列表,则可能是中途意外中断了,不再继续执行
 					if (!mLoadingList.Remove(loadPath, out var paramList))
 					{
+						mResourceManager.unload(ref asset);
 						return;
 					}
 					if (!mAtlasList.tryGetValue(loadPath, out AtlasBase atlas))
 					{
 						atlas = atlasLoaded(assets, asset, loadPath);
 						mAtlasList.addIf(loadPath, atlas, atlas != null);
+					}
+					else
+					{
+						// 已有图集持有资源,释放本次返回的额外引用。
+						mResourceManager.unload(ref asset);
 					}
 					foreach (AtlasLoadParam param in paramList)
 					{
@@ -141,7 +151,8 @@ public class AtlasManager : FrameSystem
 			// 处理加载请求后就可以从请求列表中移除
 			UN_LIST(ref requestList);
 			mLoadRequestList.Remove(atlasName);
-		} while (false);
+			++processedCount;
+		} while (processedCount < MAX_REQUESTS_PER_UPDATE && Time.realtimeSinceStartupAsDouble - startTime < REQUEST_TIME_BUDGET);
 	}
 	public void addDontUnloadAtlas(string fileName) { mDontUnloadAtlas.Add(fileName); }
 	public SafeDictionary<string, AtlasBase> getAtlasList() { return mAtlasList; }
@@ -187,7 +198,7 @@ public class AtlasManager : FrameSystem
 		if (loadIfNull)
 		{
 			long assignID = owner?.getAssignID() ?? 0;
-			AtlasLoadParam param = mLoadRequestList.getOrAddListPersist(atlasName).addClass();
+			AtlasLoadParam param = (mLoadingList.get(atlasName) ?? mLoadRequestList.getOrAddListPersist(atlasName)).addClass();
 			param.mName = atlasName;
 			param.mCallback = (AtlasRef atlas) =>
 			{
