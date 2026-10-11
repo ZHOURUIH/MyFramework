@@ -5,6 +5,8 @@ using static UnityUtility;
 using static FrameBaseHotFix;
 using static FrameDefine;
 using static FrameUtility;
+using static FrameBaseUtility;
+using static StringUtility;
 
 // 单个prefab的实例化池
 public class PrefabPool : ClassObject
@@ -15,6 +17,23 @@ public class PrefabPool : ClassObject
 	protected string mFileName;								// 此实例物体的预设文件名,相对于GameResources的路径,带后缀
 	protected int mAsyncLoadingCount;                       // 正在异步加载的数量
 	protected int mAsyncInstantiateCount;					// 正在异步实例化的数量
+	protected struct AsyncRequest
+	{
+		public int mTag;
+		public int mPreloadCount; // 0表示普通请求,大于0表示对象池的预热目标总数
+		public bool mMoveToHide;
+		public Action<GameObjectInfo, bool> mCallback;
+		public CustomAsyncOperation mOperation;
+	}
+	protected Queue<AsyncRequest> mAsyncRequests = new(); // 等待交付的请求,包含当前批次
+	protected int mAsyncFailedRequestCount;
+	protected bool mAsyncPreloadFailed;
+	protected const int ASYNC_INSTANTIATE_BATCH_COUNT = 8;
+#if UNITY_6000_0_OR_NEWER
+	protected AsyncInstantiateOperation<GameObject> mAsyncOperation;
+	protected GameObject[] mCreatedObjects;
+	protected int mCreatedObjectIndex;
+#endif
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -24,19 +43,26 @@ public class PrefabPool : ClassObject
 		mFileName = null;
 		mAsyncLoadingCount = 0;
 		mAsyncInstantiateCount = 0;
+		mAsyncRequests.Clear();
+		mAsyncFailedRequestCount = 0;
+		mAsyncPreloadFailed = false;
+#if UNITY_6000_0_OR_NEWER
+		mAsyncOperation = null;
+		mCreatedObjects = null;
+		mCreatedObjectIndex = 0;
+#endif
 	}
 	public override void destroy()
 	{
 		base.destroy();
+		cancelAsyncCreate();
 		destroyAllInstance();
 		mResourceManager.unload(ref mPrefab);
 	}
 	public void destroyAllInstance()
 	{
-		mInuseList.For(item => item.destroyObject());
-		mInuseList.Clear();
-		mUnuseList.For(item => item.destroyObject());
-		mUnuseList.Clear();
+		UN_CLASS_LIST(mInuseList);
+		UN_CLASS_LIST(mUnuseList);
 	}
 	public void setFileName(string fileName)				{ mFileName = fileName; }
 	public void setPrefab(ResourceRef<GameObject> prefab)	{ mPrefab = prefab; }
@@ -46,44 +72,38 @@ public class PrefabPool : ClassObject
 	public HashSet<GameObjectInfo> getInuseList()			{ return mInuseList; }
 	public int getInuseCount()								{ return mInuseList.Count; }
 	public int getUnuseCount()								{ return mUnuseList.Count; }
-	public bool isEmpty()									{ return mInuseList.Count == 0 && mUnuseList.Count == 0 && mAsyncLoadingCount == 0 && mAsyncInstantiateCount == 0; }
-	public bool isEmptyInUse()								{ return mInuseList.Count == 0 && mAsyncLoadingCount == 0 && mAsyncInstantiateCount == 0; }
+	public bool isEmpty()									{ return mInuseList.Count == 0 && mUnuseList.Count == 0 && mAsyncLoadingCount == 0 && mAsyncInstantiateCount == 0 && mAsyncRequests.Count == 0; }
+	public bool isEmptyInUse()								{ return mInuseList.Count == 0 && mAsyncLoadingCount == 0 && mAsyncInstantiateCount == 0 && mAsyncRequests.Count == 0; }
 	// 向池中异步初始化一定数量的对象
 	public CustomAsyncOperation initToPoolAsync(int tag, int count, bool moveToHide, Action callback)
 	{
 		CustomAsyncOperation op = new();
-		if (mPrefab != null)
+		AsyncRequest request = new()
 		{
-			doInitToPool(tag, count, moveToHide);
-			callback?.Invoke();
-			return op.setFinish();
+			mTag = tag,
+			mPreloadCount = Math.Max(count, 1),
+			mMoveToHide = moveToHide,
+			mCallback = (_, _) => callback?.Invoke(),
+			mOperation = op,
+		};
+		if (mHasDestroy || count <= 0)
+		{
+			finishAsyncRequest(request, null, mHasDestroy);
+			return op;
 		}
-		// 预设未加载,异步加载预设
-		++mAsyncLoadingCount;
+		bool completeImmediately = mAsyncRequests.Count == 0 && count <= mInuseList.Count + mUnuseList.Count;
 		long assignID = getAssignID();
-        mResourceManager.loadGameResourceAsync<GameObject>(mFileName, (asset) =>
+		mAsyncRequests.Enqueue(request);
+		if (completeImmediately)
 		{
-			--mAsyncLoadingCount;
-			if (asset == null)
-			{
-				callback?.Invoke();
-				op.setFinish();
-                return;
-			}
-			if (assignID != getAssignID())
-			{
-				mResourceManager.unload(ref asset);
-				callback?.Invoke();
-                op.setFinish();
-                return;
-			}
-			adoptAsyncLoadedPrefab(ref asset);
-			doInitToPool(tag, count, moveToHide);
-			callback?.Invoke();
-            op.setFinish();
-        });
+			mPrefabPoolManager.processAsyncCreateImmediately(this);
+		}
+		if (!mHasDestroy && assignID == getAssignID())
+		{
+			mPrefabPoolManager.scheduleAsyncCreate(this);
+		}
 		return op;
-    }
+	}
 	// 向池中同步初始化一定数量的对象
 	public void initToPool(int tag, int count, bool moveToHide)
 	{
@@ -99,42 +119,287 @@ public class PrefabPool : ClassObject
 		}
 		doInitToPool(tag, count, moveToHide);
 	}
-	// 从池中异步获取一个对象
+	// 从池中异步获取一个对象,同一预制体的请求由管理器按帧预算集中调度
 	public CustomAsyncOperation getOneUnusedAsync(int tag, Action<GameObjectInfo, bool> callback)
 	{
 		CustomAsyncOperation op = new();
-        if (mPrefab != null)
+		if (mHasDestroy)
 		{
-			getOneUnusedAsyncInternal(tag, (GameObjectInfo info) => { callback?.Invoke(info, false); });
-			return op.setFinish();
+			finishAsyncRequest(new() { mTag = tag, mCallback = callback, mOperation = op }, null, true);
+			return op;
 		}
-		// 预设未加载,异步加载预设
-		++mAsyncLoadingCount;
+		bool reuseImmediately = mAsyncRequests.Count == 0 && mUnuseList.Count > 0;
 		long assignID = getAssignID();
-		mResourceManager.loadGameResourceAsync<GameObject>(mFileName, (asset) =>
+		mAsyncRequests.Enqueue(new() { mTag = tag, mCallback = callback, mOperation = op });
+		if (reuseImmediately)
 		{
-			--mAsyncLoadingCount;
-			if (asset == null)
-			{
-				callback?.Invoke(null, false);
-				op.setFinish();
-                return;
-			}
-			if (assignID != getAssignID())
-			{
-				mResourceManager.unload(ref asset);
-				callback?.Invoke(null, true);
-                op.setFinish();
-                return;
-			}
-			adoptAsyncLoadedPrefab(ref asset);
-			getOneUnusedAsyncInternal(tag, (GameObjectInfo info)=> 
-			{
-				callback?.Invoke(info, false);
-                op.setFinish();
-            });
-		});
+			mPrefabPoolManager.processAsyncCreateImmediately(this);
+		}
+		if (!mHasDestroy && assignID == getAssignID())
+		{
+			mPrefabPoolManager.scheduleAsyncCreate(this);
+		}
 		return op;
+	}
+	public bool hasAsyncCreateRequest() { return !mHasDestroy && mAsyncRequests.Count > 0; }
+	public bool isAsyncCreateReady()
+	{
+		if (!hasAsyncCreateRequest() || (mPrefab == null && mAsyncLoadingCount > 0 && mAsyncFailedRequestCount == 0))
+		{
+			return false;
+		}
+#if UNITY_6000_0_OR_NEWER
+		return mAsyncOperation == null || mAsyncOperation.isDone;
+#else
+		return true;
+#endif
+	}
+	// 一次只推进一个步骤或交付一个实例,初始化及业务回调都计入管理器预算。
+	public void processAsyncCreate()
+	{
+		if (mAsyncFailedRequestCount > 0)
+		{
+			--mAsyncFailedRequestCount;
+			finishAsyncRequest(mAsyncRequests.Dequeue(), null, false);
+			return;
+		}
+		AsyncRequest request = mAsyncRequests.Peek();
+		// 重复预热只等待目标数量满足,不会重复创建同一批实例。
+		if (request.mPreloadCount > 0 && mAsyncInstantiateCount == 0 &&
+			request.mPreloadCount <= mInuseList.Count + mUnuseList.Count)
+		{
+			finishAsyncRequest(mAsyncRequests.Dequeue(), null, false);
+			return;
+		}
+		if (mPrefab == null)
+		{
+			++mAsyncLoadingCount;
+			long assignID = getAssignID();
+			try
+			{
+				mResourceManager.loadGameResourceAsync<GameObject>(mFileName, asset =>
+				{
+					if (mHasDestroy || assignID != getAssignID())
+					{
+						mResourceManager.unload(ref asset);
+						return;
+					}
+					--mAsyncLoadingCount;
+					if (asset == null)
+					{
+						mAsyncFailedRequestCount = mAsyncRequests.Count;
+					}
+					else
+					{
+						adoptAsyncLoadedPrefab(ref asset);
+					}
+					mPrefabPoolManager.scheduleAsyncCreate(this);
+				});
+			}
+			catch (Exception error)
+			{
+				logException(error);
+				if (!mHasDestroy && assignID == getAssignID())
+				{
+					mAsyncLoadingCount = 0;
+					mAsyncFailedRequestCount = mAsyncRequests.Count;
+				}
+			}
+			return;
+		}
+#if UNITY_6000_0_OR_NEWER
+		if (mAsyncOperation != null)
+		{
+			mCreatedObjects = mAsyncOperation.Result;
+			mCreatedObjectIndex = 0;
+			mAsyncOperation = null;
+		}
+		if (mAsyncInstantiateCount > 0)
+		{
+			GameObject go = mCreatedObjects != null && mCreatedObjectIndex < mCreatedObjects.Length ? mCreatedObjects[mCreatedObjectIndex] : null;
+			++mCreatedObjectIndex;
+			if (--mAsyncInstantiateCount == 0)
+			{
+				mCreatedObjects = null;
+				mCreatedObjectIndex = 0;
+			}
+			GameObjectInfo info = null;
+			try
+			{
+				if (go != null)
+				{
+					// 批次先在隐藏节点下创建,轮到本实例时才初始化和交付。
+					CLASS(out info).setObject(go, mFileName);
+					go.SetActive(false);
+					setNormalProperty(go, mPrefabPoolManager.getGameObject(), getFileNameWithSuffix(mPrefab.get().name));
+					findShaders(go);
+					info.setTag(request.mTag);
+				}
+			}
+			catch (Exception error)
+			{
+				logException(error);
+				if (info != null) UN_CLASS(ref info);
+				else destroyUnityObject(ref go);
+			}
+			deliverAsyncObject(request, info);
+			return;
+		}
+		if (request.mPreloadCount == 0 && mUnuseList.Count > 0)
+		{
+			mAsyncRequests.Dequeue();
+			GameObjectInfo info = null;
+			try { info = getOneUnused(request.mTag); }
+			catch (Exception error) { logException(error); }
+			finally { finishAsyncRequest(request, info, false); }
+			return;
+		}
+		if (request.mPreloadCount > 0)
+		{
+			mAsyncInstantiateCount = Math.Min(ASYNC_INSTANTIATE_BATCH_COUNT, request.mPreloadCount - mInuseList.Count - mUnuseList.Count);
+		}
+		else
+		{
+			// 预热任务按目标数量创建,不能混入逐个交付的普通请求批次。
+			foreach (AsyncRequest item in mAsyncRequests)
+			{
+				if (item.mPreloadCount > 0 || mAsyncInstantiateCount >= ASYNC_INSTANTIATE_BATCH_COUNT) break;
+				++mAsyncInstantiateCount;
+			}
+		}
+		try
+		{
+			mAsyncOperation = UnityEngine.Object.InstantiateAsync(mPrefab.get(), mAsyncInstantiateCount, mPrefabPoolManager.getAsyncInstantiateRoot());
+		}
+		catch (Exception error)
+		{
+			logException(error);
+			// 后续按预算逐个返回失败,不在异常路径一次执行全部回调。
+			mCreatedObjects = null;
+		}
+#else
+		GameObjectInfo info = null;
+		try
+		{
+			if (request.mPreloadCount > 0)
+			{
+				CLASS(out info).createObject(mPrefab.get(), mFileName);
+				info.setTag(request.mTag);
+			}
+			else
+			{
+				info = getOneUnused(request.mTag);
+			}
+		}
+		catch (Exception error)
+		{
+			logException(error);
+			if (info != null) UN_CLASS(ref info);
+		}
+		deliverAsyncObject(request, info);
+#endif
+	}
+	protected void deliverAsyncObject(AsyncRequest request, GameObjectInfo info)
+	{
+		if (request.mPreloadCount == 0)
+		{
+			mAsyncRequests.Dequeue();
+			if (info != null)
+			{
+				info.setUsing(true);
+				mInuseList.Add(info);
+			}
+			finishAsyncRequest(request, info, false);
+			return;
+		}
+		long assignID = getAssignID();
+		try
+		{
+			if (info != null && info.getObject() != null)
+			{
+				info.setUsing(false);
+				mUnuseList.Add(info);
+				GameObject go = info.getObject();
+				setNormalProperty(go, mPrefabPoolManager.getGameObject());
+				if (request.mMoveToHide)
+				{
+					go.transform.localPosition = FAR_POSITION;
+					go.SetActive(true);
+				}
+				else if (go.activeSelf)
+				{
+					go.SetActive(false);
+				}
+			}
+			else
+			{
+				if (info != null) UN_CLASS(ref info);
+				mAsyncPreloadFailed = true;
+			}
+		}
+		catch (Exception error)
+		{
+			logException(error);
+			if (!mHasDestroy && assignID == getAssignID())
+			{
+				mUnuseList.Remove(info);
+				if (info != null) UN_CLASS(ref info);
+				mAsyncPreloadFailed = true;
+			}
+		}
+		// 激活预热物体的组件可能触发场景退出,此时取消流程已经结束请求。
+		if (!mHasDestroy && assignID == getAssignID() && mAsyncInstantiateCount == 0 &&
+			(mAsyncPreloadFailed || request.mPreloadCount <= mInuseList.Count + mUnuseList.Count))
+		{
+			mAsyncPreloadFailed = false;
+			finishAsyncRequest(mAsyncRequests.Dequeue(), null, false);
+		}
+	}
+	protected static void finishAsyncRequest(AsyncRequest request, GameObjectInfo info, bool poolDestroy)
+	{
+		try { request.mCallback?.Invoke(info, poolDestroy); }
+		catch (Exception error) { logException(error); }
+		finally { request.mOperation.setFinish(); }
+	}
+	protected void failAsyncRequests(bool poolDestroy)
+	{
+		int count = mAsyncRequests.Count;
+		for (int i = 0; i < count; ++i)
+		{
+			finishAsyncRequest(mAsyncRequests.Dequeue(), null, poolDestroy);
+		}
+	}
+	protected void cancelAsyncCreate()
+	{
+		mPrefabPoolManager?.unscheduleAsyncCreate(this);
+#if UNITY_6000_0_OR_NEWER
+		if (mAsyncOperation != null)
+		{
+			if (mAsyncOperation.isDone)
+			{
+				mCreatedObjects = mAsyncOperation.Result;
+				mCreatedObjectIndex = 0;
+			}
+			else
+			{
+				mAsyncOperation.Cancel();
+			}
+			mAsyncOperation = null;
+		}
+		if (mCreatedObjects != null)
+		{
+			for (int i = mCreatedObjectIndex; i < mCreatedObjects.Length; ++i)
+			{
+				destroyUnityObject(mCreatedObjects[i]);
+			}
+		}
+		mCreatedObjects = null;
+		mCreatedObjectIndex = 0;
+#endif
+		mAsyncInstantiateCount = 0;
+		mAsyncFailedRequestCount = 0;
+		mAsyncPreloadFailed = false;
+		failAsyncRequests(true);
 	}
 	// 从对象池中同步获取或者创建一个物体
 	public GameObjectInfo getOneUnused(int tag)
@@ -257,39 +522,6 @@ public class PrefabPool : ClassObject
 				}
 			}
 			objInfo.setUsing(false);
-		}
-	}
-	// 从池中异步获取一个可用的对象
-	protected void getOneUnusedAsyncInternal(int tag, Action<GameObjectInfo> callback)
-	{
-		// 未使用列表中有就从未使用列表中获取
-		if (mUnuseList.Count > 0)
-		{
-			GameObjectInfo objInfo = mUnuseList.popBack();
-			if (objInfo.getTag() != tag)
-			{
-				logError("不能为同一个物体设置不同的tag, file:" + objInfo.getFileWithPath());
-			}
-			objInfo.setUsing(true);
-			callback?.Invoke(mInuseList.add(objInfo));
-		}
-		// 没有就创建一个新的
-		else
-		{
-			// 实例化
-			++mAsyncInstantiateCount;
-			CLASS<GameObjectInfo>().createObjectAsync(mPrefab.get(), mFileName, (GameObjectInfo info) =>
-			{
-				--mAsyncInstantiateCount;
-				if (info == null)
-				{
-					callback?.Invoke(null);
-					return;
-				}
-				info.setTag(tag);
-				info.setUsing(true);
-				callback?.Invoke(mInuseList.add(info));
-			});
 		}
 	}
 }

@@ -514,7 +514,7 @@ public class AssetBundleLoader
 		{
 			logError("can not load asset bundle async : " + fullPath);
 		}
-		yield return null;
+		// 资源包已加载完成,立即通知,不再额外等待一帧。
 		// 通知AssetBundleInfo
 		try
 		{

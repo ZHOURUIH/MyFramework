@@ -13,6 +13,20 @@ public class PrefabPoolManager : FrameSystem
 	protected Dictionary<GameObject, GameObjectInfo> mInstanceList = new(); // 根据实例化的物体查找的列表
 	protected SafeDictionary<string, PrefabPool> mPrefabPoolList = new();   // 已实例化对象的实例池列表
 	protected HashSet<string> mDontUnloadPrefab = new();                    // 即使已经没有实例化对象了,也不会卸载的prefab
+	protected Queue<(PrefabPool pool, long assignID)> mAsyncCreateQueue = new();
+	protected HashSet<PrefabPool> mAsyncCreateSet = new();
+	protected GameObject mAsyncInstantiateRoot; // 批量创建后尚未交付的实例暂存于隐藏节点
+	protected int mAsyncCreateFrame = -1;
+	protected int mAsyncCreateStepCount;
+	protected double mAsyncCreateTime;
+	protected bool mProcessingAsyncCreate;
+	protected const int MAX_ASYNC_CREATE_STEPS = 16;
+	protected const double ASYNC_CREATE_TIME_BUDGET = 0.002;
+#if UNITY_6000_0_OR_NEWER
+	protected float mOriginalIntegrationTime;
+	protected float mIntegrationTime;
+	protected const float ASYNC_INTEGRATION_TIME_MS = 1.0f;
+#endif
 	protected float mTimerInterval = 3.0f;                                  // 扫描间隔,默认3秒
 	protected float mDestroyTimer;                                          // 扫描是否有需要卸载的资源的计时器
 	public PrefabPoolManager()
@@ -22,6 +36,12 @@ public class PrefabPoolManager : FrameSystem
 	public override void init()
 	{
 		base.init();
+#if UNITY_6000_0_OR_NEWER
+		// Unity的场景集成另有预算,框架回调预算无法约束这部分耗时。
+		mOriginalIntegrationTime = AsyncInstantiateOperation.GetIntegrationTimeMS();
+		mIntegrationTime = Math.Min(mOriginalIntegrationTime, ASYNC_INTEGRATION_TIME_MS);
+		AsyncInstantiateOperation.SetIntegrationTimeMS(mIntegrationTime);
+#endif
 		if (isEditor())
 		{
 			mObject.AddComponent<ObjectPoolDebug>();
@@ -53,14 +73,25 @@ public class PrefabPoolManager : FrameSystem
 	}
 	public override void destroy()
 	{
+		mHasDestroy = true;
+		mAsyncCreateQueue.Clear();
+		mAsyncCreateSet.Clear();
 		mInstanceList.Clear();
 		UN_CLASS_LIST(mPrefabPoolList.getMainList());
 		mPrefabPoolList.clear();
 		base.destroy();
+		mAsyncInstantiateRoot = null;
+#if UNITY_6000_0_OR_NEWER
+		if (AsyncInstantiateOperation.GetIntegrationTimeMS() == mIntegrationTime)
+		{
+			AsyncInstantiateOperation.SetIntegrationTimeMS(mOriginalIntegrationTime);
+		}
+#endif
 	}
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
+		processAsyncCreateQueue();
 		// 每隔一定时间销毁不再使用的对象池
 		if (tickTimerLoop(ref mDestroyTimer, elapsedTime, mTimerInterval))
 		{
@@ -94,12 +125,103 @@ public class PrefabPoolManager : FrameSystem
 			}
 		}
 	}
+	// 只有确实需要合并或预算不足的请求才排队,可复用对象仍可立即交付。
+	public void scheduleAsyncCreate(PrefabPool pool)
+	{
+		if (!mHasDestroy && pool.hasAsyncCreateRequest() && mAsyncCreateSet.Add(pool))
+		{
+			mAsyncCreateQueue.Enqueue((pool, pool.getAssignID()));
+		}
+	}
+	public void unscheduleAsyncCreate(PrefabPool pool) { mAsyncCreateSet.Remove(pool); }
+	public Transform getAsyncInstantiateRoot()
+	{
+		if (mAsyncInstantiateRoot == null)
+		{
+			mAsyncInstantiateRoot = createGameObject("AsyncInstantiate", mObject);
+			mAsyncInstantiateRoot.SetActive(false);
+		}
+		return mAsyncInstantiateRoot.transform;
+	}
+	public void processAsyncCreateImmediately(PrefabPool pool)
+	{
+		if (!mHasDestroy && !mProcessingAsyncCreate && pool.isAsyncCreateReady() && hasAsyncCreateBudget())
+		{
+			processAsyncCreateStep(pool);
+		}
+	}
+	protected bool hasAsyncCreateBudget()
+	{
+		if (mAsyncCreateFrame != Time.frameCount)
+		{
+			mAsyncCreateFrame = Time.frameCount;
+			mAsyncCreateStepCount = 0;
+			mAsyncCreateTime = 0.0;
+		}
+		return mAsyncCreateStepCount < MAX_ASYNC_CREATE_STEPS && mAsyncCreateTime < ASYNC_CREATE_TIME_BUDGET;
+	}
+	protected void processAsyncCreateStep(PrefabPool pool)
+	{
+		++mAsyncCreateStepCount;
+		double startTime = Time.realtimeSinceStartupAsDouble;
+		mProcessingAsyncCreate = true;
+		try { pool.processAsyncCreate(); }
+		catch (Exception error) { logException(error); }
+		finally
+		{
+			mAsyncCreateTime += Time.realtimeSinceStartupAsDouble - startTime;
+			mProcessingAsyncCreate = false;
+		}
+	}
+	protected void processAsyncCreateQueue()
+	{
+		if (mAsyncCreateQueue.Count == 0 || !hasAsyncCreateBudget()) return;
+		double startTime = Time.realtimeSinceStartupAsDouble;
+		double usedTime = mAsyncCreateTime;
+		int idleCount = 0;
+		try
+		{
+			while (mAsyncCreateQueue.Count > 0 && hasAsyncCreateBudget() &&
+				usedTime + Time.realtimeSinceStartupAsDouble - startTime < ASYNC_CREATE_TIME_BUDGET)
+			{
+				var (pool, assignID) = mAsyncCreateQueue.Dequeue();
+				// 旧条目不能操作已重新分配的池,也不能移除它的新调度标记。
+				if (pool.getAssignID() != assignID || !mAsyncCreateSet.Remove(pool)) continue;
+				if (!pool.hasAsyncCreateRequest()) continue;
+				if (pool.isAsyncCreateReady())
+				{
+					processAsyncCreateStep(pool);
+					idleCount = 0;
+				}
+				else
+				{
+					++idleCount;
+				}
+				if (!pool.isDestroy() && pool.getAssignID() == assignID)
+				{
+					scheduleAsyncCreate(pool);
+				}
+				// 所有池都在等待真实异步任务时结束本帧扫描。
+				if (idleCount >= mAsyncCreateQueue.Count) break;
+			}
+		}
+		finally
+		{
+			// 队列扫描开销也计入预算,避免大量等待中的池占用过长一帧。
+			mAsyncCreateTime = usedTime + Time.realtimeSinceStartupAsDouble - startTime;
+		}
+	}
 	public float getTimerInterval() { return mTimerInterval; }
 	public void setTimerInterval(float interval) { mTimerInterval = interval; }
 	public void addDontUnloadPrefab(string name) { mDontUnloadPrefab.Add(name); }
 	// 异步预加载prefab,加载prefab文件,并实例化对象,fileWithPath是GameResource下的相对路径
 	public CustomAsyncOperation initObjectToPoolAsync(string fileWithPath, int count, bool moveToHide, Action callback, int objectTag = 0)
 	{
+		if (mHasDestroy)
+		{
+			callback?.Invoke();
+			return new CustomAsyncOperation().setFinish();
+		}
 		return getPrefabPool(fileWithPath).initToPoolAsync(objectTag, count, moveToHide, callback);
 	}
 	// 同步预加载prefab,加载prefab文件,并实例化对象,fileWithPath是GameResource下的相对路径
@@ -125,12 +247,12 @@ public class PrefabPoolManager : FrameSystem
 			group.addTask(createObjectAsync(fileName, moveToHide, false, (GameObject go) => { list.Add(fileName, go); }, objectTag));
 		}
 	}
-	// 异步创建物体,实际上只是异步加载,实例化还是同步的
+	// 异步创建物体,Unity6批量实例化,旧版本按帧预算同步实例化
 	// fileWithPath是GameResource下的相对路径
 	// failCallback的参数表示是否为资源加载失败而失败
 	public CustomAsyncOperation createObjectAsyncSafe(IRecyclable relatedObj, string fileWithPath, bool moveToHide, bool active, GameObjectCallback callback, int objectTag = 0, BoolCallback failCallback = null)
 	{
-		if (fileWithPath.isEmpty())
+		if (mHasDestroy || fileWithPath.isEmpty())
 		{
 			return null;
 		}
@@ -140,39 +262,43 @@ public class PrefabPoolManager : FrameSystem
 		getPrefabPool(fileWithPath).getOneUnusedAsync(objectTag, (GameObjectInfo objInfo, bool poolDestroy) =>
 		{
 			using var a = new ProfilerScope(0);
-			if (objInfo == null)
+			try
 			{
-				if (!poolDestroy)
+				if (objInfo == null)
 				{
-					string info = "prefab加载失败:" + fileWithPath + ",请确认文件存在,且带后缀名,且不能使用反斜杠\\";
-					if (fileWithPath.Contains(' ') || fileWithPath.Contains('　'))
+					if (!poolDestroy)
 					{
-						info += ",注意此文件名中带有空格";
+						string info = "prefab加载失败:" + fileWithPath + ",请确认文件存在,且带后缀名,且不能使用反斜杠\\";
+						if (fileWithPath.Contains(' ') || fileWithPath.Contains('　'))
+						{
+							info += ",注意此文件名中带有空格";
+						}
+						logError(info);
 					}
-					logError(info);
+					// 资源加载失败而失败
+					failCallback?.Invoke(true);
+					return;
 				}
-				// 资源加载失败而失败
-				failCallback?.Invoke(true);
-				op.setFinish();
-				return;
+				PrefabPool pool = getPrefabPool(fileWithPath);
+				objInfo.setPool(pool);
+				if (assignID != 0 && assignID != relatedObj.getAssignID())
+				{
+					pool.destroyObject(objInfo, false);
+					// 因为关联对象被销毁而失败
+					failCallback?.Invoke(false);
+					return;
+				}
+				postCreateObject(pool, objInfo, moveToHide, null, active);
+				callback?.Invoke(objInfo.getObject());
 			}
-			PrefabPool pool = getPrefabPool(fileWithPath);
-			objInfo.setPool(pool);
-			if (assignID != 0 && assignID != relatedObj.getAssignID())
+			finally
 			{
-				pool.destroyObject(objInfo, false);
-				// 因为关联对象被销毁而失败
-				failCallback?.Invoke(false);
 				op.setFinish();
-				return;
 			}
-			postCreateObject(pool, objInfo, moveToHide, null, active);
-			callback?.Invoke(objInfo.getObject());
-			op.setFinish();
 		});
 		return op;
 	}
-	// 异步创建物体,实际上只是异步加载,实例化还是同步的,fileWithPath是GameResource下的相对路径
+	// 异步创建物体,Unity6批量实例化,旧版本按帧预算同步实例化,fileWithPath是GameResource下的相对路径
 	public CustomAsyncOperation createObjectAsync(string fileWithPath, bool moveToHide, bool active, GameObjectCallback callback, int objectTag = 0)
 	{
 		return createObjectAsyncSafe(null, fileWithPath, moveToHide, active, callback, objectTag, null);

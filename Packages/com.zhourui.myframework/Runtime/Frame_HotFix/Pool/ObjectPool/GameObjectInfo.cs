@@ -26,6 +26,7 @@ public class GameObjectInfo : ClassObject
 	public bool isMoveToHide()					{ return mMoveToHide; }
 	public void setPool(PrefabPool pool)		{ mPool = pool; }
 	public void setObject(GameObject obj)		{ mObject = obj; }
+	public void setObject(GameObject obj, string fileWithPath) { mObject = obj; mFileWithPath = fileWithPath; }
 	public void setTag(int tag)					{ mTag = tag; }
 	public void setUsing(bool value)			{ mUsing = value; }
 	public void setMoveToHide(bool moveToHide)	{ mMoveToHide = moveToHide; }

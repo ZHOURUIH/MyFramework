@@ -254,7 +254,7 @@ public class AssetDataBaseLoader
 			{
 				logError("文件不存在:" + filePath);
 			}
-			yield return null;
+			// 编辑器API已完成读取,立即通知结果,不再额外等待一帧。
 		}
 		else
 		{

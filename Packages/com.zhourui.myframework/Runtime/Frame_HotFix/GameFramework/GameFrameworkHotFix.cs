@@ -287,25 +287,26 @@ public class GameFrameworkHotFix : IFramework
 		preInitAsync(() =>
 		{
 			// 再执行所有的initAsync,因为部分initAsync会依赖于preInitAsync
-			int initedCount = 0;
+			// 预留一次收尾计数,同步完成的回调也必须等遍历结束后再进入业务注册。
+			int pendingCount = mFrameComponentInit.Count + 1;
+			Action onInited = () =>
+			{
+				if (--pendingCount != 0) return;
+				resourceAvailable();
+				try
+				{
+					callback?.Invoke();
+				}
+				catch (Exception e)
+				{
+					logException(e);
+				}
+			};
 			foreach (FrameSystem item in mFrameComponentInit)
 			{
-				item.initAsync(() =>
-				{
-					if (++initedCount == mFrameComponentInit.count())
-					{
-						resourceAvailable();
-						try
-						{
-							callback?.Invoke();
-						}
-						catch(Exception e)
-						{
-							logException(e);
-						}
-					}
-				});
+				item.initAsync(onInited);
 			}
+			onInited();
 		});
 	}
 	// 预初始化:注册所有框架组件、初始化Android插件、执行init/lateInit,然后执行各组件的preInitAsync
@@ -379,17 +380,20 @@ public class GameFrameworkHotFix : IFramework
 		}
 		mCurTime = DateTime.Now;
 
-		int initedCount = 0;
+		// 同样等待预初始化的遍历结束,防止下一阶段的同步回调修改当前列表。
+		int pendingCount = mFrameComponentInit.Count + 1;
+		Action onInited = () =>
+		{
+			if (--pendingCount == 0)
+			{
+				callback?.Invoke();
+			}
+		};
 		foreach (FrameSystem item in mFrameComponentInit)
 		{
-			item.preInitAsync(() =>
-			{
-				if (++initedCount == mFrameComponentInit.count())
-				{
-					callback?.Invoke();
-				}
-			});
+			item.preInitAsync(onInited);
 		}
+		onInited();
 	}
 	// 注册所有内置框架组件,按依赖顺序排列
 	protected void initFrameSystem()
