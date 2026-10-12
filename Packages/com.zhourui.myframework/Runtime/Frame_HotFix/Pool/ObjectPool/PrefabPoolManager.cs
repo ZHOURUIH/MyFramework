@@ -288,8 +288,31 @@ public class PrefabPoolManager : FrameSystem
 					failCallback?.Invoke(false);
 					return;
 				}
+				long objectAssignID = objInfo.getAssignID();
 				postCreateObject(pool, objInfo, moveToHide, null, active);
-				callback?.Invoke(objInfo.getObject());
+				GameObject go = objInfo.getObject();
+				// 挂接或激活可能触发销毁,交付前再次确认实例和关联对象。
+				if (mHasDestroy || 
+					objectAssignID != objInfo.getAssignID() || 
+					objInfo.isDestroy() || 
+					go == null ||
+					(assignID != 0 && assignID != relatedObj.getAssignID()))
+				{
+					if (!mHasDestroy && objectAssignID == objInfo.getAssignID() && 
+						!objInfo.isDestroy() &&
+						!pool.isDestroy() && 
+						objInfo.getPool() == pool)
+					{
+						if (!ReferenceEquals(go, null))
+						{
+							mInstanceList.Remove(go);
+						}
+						pool.destroyObject(objInfo, true);
+					}
+					failCallback?.Invoke(false);
+					return;
+				}
+				callback?.Invoke(go);
 			}
 			finally
 			{

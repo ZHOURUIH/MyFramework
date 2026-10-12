@@ -84,16 +84,19 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 	}
 	public override void destroy()
 	{
-		// 卸载创建出的材质
-		if (mIsNewMaterial && !isEditor())
+		if (mSpriteRenderer != null)
 		{
-			destroyUnityObject(mSpriteRenderer.sharedMaterial);
+			// 卸载创建出的材质
+			if (mIsNewMaterial && !isEditor())
+			{
+				destroyUnityObject(mSpriteRenderer.sharedMaterial);
+			}
+			// 为了尽量确保ImageAtlasPath中记录的图集路径与图集完全一致,在销毁窗口时还原初始的图片
+			// 这样在重复使用当前物体时在校验图集路径时不会出错,但是如果在当前物体使用过程中销毁了原始的图片,则可能会报错
+			mSpriteRenderer.sprite = mOriginSprite;
+			setMaterial(mOriginMaterial);
+			setAlpha(1.0f);
 		}
-		// 为了尽量确保ImageAtlasPath中记录的图集路径与图集完全一致,在销毁窗口时还原初始的图片
-		// 这样在重复使用当前物体时在校验图集路径时不会出错,但是如果在当前物体使用过程中销毁了原始的图片,则可能会报错
-		mSpriteRenderer.sprite = mOriginSprite;
-		setMaterial(mOriginMaterial);
-		setAlpha(1.0f);
 		mAtlasPtr = null;
 		mAtlasManager.unloadAtlas(ref mOriginAtlasPtr);
 		mResourceManager.unload(ref mCurMaterial);
