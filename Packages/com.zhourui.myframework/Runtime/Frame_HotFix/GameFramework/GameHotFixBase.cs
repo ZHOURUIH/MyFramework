@@ -143,6 +143,10 @@ public abstract class GameHotFixBase<T> where T : GameHotFixBase<T>
 		string filePath = F_PERSISTENT_ASSETS_PATH + DYNAMIC_SECRET_FILE;
 		GameEntryBase.startCoroutine(openFileAsyncInternal(filePath, true, (byte[] bytes) =>
 		{
+			if (bytes == null || bytes.Length == 0)
+			{
+				throw new InvalidOperationException("热更动态密钥读取失败:" + filePath);
+			}
 #if USE_OBFUZ
 			EncryptionService<DefaultDynamicEncryptionScope>.Encryptor = new GeneratedEncryptionVirtualMachine(bytes);
 #endif

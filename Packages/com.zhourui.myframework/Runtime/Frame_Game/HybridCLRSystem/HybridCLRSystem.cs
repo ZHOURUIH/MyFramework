@@ -73,38 +73,43 @@ public class HybridCLRSystem
 			copyFileAsync(F_ASSET_BUNDLE_PATH + DYNAMIC_SECRET_FILE, F_PERSISTENT_ASSETS_PATH + DYNAMIC_SECRET_FILE, callback);
 			return;
 		}
-		// 在热更全部下载完成后,执行此函数,再启动热更.
-		// 这个函数的目的是确保最新的混淆密钥文件一定存在于PersistenPath中
-		// 因为在启动热更时GameHotFixBase会固定从PersistenPath中加载密钥文件
-		// 如果加载的密钥文件不是最新的,则无法启动游戏
-		// 如果StreamingAssets中的版本号大于PersistentData的版本号(所以这里的前提是版本号都是正确的,否则错误拷贝就会无法执行后面混淆后的代码),则需要将混淆密钥文件拷贝到PersistentData中
-		// 确保PersistentData中的密钥文件肯定是最新的
-		string streamVersion = mAssetVersionSystem.getStreamingAssetsVersion();
-		string persistVersion = mAssetVersionSystem.getPersistentDataVersion();
-		VERSION_COMPARE fullCompare = compareVersion3(streamVersion, persistVersion, out _, out _);
-		logBase("streamVersion:" + streamVersion + ", persistVersion:" + persistVersion + ", fullCompare:" + fullCompare);
-		logBase("isFileExist(F_PERSISTENT_ASSETS_PATH + DYNAMIC_SECRET_FILE):" + isFileExist(F_PERSISTENT_ASSETS_PATH + DYNAMIC_SECRET_FILE));
-		if (fullCompare != VERSION_COMPARE.LOCAL_LOWER && isFileExist(F_PERSISTENT_ASSETS_PATH + DYNAMIC_SECRET_FILE))
+		// 更新流程可能已提交新版本号,不能用版本相同判断缓存密钥仍与程序集匹配。
+		// 密钥与DLL使用相同的资源选择策略,并校验实际文件内容。
+		string sourcePath = availableReadPath(DYNAMIC_SECRET_FILE);
+		string persistentPath = F_PERSISTENT_ASSETS_PATH + DYNAMIC_SECRET_FILE;
+		GameFileInfo sourceInfo = sourcePath == persistentPath ?
+			mAssetVersionSystem.getPersistentAssetsFile().get(DYNAMIC_SECRET_FILE) :
+			mAssetVersionSystem.getStreamingAssetsFile().get(DYNAMIC_SECRET_FILE);
+		if (sourcePath.isEmpty() || sourceInfo == null)
 		{
-			callback?.Invoke();
-			return;
-		}
-		GameFileInfo streamingInfo = mAssetVersionSystem.getStreamingAssetsFile().get(DYNAMIC_SECRET_FILE);
-		if (streamingInfo == null)
-		{
-			logErrorBase("StreamingAssets中找不到混淆密钥文件信息:" + DYNAMIC_SECRET_FILE);
+			logErrorBase("找不到当前资源版本的混淆密钥:" + DYNAMIC_SECRET_FILE);
 			notifyLaunchFailed(errorCallback);
 			return;
 		}
-		copyFileAsync(F_ASSET_BUNDLE_PATH + DYNAMIC_SECRET_FILE, F_PERSISTENT_ASSETS_PATH + DYNAMIC_SECRET_FILE, () =>
+		byte[] persistentBytes = openFileSync(persistentPath, false);
+		if (persistentBytes != null && 
+			persistentBytes.LongLength == sourceInfo.mFileSize &&
+			generateFileMD5(persistentBytes) == sourceInfo.mMD5)
+		{
+			logBase("热更启动:混淆密钥校验通过");
+			callback?.Invoke();
+			return;
+		}
+		if (sourcePath == persistentPath)
+		{
+			logErrorBase("当前资源版本的缓存混淆密钥校验失败:" + DYNAMIC_SECRET_FILE);
+			notifyLaunchFailed(errorCallback);
+			return;
+		}
+		copyFileAsync(sourcePath, persistentPath, () =>
 		{
 			try
 			{
 				// copyFileAsync没有返回拷贝结果,所以回调后必须重新读取目标文件确认拷贝确实成功.
 				byte[] copiedBytes = openFileSync(F_PERSISTENT_ASSETS_PATH + DYNAMIC_SECRET_FILE, false);
 				if (copiedBytes == null || 
-					copiedBytes.LongLength != streamingInfo.mFileSize ||
-					!string.Equals(generateFileMD5(copiedBytes), streamingInfo.mMD5, StringComparison.OrdinalIgnoreCase))
+					copiedBytes.LongLength != sourceInfo.mFileSize ||
+					!string.Equals(generateFileMD5(copiedBytes), sourceInfo.mMD5, StringComparison.OrdinalIgnoreCase))
 				{
 					logErrorBase("混淆密钥文件拷贝后校验失败:" + DYNAMIC_SECRET_FILE);
 					notifyLaunchFailed(errorCallback);
@@ -118,11 +123,17 @@ public class HybridCLRSystem
 					persistInfo = new();
 					persistAssetsFiles.add(DYNAMIC_SECRET_FILE, persistInfo);
 				}
-				persistInfo.mFileName = streamingInfo.mFileName;
-				persistInfo.mFileSize = streamingInfo.mFileSize;
-				persistInfo.mMD5 = streamingInfo.mMD5;
+				persistInfo.mFileName = sourceInfo.mFileName;
+				persistInfo.mFileSize = sourceInfo.mFileSize;
+				persistInfo.mMD5 = sourceInfo.mMD5;
 				// 拷贝完并校验通过以后才更新FileList
-				writeFileList(F_PERSISTENT_ASSETS_PATH, mAssetVersionSystem.generatePersistentAssetFileList());
+				if (!writeFileList(F_PERSISTENT_ASSETS_PATH, mAssetVersionSystem.generatePersistentAssetFileList()))
+				{
+					logErrorBase("混淆密钥文件列表写入失败");
+					notifyLaunchFailed(errorCallback);
+					return;
+				}
+				logBase("热更启动:混淆密钥同步并校验完成");
 				callback?.Invoke();
 			}
 			catch (Exception e)
