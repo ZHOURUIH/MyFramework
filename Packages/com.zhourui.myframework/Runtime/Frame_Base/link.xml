@@ -1,0 +1,8 @@
+<linker>
+  <!-- vivo 文件状态通过 LitJson 反射创建，必须保留构造函数和序列化字段。 -->
+  <assembly fullname="VIVO-Game-SDK" ignoreIfMissing="1">
+    <type fullname="QGMiniGame.QGStat" preserve="all" />
+    <type fullname="QGMiniGame.QGStatInfo" preserve="all" />
+    <type fullname="QGMiniGame.QGStatResponse" preserve="all" />
+  </assembly>
+</linker>
