@@ -64,7 +64,7 @@ public class ADManager : FrameSystem
 	{
 #if UNITY_EDITOR
 		return true;
-#else
+#elif (BYTE_DANCE || OPPO_MINI_GAME || VIVO_MINI_GAME) && UNITY_WEBGL && !UNITY_EDITOR
 		string switchID = MiniGameSettings.getInterstitialSwitchID();
 		if (string.IsNullOrWhiteSpace(switchID))
 		{
@@ -74,6 +74,8 @@ public class ADManager : FrameSystem
 		return mInterstitialConfigLoaded &&
 			(now - mSessionStartTimeMS) / 1000.0 >= mInterstitialFirstDelay &&
 			(!mHasShownInterstitial || (now - mLastInterstitialTimeMS) / 1000.0 >= mInterstitialInterval);
+#else
+		return true;
 #endif
 	}
 	public void cancelAd()
@@ -326,6 +328,8 @@ public class ADManager : FrameSystem
 		logWarning("广告失败:" + error);
 		finishAd(requestID, false);
 	}
+#if (BYTE_DANCE || OPPO_MINI_GAME || VIVO_MINI_GAME) && UNITY_WEBGL && !UNITY_EDITOR
+	// 小游戏配置解析不进入PC和手机热更,避免引入旧主包未保留的AOT类型。
 	protected void onConfigReceived(int requestID, string result, UnityWebRequest.Result status, long code)
 	{
 		if (mDestroying || !mConfigRequestPending || requestID != mConfigRequestID)
@@ -370,4 +374,5 @@ public class ADManager : FrameSystem
 			return false;
 		}
 	}
+#endif
 }
