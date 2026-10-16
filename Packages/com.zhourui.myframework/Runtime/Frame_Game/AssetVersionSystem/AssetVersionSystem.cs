@@ -218,11 +218,8 @@ public class AssetVersionSystem : FrameSystem
 		ignorePath.addUnique("/temp/");
 		mSuccessCallback = successCallback;
 
-		// 编辑器下和不下载更新的版本中不获取远端文件列表和PersistentPath的文件列表
-		// 如果本地版本号大于远端的,则不下载,此时远端资源还未上传,本地可以直接正常运行,认为安装的是全量包
-		if (isEditor() ||
-			!isEnableHotFix() ||
-			compareVersion3(mRemoteVersion, getLocalVersion(), out _, out _) == VERSION_COMPARE.REMOTE_LOWER)
+		// 编辑器和不启用热更的版本不获取文件列表。
+		if (isEditor() || !isEnableHotFix())
 		{
 			mStreamingDone = true;
 			mPersistentDone = true;
@@ -230,7 +227,8 @@ public class AssetVersionSystem : FrameSystem
 			return;
 		}
 
-		if (remoteFileListMD5.isEmpty())
+		bool localVersionHigher = compareVersion3(mRemoteVersion, getLocalVersion(), out _, out _) == VERSION_COMPARE.REMOTE_LOWER;
+		if (!localVersionHigher && remoteFileListMD5.isEmpty())
 		{
 			notifyRemoteFileListFailed("远端FileList MD5为空", generation);
 			return;
@@ -247,6 +245,14 @@ public class AssetVersionSystem : FrameSystem
 			logBase("获取StreamingAssets文件列表完成");
 			mStreamingDone = true;
 		}, ignorePath, ignoreFile);
+
+		// 本地版本高于远端时只读取安装包清单，等待读取完成后再判断是否为全量包。
+		if (localVersionHigher)
+		{
+			mPersistentDone = true;
+			mRemoteDone = true;
+			return;
+		}
 
 		openFileList(F_PERSISTENT_ASSETS_PATH, generation, () =>
 		{
