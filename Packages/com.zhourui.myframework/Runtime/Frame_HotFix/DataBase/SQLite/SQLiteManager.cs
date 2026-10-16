@@ -43,6 +43,15 @@ public class SQLiteManager : FrameSystem
 			{
 				if (++finishCount == tableCount)
 				{
+					// 加载回调只表示本次尝试结束，数据库不可用时不能继续启动游戏。
+					foreach (SQLiteTable loadedTable in mTableList.Values)
+					{
+						if (!loadedTable.isLoaded())
+						{
+							logError("SQLite表格加载失败,已停止启动游戏, table:" + loadedTable.getTableName());
+							return;
+						}
+					}
 					// 所有当前版本文件名都已经确定以后再清理旧版本缓存。
 					// 原实现放在加载前清理,会因为mDecryptFileName尚未生成而把全部可复用缓存删除。
 					deleteUselessTempFile();

@@ -3316,27 +3316,41 @@ public class EditorCommonUtility
 		options.options = buildOptions;
 		BuildReport report = BuildPipeline.BuildPlayer(options);
 		AssetDatabase.Refresh();
-		// 暂停10秒,等到打包处理完再进行删除
-		Thread.Sleep(10000);
-		try
+		if (report.summary.result == BuildResult.Succeeded)
 		{
-			if (report.summary.result == BuildResult.Succeeded)
+			List<string> dirList = new();
+			// 只检查输出目录的直接子目录，避免重复处理调试目录内部的子目录。
+			findFolders(getFilePath(outputPath), dirList, null, false);
+			foreach (string dir in dirList)
 			{
-				List<string> dirList = new();
-				findFolders(getFilePath(outputPath), dirList, null);
-				foreach (string dir in dirList)
+				if (!dir.EndsWith("_BackUpThisFolder_ButDontShipItWithYourGame", StringComparison.Ordinal) &&
+					!dir.EndsWith("_BurstDebugInformation_DoNotShip", StringComparison.Ordinal))
 				{
-					if (dir.Contains("_BackUpThisFolder_ButDontShipItWithYourGame") ||
-						dir.Contains("_BurstDebugInformation_DoNotShip"))
+					continue;
+				}
+				// 构建后文件可能仍被临时占用，仅在删除失败时等待，最多重试约15秒。
+				for (int retry = 0; retry < 30; ++retry)
+				{
+					try
 					{
-						deleteFolder(dir);
+						if (Directory.Exists(dir))
+						{
+							// 让删除异常直接进入重试，避免逐文件删除吞掉占用异常后再报目录非空。
+							Directory.Delete(dir, true);
+						}
+						break;
+					}
+					catch (IOException) when (retry < 29)
+					{
+						Thread.Sleep(500);
+					}
+					catch (Exception e)
+					{
+						Debug.LogWarning("打包已成功，但调试目录清理失败，请在发布前移除：" + dir + "，原因：" + e.Message);
+						break;
 					}
 				}
 			}
-		}
-		catch (Exception e)
-		{
-			Debug.LogError("删除文件夹失败:" + e.Message);
 		}
 		return report.summary.result;
 	}

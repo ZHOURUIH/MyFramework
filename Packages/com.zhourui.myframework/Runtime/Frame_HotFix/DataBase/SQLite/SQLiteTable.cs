@@ -24,6 +24,7 @@ public class SQLiteTable : ClassObject
 	protected LOAD_STATE mState;                                // 加载状态
 	protected bool mResourceAvailable;							// 资源文件是否已经可以使用,加载前需要确保资源更新完毕,而不是读取到旧资源
 	protected bool mLoadedFromCache;							// 本次是否直接打开已有明文SQLite文件,没有经过AssetBundle/TextAsset
+	protected bool mQueryErrorReported;						// 连续查询失败仅上报一次，避免逐帧重复日志
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -36,6 +37,7 @@ public class SQLiteTable : ClassObject
 		mState = LOAD_STATE.NONE;
 		mResourceAvailable = false;
 		mLoadedFromCache = false;
+		mQueryErrorReported = false;
 	}
 	// 异步加载SQLite。数据库已经改为明文后,优先直接打开本地版本缓存;
 	// 只有首次安装或资源版本变化时才从AssetBundle取出bytes并落盘一次。
@@ -44,6 +46,7 @@ public class SQLiteTable : ClassObject
 		if (!mResourceAvailable && isPlaying())
 		{
 			logError("表格资源当前不可使用,无法加载,type:" + mTableName);
+			callback?.Invoke();
 			return;
 		}
 		if (mState == LOAD_STATE.LOADED)
@@ -65,7 +68,7 @@ public class SQLiteTable : ClassObject
 		{
 			mResourceManager.loadGameResourceAsync<TextAsset>(R_SQLITE_PATH + mTableName + ".bytes", (textAsset)=>
 			{
-				postLoad(textAsset.get().bytes);
+				postLoad(textAsset?.get()?.bytes);
 				mResourceManager?.unload(ref textAsset);
 				mState = mCommand != null ? LOAD_STATE.LOADED : LOAD_STATE.NONE;
 				callback?.Invoke();
@@ -102,7 +105,7 @@ public class SQLiteTable : ClassObject
 		if (mResourceManager != null)
 		{
 			ResourceRef<TextAsset> textAsset = mResourceManager.loadGameResource<TextAsset>(R_SQLITE_PATH + mTableName + ".bytes");
-			postLoad(textAsset.get().bytes);
+			postLoad(textAsset?.get()?.bytes);
 			mResourceManager.unload(ref textAsset);
 			mState = mCommand != null ? LOAD_STATE.LOADED : LOAD_STATE.NONE;
 		}
@@ -110,8 +113,11 @@ public class SQLiteTable : ClassObject
 		{
 			// 正常情况下编辑器会在tryOpenExistingDatabase中直接打开源文件,这里只是保留兜底。
 			var textAsset = loadAssetAtPath<TextAsset>(P_SQLITE_PATH + mTableName + ".bytes");
-			postLoad(textAsset.bytes);
-			Resources.UnloadAsset(textAsset);
+			postLoad(textAsset?.bytes);
+			if (textAsset != null)
+			{
+				Resources.UnloadAsset(textAsset);
+			}
 			mState = mCommand != null ? LOAD_STATE.LOADED : LOAD_STATE.NONE;
 		}
 		else
@@ -121,6 +127,7 @@ public class SQLiteTable : ClassObject
 	}
 	public string getDecryptFileName() { return mDecryptFileName; }
 	public bool isLoadedFromCache() { return mLoadedFromCache; }
+	public bool isLoaded() { return mState == LOAD_STATE.LOADED; }
 	public static string getDecryptFilePath()
 	{
 		// SQLite缓存使用独立目录,不要再复用通用temp目录,避免清理时误删其他临时文件。
@@ -136,14 +143,28 @@ public class SQLiteTable : ClassObject
 	{
 		if (mCommand == null)
 		{
+			if (!mQueryErrorReported)
+			{
+				mQueryErrorReported = true;
+				logError("SQLite数据库未成功打开, table:" + mTableName + ", state:" + mState + ", file:" + getDatabaseFileFullPath());
+			}
 			return null;
 		}
-		mCommand.CommandText = queryString;
 		try
 		{
-			return mCommand.ExecuteReader();
+			mCommand.CommandText = queryString;
+			SqliteDataReader reader = mCommand.ExecuteReader();
+			mQueryErrorReported = false;
+			return reader;
 		}
-		catch (Exception) { }
+		catch (Exception e)
+		{
+			if (!mQueryErrorReported)
+			{
+				mQueryErrorReported = true;
+				logException(e, "SQLite查询失败, table:" + mTableName + ", file:" + getDatabaseFileFullPath() + ", sql:" + queryString);
+			}
+		}
 		return null;
 	}
 	// 执行SQL非查询语句(INSERT/UPDATE/DELETE)
@@ -261,7 +282,13 @@ public class SQLiteTable : ClassObject
 		}
 		using var a = new MyStringBuilderScope(out var condition);
 		condition.addConditionInt(SQLiteData.ID, id, EMPTY);
-		parseReader(doQuery(condition.ToString()), out data);
+		SqliteDataReader reader = doQuery(condition.ToString());
+		// 查询没有执行成功时不能按缺行缓存，否则连接恢复后仍会一直返回空。
+		if (reader == null)
+		{
+			return null;
+		}
+		parseReader(reader, out data);
 		mDataMap.Add(id, data);
 		if (data == null && errorIfNull)
 		{
@@ -406,6 +433,9 @@ public class SQLiteTable : ClassObject
 		mConnection = new("URI=file:" + path);
 		mConnection.Open();
 		mCommand = mConnection.CreateCommand();
+		// SQLite能打开空文件，读取目标表成功后才能认为数据库可用。只读取首行，不扫描整表。
+		mCommand.CommandText = "SELECT " + SQLiteData.ID + " FROM " + mTableName + " LIMIT 1";
+		mCommand.ExecuteScalar();
 		onConnectionOpened();
 	}
 
@@ -414,9 +444,14 @@ public class SQLiteTable : ClassObject
 	{
 		try
 		{
+			if (fileBuffer == null || fileBuffer.Length == 0)
+			{
+				logError("SQLite资源加载失败, file:" + R_SQLITE_PATH + mTableName + ".bytes");
+				return;
+			}
 			// SQLite明文数据库固定以"SQLite format 3\0"开头。这里保留一个极低成本检查,
 			// 防止资源制作流程还在输出旧的加密文件时把无效数据写入缓存。
-			if (fileBuffer == null || fileBuffer.Length < 16 ||
+			if (fileBuffer.Length < 16 ||
 				fileBuffer[0] != (byte)'S' || fileBuffer[1] != (byte)'Q' || fileBuffer[2] != (byte)'L' || fileBuffer[3] != (byte)'i' ||
 				fileBuffer[4] != (byte)'t' || fileBuffer[5] != (byte)'e' || fileBuffer[6] != (byte)' ' || fileBuffer[7] != (byte)'f' ||
 				fileBuffer[8] != (byte)'o' || fileBuffer[9] != (byte)'r' || fileBuffer[10] != (byte)'m' || fileBuffer[11] != (byte)'a' ||
@@ -441,7 +476,7 @@ public class SQLiteTable : ClassObject
 		{
 			closeConnectionOnly();
 			mState = LOAD_STATE.NONE;
-			logException(e, "打开数据库失败");
+			logException(e, "打开SQLite数据库失败, table:" + mTableName + ", file:" + getDatabaseFileFullPath());
 		}
 	}
 	// SQLite连接创建完成后的扩展点.仅用于表级索引/PRAGMA等一次性初始化,避免业务查询第一次命中时再承担初始化开销.
