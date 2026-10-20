@@ -620,10 +620,12 @@ public abstract class PlatformBase
 		createDir(mOutputPath);
 
 		// 打包时只启用第一个场景,因为微信平台的打包是直接读的编辑器设置,而不能自己传参
-		for (int i = 0; i < EditorBuildSettings.scenes.Length; ++i)
+		var scenes = EditorBuildSettings.scenes;
+		for (int i = 0; i < scenes.Length; ++i)
 		{
-			EditorBuildSettings.scenes[i].enabled = i == 0;
+			scenes[i].enabled = i == 0;
 		}
+		EditorBuildSettings.scenes = scenes;
 
 		AssetDatabase.Refresh();
 
@@ -640,10 +642,12 @@ public abstract class PlatformBase
 	protected virtual void postBuild(string fullPath)
 	{
 		// 打包时只启用第一个场景,因为微信平台的打包是直接读的编辑器设置,而不能自己传参
-		for (int i = 0; i < EditorBuildSettings.scenes.Length; ++i)
+		var scenes = EditorBuildSettings.scenes;
+		for (int i = 0; i < scenes.Length; ++i)
 		{
-			EditorBuildSettings.scenes[i].enabled = true;
+			scenes[i].enabled = true;
 		}
+		EditorBuildSettings.scenes = scenes;
 		recoverAssets();
 		writeFileList(mAssetBundleFullPath);
 		// 还原宏定义
