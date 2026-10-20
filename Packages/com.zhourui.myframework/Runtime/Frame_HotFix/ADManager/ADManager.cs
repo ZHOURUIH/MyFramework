@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Globalization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -359,13 +360,17 @@ public class ADManager : FrameSystem
 			{
 				return false;
 			}
-			Vector3 config = value.SToV3();
-			if (config.x < 0.0f || config.y < 0.0f)
+			string[] values = value.Split(',');
+			if (values.Length < 3 ||
+				!float.TryParse(values[0], NumberStyles.Float, CultureInfo.InvariantCulture, out float firstDelay) ||
+				!float.TryParse(values[1], NumberStyles.Float, CultureInfo.InvariantCulture, out float interval) ||
+				float.IsNaN(firstDelay) || float.IsInfinity(firstDelay) || firstDelay < 0.0 ||
+				float.IsNaN(interval) || float.IsInfinity(interval) || interval < 0.0)
 			{
 				return false;
 			}
-			mInterstitialFirstDelay = config.x;
-			mInterstitialInterval = config.y;
+			mInterstitialFirstDelay = firstDelay;
+			mInterstitialInterval = interval;
 			mInterstitialConfigLoaded = true;
 			return true;
 		}

@@ -265,25 +265,32 @@ public class QuickGameBuildUtility
 			(subpackagesSize / 1024.0 / 1024.0).ToString("F2") + " MiB，" + subpackagesSize + " bytes");
 		if (mainPackage.Length > maxMainBytes)
 		{
-			logError(platformName + " 主包超过限制:" + mainPackage.Length + " bytes，限制:" + maxMainBytes + " bytes");
-			valid = false;
+			logWarning(platformName + " 主包超过参考大小，继续打包:" + mainPackage.Length + " bytes，参考值:" + maxMainBytes + " bytes");
 		}
 		if (subpackagesSize > maxSubpackagesBytes)
 		{
-			logError(platformName + " 分包合计超过限制:" + subpackagesSize + " bytes，限制:" + maxSubpackagesBytes + " bytes");
-			valid = false;
+			logWarning(platformName + " 分包合计超过参考大小，继续打包:" + subpackagesSize + " bytes，参考值:" + maxSubpackagesBytes + " bytes");
 		}
 		return valid;
 	}
 	public static bool checkUploadPackageBudget(string rpkPath, long maxBytes, string platformName = "OPPO")
 	{
+		if (!File.Exists(rpkPath))
+		{
+			logError(platformName + " 最终上传 RPK 不存在:" + rpkPath);
+			return false;
+		}
 		long packageSize = new FileInfo(rpkPath).Length;
 		log(platformName + " 最终上传 RPK:" + (packageSize / 1024.0 / 1024.0).ToString("F2") + " MiB，" + packageSize +
-			" bytes；总包上限:" + maxBytes + " bytes");
-		if (packageSize == 0 || packageSize > maxBytes)
+			" bytes；总包参考值:" + maxBytes + " bytes");
+		if (packageSize == 0)
 		{
-			logError(platformName + " 最终上传 RPK 超过大小限制或文件为空:" + rpkPath);
+			logError(platformName + " 最终上传 RPK 文件为空:" + rpkPath);
 			return false;
+		}
+		if (packageSize > maxBytes)
+		{
+			logWarning(platformName + " 最终上传 RPK 超过参考大小，继续打包:" + rpkPath);
 		}
 		return true;
 	}

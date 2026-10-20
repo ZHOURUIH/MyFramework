@@ -86,7 +86,7 @@ public class PlatformInternal_Vivo
 			logError("请检查 MiniGameSettings 中的 vivo 包名、游戏名称以及打包版本号（三段数字，后两段小于 1000，版本整数不超过 int.MaxValue）");
 			return false;
 		}
-		if (!File.Exists(mConfig.envConfig.icon))
+		if (!File.Exists(Path.Combine(F_PROJECT_PATH, mConfig.envConfig.icon)))
 		{
 			logError("vivo 游戏图标不存在:" + mConfig.envConfig.icon);
 			return false;
@@ -203,7 +203,7 @@ public class PlatformInternal_Vivo
 		config.envConfig.package = MiniGameSettings.get().VivoPackageName;
 		config.envConfig.name = FrameSettings.getGameNameCN();
 		string iconPath = MiniGameSettings.get().QuickGameIconPath;
-		config.envConfig.icon = string.IsNullOrWhiteSpace(iconPath) ? "" : Path.Combine(F_PROJECT_PATH, iconPath);
+		config.envConfig.icon = string.IsNullOrWhiteSpace(iconPath) ? "" : iconPath.Replace('\\', '/');
 		config.envConfig.versionName = buildVersion;
 		config.envConfig.versionCode = getVersionCode(buildVersion).ToString();
 		config.envConfig.orientation = PlayerSettings.defaultInterfaceOrientation == UIOrientation.Portrait ? "portrait" : "landscape";
