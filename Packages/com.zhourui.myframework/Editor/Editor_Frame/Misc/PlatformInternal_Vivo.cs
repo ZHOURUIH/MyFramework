@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
@@ -218,6 +218,17 @@ public class PlatformInternal_Vivo
 	}
 	protected bool buildPackage(string projectPath)
 	{
+		// SDK 33 仅在启用纹理替换时才能跳过 ETC 存储，否则普通 Crunch/ETC 贴图上传会失败。
+		foreach (string frameworkPath in Directory.GetFiles(Path.Combine(projectPath, "buildUnity"), "*.framework*.js"))
+		{
+			const string skipStorage = "if(x2 == 36196 || x2 == 37492 || x2 == 37493){return;}";
+			string framework = File.ReadAllText(frameworkPath);
+			if (framework.Contains(skipStorage))
+			{
+				File.WriteAllText(frameworkPath, framework.Replace(skipStorage,
+					"if(GameGlobal.USED_TEXTURE_COMPRESSION && (x2 == 36196 || x2 == 37492 || x2 == 37493)){return;}"), new System.Text.UTF8Encoding(false));
+			}
+		}
 		if (mConfig.useReleaseSign)
 		{
 			string signPath = Path.Combine(projectPath, "sign", "release");
