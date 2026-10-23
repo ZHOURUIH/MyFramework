@@ -15,6 +15,7 @@ using QGMiniGame;
 public class ADManager : FrameSystem
 {
 	public const float LOAD_TIMEOUT = 30.0f;
+	protected static Func<bool> mRequestPermission;
 	protected int mRequestID;
 	protected int mConfigRequestID;
 	protected long mSessionStartTimeMS;
@@ -48,6 +49,15 @@ public class ADManager : FrameSystem
 		mSessionStartTimeMS = getNowUTCTimeStampMS();
 		refreshInterstitialConfig();
 	}
+	// 在 startHotFix 前设置产品的许可条件；未设置的项目保留原有行为。
+	public static void setRequestPermission(Func<bool> permission)
+	{
+		mRequestPermission = permission;
+	}
+	public static bool hasRequestPermission()
+	{
+		return mRequestPermission == null || mRequestPermission();
+	}
 	public void showReward(Action success, Action failure)
 	{
 		showAd(true, success, failure);
@@ -62,6 +72,10 @@ public class ADManager : FrameSystem
 	}
 	public bool canShowInterstitial()
 	{
+		if (!hasRequestPermission())
+		{
+			return false;
+		}
 #if UNITY_EDITOR
 		return true;
 #elif (BYTE_DANCE || OPPO_MINI_GAME || VIVO_MINI_GAME) && UNITY_WEBGL && !UNITY_EDITOR
@@ -84,6 +98,10 @@ public class ADManager : FrameSystem
 	}
 	public void refreshInterstitialConfig()
 	{
+		if (!hasRequestPermission())
+		{
+			return;
+		}
 #if (BYTE_DANCE || OPPO_MINI_GAME || VIVO_MINI_GAME) && UNITY_WEBGL && !UNITY_EDITOR
 		MiniGameSettings settings = MiniGameSettings.get();
 		string switchID = MiniGameSettings.getInterstitialSwitchID();
@@ -120,6 +138,11 @@ public class ADManager : FrameSystem
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
+		if (!hasRequestPermission())
+		{
+			cancelAd();
+			return;
+		}
 		if (mAdRequestPending && !mShowing)
 		{
 			mLoadTime += mGameFrameworkHotFix.getUnscaledTime();
@@ -151,12 +174,13 @@ public class ADManager : FrameSystem
 		++mConfigRequestID;
 		mConfigRequestPending = false;
 		cancelAd();
+		mRequestPermission = null;
 		base.destroy();
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void showAd(bool rewarded, Action success, Action failure)
 	{
-		if (mDestroying || isAdRequestInProgress())
+		if (mDestroying || !hasRequestPermission() || isAdRequestInProgress())
 		{
 			failure?.Invoke();
 			return;
@@ -208,6 +232,7 @@ public class ADManager : FrameSystem
 		{
 			return;
 		}
+		success &= hasRequestPermission();
 		mAdRequestPending = false;
 		mShowing = false;
 		++mRequestID;
@@ -284,7 +309,7 @@ public class ADManager : FrameSystem
 	}
 	protected void onLoaded(int requestID)
 	{
-		if (!mAdRequestPending || requestID != mRequestID || mShowRequested)
+		if (!mAdRequestPending || requestID != mRequestID || mShowRequested || !hasRequestPermission())
 		{
 			return;
 		}
@@ -332,7 +357,7 @@ public class ADManager : FrameSystem
 	// 小游戏配置解析不进入PC和手机热更,避免引入旧主包未保留的AOT类型。
 	protected void onConfigReceived(int requestID, string result, UnityWebRequest.Result status, long code)
 	{
-		if (mDestroying || !mConfigRequestPending || requestID != mConfigRequestID)
+		if (mDestroying || !mConfigRequestPending || requestID != mConfigRequestID || !hasRequestPermission())
 		{
 			return;
 		}
