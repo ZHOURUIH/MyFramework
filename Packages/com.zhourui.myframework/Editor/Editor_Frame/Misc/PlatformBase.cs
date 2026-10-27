@@ -4,9 +4,9 @@ using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
 using UnityEditorInternal;
 #if USE_HYBRID_CLR
-using HybridCLR.Editor;
-using HybridCLR.Editor.Commands;
-using HybridCLR.Editor.Settings;
+using HybridCLR;
+using HybridCLR.Commands;
+using HybridCLR.Settings;
 #endif
 using System;
 using System.Collections.Generic;
@@ -123,7 +123,7 @@ public abstract class PlatformBase
 		}
 
 		// 检查项目配置文件中的热更列表是否与HybridCLR中设置的一致
-		AssemblyDefinitionAsset[] hybridCLRList = HybridCLRSettings.Instance.hotUpdateAssemblyDefinitions;
+		AssemblyDefinitionAsset[] hybridCLRList = HybridCLRSettings.instance.hotUpdateAssemblyDefinitions;
 		List<string> frameSettingsList = FrameSettings.getHotFixList();
 		if (hybridCLRList.Length != frameSettingsList.Count)
 		{
@@ -221,7 +221,7 @@ public abstract class PlatformBase
 	{
 		List<string> names = new();
 #if USE_HYBRID_CLR
-		string source = File.ReadAllText(Path.Combine(Application.dataPath, HybridCLRSettings.Instance.outputAOTGenericReferenceFile));
+		string source = File.ReadAllText(Path.Combine(Application.dataPath, HybridCLRSettings.instance.outputAOTGenericReferenceFile));
 		int start = source.IndexOf("PatchedAOTAssemblyList", StringComparison.Ordinal);
 		int end = start < 0 ? -1 : source.IndexOf("};", start, StringComparison.Ordinal);
 		if (end < 0)

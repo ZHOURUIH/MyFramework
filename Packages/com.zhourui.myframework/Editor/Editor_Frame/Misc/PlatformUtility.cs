@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 #if USE_HYBRID_CLR
-using HybridCLR.Editor;
-using HybridCLR.Editor.HotUpdate;
+using HybridCLR;
+using HybridCLR.HotUpdate;
 #endif
 using System;
 using System.Collections.Generic;

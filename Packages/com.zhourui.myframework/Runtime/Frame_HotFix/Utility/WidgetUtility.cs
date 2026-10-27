@@ -414,7 +414,7 @@ public static class WidgetUtility
 		}
 
 		// 设置父节点的大小,位置,已经根据之前子节点到父节点顶部的距离,还原子节点的位置
-		float newHeight = maxY - minY;
+		float newHeight = childPositionList.Count > 0 ? maxY - minY : 0.0f;
 		float beforeRootHeight = root.getSize().y;
 		root.setHeight(newHeight);
 		if (keepTopSide)

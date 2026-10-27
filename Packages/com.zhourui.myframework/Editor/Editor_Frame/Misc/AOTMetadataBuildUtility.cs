@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 #if USE_HYBRID_CLR
-using HybridCLR.Editor.AOT;
+using HybridCLR.CodeGen.AOT;
 #endif
 using static UnityUtility;
 
