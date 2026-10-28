@@ -840,6 +840,14 @@ public class FrameBaseUtility
 		}
 		return str;
 	}
+	public static string getMiniGameFilePath(string filePath)
+	{
+		if (filePath.StartsWith(F_STREAMING_ASSETS_PATH))
+		{
+			return STREAMING_ASSETS + "/" + filePath.Substring(F_STREAMING_ASSETS_PATH.Length);
+		}
+		return filePath;
+	}
 	// 通过UnityWebRequest加载本地资源时,需要确保路径前缀正确。
 	// Android只有APK内StreamingAssets使用jar:file://,persistentDataPath等普通文件系统路径必须使用file://。
 	public static void checkDownloadPath(ref string path)

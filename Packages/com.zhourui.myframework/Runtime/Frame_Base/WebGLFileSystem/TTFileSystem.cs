@@ -63,11 +63,10 @@ public class TTFileSystem
 		TT.GetFileSystemManager().WriteFileSync(filePath, byteArray);
 #endif
 	}
-	// 只能读取PersistentData中的文件
 	public static byte[] readBytes(string filePath)
 	{
 #if BYTE_DANCE
-		return TT.GetFileSystemManager().ReadFileSync(filePath);
+		return TT.GetFileSystemManager().ReadFileSync(FrameBaseUtility.getMiniGameFilePath(filePath));
 #else
 		return null;
 #endif
@@ -79,7 +78,7 @@ public class TTFileSystem
 #if BYTE_DANCE
 		ReadFileParam readFileParam = new ReadFileParam()
 		{
-			filePath = filePath,
+			filePath = FrameBaseUtility.getMiniGameFilePath(filePath),
 			encoding = "binary",
 			success = (rsp) =>
 			{

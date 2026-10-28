@@ -69,7 +69,7 @@ public class WeChatFileSystem
 	public static byte[] readBytes(string filePath)
 	{
 #if UNITY_WEIXINMINIGAME
-		return WXBase.GetFileSystemManager().ReadFileSync(filePath);
+		return WXBase.GetFileSystemManager().ReadFileSync(FrameBaseUtility.getMiniGameFilePath(filePath));
 #else
 		return null;
 #endif
@@ -81,7 +81,7 @@ public class WeChatFileSystem
 #if UNITY_WEIXINMINIGAME
 		WXBase.GetFileSystemManager().ReadFile(new ReadFileParam()
 		{
-			filePath = filePath,
+			filePath = FrameBaseUtility.getMiniGameFilePath(filePath),
 			success = res =>
 			{
 				isLoading = false;
