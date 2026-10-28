@@ -872,9 +872,9 @@ public class FrameBaseUtility
 			yield break;
 		}
 		DateTime start = DateTime.Now;
-		// 快游戏的内置资源和持久资源都通过 SDK 读取。
+		// 小游戏的内置资源和持久资源都通过 SDK 读取。
 		if (!isEditor() && isWebGL() && (fileName.StartsWith(F_PERSISTENT_DATA_PATH) ||
-			(isOppo() || isVivo()) && fileName.StartsWith(F_STREAMING_ASSETS_PATH)))
+			(isByteDance() || isWeiXin() || isOppo() || isVivo()) && fileName.StartsWith(F_STREAMING_ASSETS_PATH)))
 		{
 			if (isByteDance())
 			{
