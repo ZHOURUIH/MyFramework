@@ -717,7 +717,7 @@ public class UGUIGeneratorUtility
 		mTempAvailableTypeList.addIf(typeof(myUGUICanvas).ToString(), go.TryGetComponent<Canvas>(out _));
 		mTempAvailableTypeList.addIf(typeof(myUGUICustomLine).ToString(), go.TryGetComponent<CustomLine>(out _));
 		mTempAvailableTypeList.addIf(typeof(myUGUIImageNumber).ToString(), go.TryGetComponent<ImageNumber>(out _));
-		mTempAvailableTypeList.addIf(typeof(myUGUITextImage).ToString(), go.TryGetComponent<TextImage>(out _));
+		mTempAvailableTypeList.addIf(typeof(myUGUITextImage).ToString(), go.TryGetComponent<TextImage>(out _) || go.TryGetComponent<TextImageTMP>(out _));
 #if USE_AVPRO_VIDEO
 		mTempAvailableTypeList.addIf(typeof(myUGUIVideo).ToString(), go.TryGetComponent<MediaPlayer>(out _));
 #endif

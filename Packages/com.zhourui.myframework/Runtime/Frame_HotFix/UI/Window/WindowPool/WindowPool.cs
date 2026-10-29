@@ -183,6 +183,7 @@ public class WindowPool<T> : WindowPoolBase where T : myUGUIObject, new()
 	}
 	public override int getInUseCount() { return mInusedList.Count; }
 	public List<T> getWindowList() { return mInusedList; }
+	public List<T> getUnusedList() { return mUnusedList; }
 	public void autoGridHorizontal()
 	{
 		WidgetUtility.autoGridHorizontal(mParent, true, true, 0.0f, true, 0.0f, 0.0f, 0.0f, true);

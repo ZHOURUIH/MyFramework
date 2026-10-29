@@ -1218,12 +1218,19 @@ public class StringUtility
 	// 默认每一行至少可以容纳30个字符,所以都是从30开始截取字符串,为了提高效率
 	public static void generateMultiLine(myUGUIText textWindow, string originString, List<string> lineList, int minStringLength = 30)
 	{
+		generateMultiLine(textWindow.getTextComponent(), (int)textWindow.getSize().x, originString, lineList, minStringLength);
+	}
+	public static void generateMultiLine(myUGUITextImage textWindow, string originString, List<string> lineList, int minStringLength = 30)
+	{
+		generateMultiLine(textWindow.getTextImage(), (int)textWindow.getSize().x, originString, lineList, minStringLength);
+	}
+	private static void generateMultiLine(UnityEngine.UI.Text textComponent, int maxContentDisplayWidth, string originString, List<string> lineList, int minStringLength)
+	{
 		if (originString.Length < minStringLength)
 		{
 			lineList.Add(originString);
 			return;
 		}
-		int maxContentDisplayWidth = (int)textWindow.getSize().x;
 		int charIndex = minStringLength;
 		int startIndex = 0;
 		while (true)
@@ -1233,7 +1240,7 @@ public class StringUtility
 				lineList.Add(originString.removeStartCount(startIndex));
 				break;
 			}
-			if (getContentLength(textWindow.getTextComponent(), originString.substr(startIndex, charIndex)) >= maxContentDisplayWidth)
+			if (getContentLength(textComponent, originString.substr(startIndex, charIndex)) >= maxContentDisplayWidth)
 			{
 				// 超出以后需要减少一个字符,避免超出显示范围
 				--charIndex;
