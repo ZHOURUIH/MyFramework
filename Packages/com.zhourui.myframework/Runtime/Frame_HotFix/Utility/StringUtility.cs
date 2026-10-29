@@ -1183,20 +1183,17 @@ public class StringUtility
 					colorStart = j;
 					curColor = colorLine[j];
 				}
-				// 遇到不一样的颜色或者已经遍历到了最后一个,则截取这段字符
-				else if (colorLine[j] != curColor || j == lineLength - 1)
+				// 遇到不一样的颜色时截取前一段字符
+				else if (colorLine[j] != curColor)
 				{
-					if (j == lineLength - 1)
-					{
-						tempList.Add(new(strLine.removeStartCount(colorStart), curColor));
-					}
-					else
-					{
-						tempList.Add(new(strLine.range(colorStart, j), curColor));
-						colorStart = j;
-						curColor = colorLine[j];
-					}
+					tempList.Add(new(strLine.range(colorStart, j), curColor));
+					colorStart = j;
+					curColor = colorLine[j];
 				}
+			}
+			if (colorStart >= 0)
+			{
+				tempList.Add(new(strLine.removeStartCount(colorStart), curColor));
 			}
 			// 再将各个分段的字符串使用颜色拼接起来
 			using var b = new MyStringBuilderScope(out var builder);

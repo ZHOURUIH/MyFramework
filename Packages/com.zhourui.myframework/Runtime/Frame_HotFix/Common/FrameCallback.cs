@@ -74,6 +74,7 @@ public delegate void ImageCallback(myUGUIImage image);
 public delegate void ImageAnimCallback(myUGUIImageAnim imageAnim);
 public delegate void CheckCallback(UGUICheckbox checkbox);
 public delegate void UGUIObjectCallback(myUGUIObject window);
+public delegate void TextImageLinkCallback(string id, myUGUITextImageLink link);
 public delegate void EncryptPacket(byte[] data, int offset, int length, byte param);
 public delegate void DecryptPacket(byte[] data, int offset, int length, byte param);
 public delegate void KeyCodeCallback(KeyCode key);

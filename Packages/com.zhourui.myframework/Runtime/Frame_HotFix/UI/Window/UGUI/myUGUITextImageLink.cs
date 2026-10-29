@@ -3,16 +3,16 @@
 public class myUGUITextImageLink : myUGUIObject
 {
 	protected string mLinkID;
-	protected StringCallback mCallback;
+	protected TextImageLinkCallback mCallback;
 	public override void init()
 	{
 		base.init();
 		registeCollider(onClick);
 	}
-	public void setLink(string id, StringCallback callback)
+	public void setLink(string id, TextImageLinkCallback callback)
 	{
 		mLinkID = id;
 		mCallback = callback;
 	}
-	protected void onClick() { mCallback?.Invoke(mLinkID); }
+	protected void onClick() { mCallback?.Invoke(mLinkID, this); }
 }

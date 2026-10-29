@@ -19,7 +19,7 @@ public class myUGUITextImage : myUGUIObject
 	protected AtlasRef mImageAnimAtlas;				// 动态图片持有的图集引用
 	protected List<TextImageLinkArea> mLinkAreas = new();
 	protected List<myUGUITextImageLink> mLinkObjects = new();
-	protected StringCallback mLinkCallback;
+	protected TextImageLinkCallback mLinkCallback;
 	protected bool mLinkAreasDirty;
 	public override void init()
 	{
@@ -109,14 +109,12 @@ public class myUGUITextImage : myUGUIObject
 		AtlasRef current = mImageAtlas ?? mImage.getAtlas();
 		foreach (myUGUIImage image in mImagePool.getWindowList())
 		{
-			image.setAtlas(current);
+			image.setAtlas(current, true);
 		}
 		foreach (myUGUIImage image in mImagePool.getUnusedList())
 		{
-			image.setAtlas(current);
+			image.setAtlas(current, true);
 		}
-		mTextImage?.refreshImageAtlas();
-		mTextImageTMP?.refreshImageAtlas();
 		mAtlasManager.unloadAtlas(ref old);
 	}
 	// 设置所有动态图片的图集,组件持有独立引用,传入null时恢复初始图集。
@@ -143,14 +141,12 @@ public class myUGUITextImage : myUGUIObject
 		AtlasRef current = mImageAnimAtlas ?? mImageAnim.getAtlas();
 		foreach (myUGUIImageAnim image in mImageAnimPool.getWindowList())
 		{
-			updateImageAnimAtlas(image, current);
+			image.setAtlas(current, true);
 		}
 		foreach (myUGUIImageAnim image in mImageAnimPool.getUnusedList())
 		{
-			updateImageAnimAtlas(image, current);
+			image.setAtlas(current, true);
 		}
-		mTextImage?.refreshImageAnimAtlas();
-		mTextImageTMP?.refreshImages();
 		mAtlasManager.unloadAtlas(ref old);
 	}
 	// 在指定位置显示图片,用于输入框等由外部计算图片位置的场景。
@@ -259,7 +255,7 @@ public class myUGUITextImage : myUGUIObject
 			mTextImage.color = color;
 		}
 	}
-	public void setLinkCallback(StringCallback callback)
+	public void setLinkCallback(TextImageLinkCallback callback)
 	{
 		clearLinkAreas();
 		mLinkCallback = callback;
@@ -305,6 +301,7 @@ public class myUGUITextImage : myUGUIObject
 			if (i >= mLinkObjects.Count)
 			{
 				mLinkObjects.Add(mLayout.getScript().createUGUIObject<myUGUITextImageLink>(this, "Link", true));
+				mLayout.refreshUIDepth(this, false);
 			}
 			TextImageLinkArea area = mLinkAreas[i];
 			myUGUITextImageLink link = mLinkObjects[i];
@@ -324,7 +321,7 @@ public class myUGUITextImage : myUGUIObject
 		myUGUIImage image = mImagePool.newItem();
 		if (mImageAtlas != null)
 		{
-			image.setAtlas(mImageAtlas);
+			image.setAtlas(mImageAtlas, true);
 		}
 		return image;
 	}
@@ -337,33 +334,9 @@ public class myUGUITextImage : myUGUIObject
 		myUGUIImageAnim image = mImageAnimPool.newItem();
 		if (mImageAnimAtlas != null)
 		{
-			updateImageAnimAtlas(image, mImageAnimAtlas);
+			image.setAtlas(mImageAnimAtlas, true);
 		}
 		return image;
-	}
-	protected void updateImageAnimAtlas(myUGUIImageAnim image, AtlasRef atlas)
-	{
-		if (image.getAtlas() == atlas)
-		{
-			return;
-		}
-		string textureSet = image.getTextureSet();
-		PLAY_STATE state = image.getPlayState();
-		int frame = image.getCurFrameIndex();
-		image.setAtlas(atlas, false, true);
-		if (!string.IsNullOrEmpty(textureSet))
-		{
-			image.setTextureSet(textureSet);
-			image.setCurFrameIndex(frame);
-			if (state == PLAY_STATE.PLAY)
-			{
-				image.play();
-			}
-			else if (state == PLAY_STATE.PAUSE)
-			{
-				image.pause();
-			}
-		}
 	}
 	protected void destroyImageAnim(myUGUIImageAnim image)
 	{
