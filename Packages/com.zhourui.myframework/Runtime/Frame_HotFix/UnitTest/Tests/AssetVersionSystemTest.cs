@@ -353,15 +353,15 @@ public static class AssetVersionSystemTest
 			string path = sys.getFileReadPath("sub/file.ab");
 			assertNotNull(path, "persistent 匹配远端时应返回持久化路径");
 
-			// 重复添加同 key 用 TryAdd, 保留首次值。把远端改成 overwrite 信息(1/x):
-			// 若 TryAdd 未保留首值(被 overwrite 覆盖为 1/x), 则远端会命中并返回路径;
-			// 若保留首值(仍 2048/aabbcc), 则远端(1/x)不匹配 → null。
-			// TryAdd 语义为"保留首值", 故此处应为 null, 验证未被覆盖。
+			// 同名文件重新下载后应更新信息, 不再匹配旧远端记录。
 			GameFileInfo overwrite = GameFileInfo.createInfo("sub/file.ab\t1\tx");
 			sys.addPersistentFile(overwrite);
+			assertNull(sys.getFileReadPath("sub/file.ab"), "覆盖后不应匹配旧文件信息");
+
 			sys.setRemoteAssetsFile(MakeDict("sub/file.ab", "x", 1L));
 			path = sys.getFileReadPath("sub/file.ab");
-			assertNull(path, "TryAdd 应保留首次添加值, 远端改 overwrite 值后不匹配");
+			assertEqual(FrameBaseDefine.F_PERSISTENT_ASSETS_PATH + "sub/file.ab", path, "覆盖后应匹配最新文件信息并返回持久化路径");
+			assertEqual("1\nsub/file.ab\t1\tx\n", sys.generatePersistentAssetFileList(), "同名文件应只保留一条最新记录");
 		}
 		finally
 		{

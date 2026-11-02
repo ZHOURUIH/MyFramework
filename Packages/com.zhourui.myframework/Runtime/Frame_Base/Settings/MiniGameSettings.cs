@@ -8,7 +8,9 @@ public class MiniGameSettings : ScriptableObject
 	[Header("抖音小游戏")]
 	public string ByteDancePackageName = "";
 	public string ByteDanceAppID = "";
+	[HideInInspector]
 	public string ByteDanceRewardedVideoID = "";
+	public string[] ByteDanceRewardedVideoIDs = new string[0];
 	public string ByteDanceInterstitialID = "";
 	public string ByteDanceInterstitialSwitchID = "";
 	[Header("Oppo快游戏")]
@@ -78,6 +80,10 @@ public class MiniGameSettings : ScriptableObject
 		MiniGameSettings settings = get();
 		if (isByteDance())
 		{
+			if (settings.ByteDanceRewardedVideoIDs != null && settings.ByteDanceRewardedVideoIDs.Length > 0)
+			{
+				return settings.ByteDanceRewardedVideoIDs[Random.Range(0, settings.ByteDanceRewardedVideoIDs.Length)];
+			}
 			return settings.ByteDanceRewardedVideoID;
 		}
 		else if (isOppo())
@@ -87,6 +93,10 @@ public class MiniGameSettings : ScriptableObject
 		else if (isVivo())
 		{
 			return settings.VivoRewardedVideoID;
+		}
+		else if (isWeiXin())
+		{
+			return settings.WeXinRewardedVideoID;
 		}
 		else
 		{
@@ -107,6 +117,10 @@ public class MiniGameSettings : ScriptableObject
 		else if (isVivo())
 		{
 			return settings.VivoInterstitialID;
+		}
+		else if (isWeiXin())
+		{
+			return settings.WeXinInterstitialID;
 		}
 		else
 		{

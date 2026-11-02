@@ -11,6 +11,8 @@ using static UnityUtility;
 using TTSDK;
 #elif (OPPO_MINI_GAME || VIVO_MINI_GAME) && UNITY_WEBGL && !UNITY_EDITOR
 using QGMiniGame;
+#elif UNITY_WEIXINMINIGAME && UNITY_WEBGL && !UNITY_EDITOR
+using WeChatWASM;
 #endif
 
 public class ADManager : FrameSystem
@@ -41,6 +43,9 @@ public class ADManager : FrameSystem
 #elif (OPPO_MINI_GAME || VIVO_MINI_GAME) && UNITY_WEBGL && !UNITY_EDITOR
 	protected QGRewardedVideoAd mRewardedVideo;
 	protected QGInterstitialAd mInterstitial;
+#elif UNITY_WEIXINMINIGAME && UNITY_WEBGL && !UNITY_EDITOR
+	protected WXRewardedVideoAd mRewardedVideo;
+	protected WXInterstitialAd mInterstitial;
 #endif
 	public override void init()
 	{
@@ -170,7 +175,7 @@ public class ADManager : FrameSystem
 			success?.Invoke();
 			return;
 		}
-#if (BYTE_DANCE || OPPO_MINI_GAME || VIVO_MINI_GAME) && UNITY_WEBGL && !UNITY_EDITOR
+#if (BYTE_DANCE || OPPO_MINI_GAME || VIVO_MINI_GAME || UNITY_WEIXINMINIGAME) && UNITY_WEBGL && !UNITY_EDITOR
 		string adUnitID = rewarded ? MiniGameSettings.getRewardedVideoID() : MiniGameSettings.getInterstitialID();
 		if (string.IsNullOrWhiteSpace(adUnitID))
 		{
@@ -218,7 +223,7 @@ public class ADManager : FrameSystem
 			mHasShownInterstitial = true;
 		}
 		mCurrentAdIsInterstitial = false;
-#if (BYTE_DANCE || OPPO_MINI_GAME || VIVO_MINI_GAME) && UNITY_WEBGL && !UNITY_EDITOR
+#if (BYTE_DANCE || OPPO_MINI_GAME || VIVO_MINI_GAME || UNITY_WEIXINMINIGAME) && UNITY_WEBGL && !UNITY_EDITOR
 		var rewardedVideo = mRewardedVideo;
 		var interstitial = mInterstitial;
 		mRewardedVideo = null;
@@ -240,7 +245,7 @@ public class ADManager : FrameSystem
 		mFailure = null;
 		callback?.Invoke();
 	}
-#if (BYTE_DANCE || OPPO_MINI_GAME || VIVO_MINI_GAME) && UNITY_WEBGL && !UNITY_EDITOR
+#if (BYTE_DANCE || OPPO_MINI_GAME || VIVO_MINI_GAME || UNITY_WEIXINMINIGAME) && UNITY_WEBGL && !UNITY_EDITOR
 	protected void createAd(int requestID, bool rewarded, string adUnitID)
 	{
 #if BYTE_DANCE
@@ -259,6 +264,23 @@ public class ADManager : FrameSystem
 			mInterstitial.OnError += (code, error) => onAdError(requestID, code + " " + error);
 			mInterstitial.OnClose += () => finishAd(requestID, true);
 			mInterstitial.Load();
+		}
+#elif UNITY_WEIXINMINIGAME
+		if (rewarded)
+		{
+			mRewardedVideo = WXSDKManagerHandler.Instance.CreateRewardedVideoAd(new WXCreateRewardedVideoAdParam { adUnitId = adUnitID });
+			mRewardedVideo.OnLoad(response => onLoaded(requestID));
+			mRewardedVideo.OnError(error => onAdError(requestID, error.errMsg));
+			mRewardedVideo.OnClose(response => finishAd(requestID, response != null && response.isEnded));
+			mRewardedVideo.Load(response => onLoaded(requestID), error => onAdError(requestID, error.errMsg));
+		}
+		else
+		{
+			mInterstitial = WXSDKManagerHandler.Instance.CreateInterstitialAd(new WXCreateInterstitialAdParam { adUnitId = adUnitID });
+			mInterstitial.OnLoad(response => onLoaded(requestID));
+			mInterstitial.OnError(error => onAdError(requestID, error.errMsg));
+			mInterstitial.OnClose(() => finishAd(requestID, true));
+			mInterstitial.Load(response => onLoaded(requestID), error => onAdError(requestID, error.errMsg));
 		}
 #else
 		if (rewarded)
@@ -302,6 +324,9 @@ public class ADManager : FrameSystem
 				mInterstitial.Show();
 			}
 			onShown(requestID);
+#elif UNITY_WEIXINMINIGAME
+			WXBaseAd ad = mRewardedVideo != null ? mRewardedVideo : (WXBaseAd)mInterstitial;
+			ad.Show(response => onShown(requestID), error => onAdError(requestID, error.errMsg));
 #else
 			QGBaseAd ad = mRewardedVideo != null ? mRewardedVideo : (QGBaseAd)mInterstitial;
 			ad.Show(response => onShown(requestID), error => onAdError(requestID, error?.errCode + " " + error?.errMsg));
