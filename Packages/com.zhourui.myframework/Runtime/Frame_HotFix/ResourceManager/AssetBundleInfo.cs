@@ -6,6 +6,7 @@ using static FrameUtility;
 using static FrameBaseHotFix;
 using static FrameDefine;
 using static FrameBaseUtility;
+using static FrameBaseDefine;
 using static FileUtility;
 
 // AssetBundle的信息,存储了AssetBundle中相关的所有数据
@@ -206,7 +207,15 @@ public class AssetBundleInfo : ClassObject
 			}
 			else
 			{
-				logError("不支持的平台");
+				string path = availableReadPath(mBundleFileName);
+				if (path != null && path.startWith(F_PERSISTENT_ASSETS_PATH))
+				{
+					mAssetBundle = AssetBundle.LoadFromFile(path);
+				}
+				else
+				{
+					logError("普通WebGL仅支持同步加载持久目录中的AssetBundle:" + mBundleFileName);
+				}
 			}
 		}
 		else

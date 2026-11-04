@@ -922,8 +922,19 @@ public class FrameBaseUtility
 			}
 			else
 			{
-				logErrorBase("not supported");
-				callBytesCallback(callback, null);
+				byte[] bytes = null;
+				try
+				{
+					bytes = System.IO.File.ReadAllBytes(fileName);
+				}
+				catch (Exception e)
+				{
+					if (errorIfNull)
+					{
+						logExceptionBase(e, "open file failed:" + fileName);
+					}
+				}
+				callBytesCallback(callback, bytes);
 			}
 		}
 		else

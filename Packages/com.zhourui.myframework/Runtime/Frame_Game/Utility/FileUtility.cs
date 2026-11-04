@@ -83,7 +83,7 @@ public class FileUtility
 				}
 				else
 				{
-					logErrorBase("not supported openFileSync");
+					return File.ReadAllBytes(fileName);
 				}
 			}
 		}
@@ -181,7 +181,8 @@ public class FileUtility
 			}
 			else
 			{
-				logErrorBase("not supported writeFile");
+				using FileStream file = new(fileName, appendData ? FileMode.Append : FileMode.Create, FileAccess.Write);
+				file.Write(buffer, 0, size);
 			}
 		}
 	}
@@ -369,7 +370,7 @@ public class FileUtility
 				}
 				else
 				{
-					logErrorBase("not supported deleteFile");
+					File.Delete(path);
 				}
 			}
 		}
@@ -446,7 +447,7 @@ public class FileUtility
 			}
 			else
 			{
-				logErrorBase("not supported isDirExist");
+				return Directory.Exists(dir);
 			}
 		}
 		return false;
@@ -499,7 +500,7 @@ public class FileUtility
 			}
 			else
 			{
-				logErrorBase("not supported isFileExist");
+				return File.Exists(fileName);
 			}
 		}
 		return false;
@@ -541,7 +542,7 @@ public class FileUtility
 			}
 			else
 			{
-				logErrorBase("not supported createDir");
+				Directory.CreateDirectory(dir);
 			}
 		}
 	}
@@ -550,7 +551,7 @@ public class FileUtility
 	{
 		try
 		{
-			if (isEditor() || isIOS() || isWindows())
+			if (isEditor() || isIOS() || isWindows() || (isWebGL() && !isByteDance() && !isWeiXin() && !isOppo() && !isVivo()))
 			{
 				validPath(ref path);
 				if (!isDirExist(path))
@@ -592,7 +593,7 @@ public class FileUtility
 			{
 				AndroidAssetLoader.findFiles(path, fileList, patterns, recursive);
 			}
-			else if (isWebGL())
+			else if (isWebGL() && (isByteDance() || isWeiXin() || isOppo() || isVivo()))
 			{
 				if (isOppo() || isVivo())
 				{

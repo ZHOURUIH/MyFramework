@@ -1219,12 +1219,22 @@ public class UnityUtility
 		}
 	}
 	public static Vector2Int getHardwareScreenSize() { return mHardwareScreenSize; }
-	public static Vector2Int getScreenSize() { return mScreenSize; }
-	public static Vector2Int getHalfScreenSize() { return mHalfScreenSize; }
-	public static float getScreenAspect() { return mScreenAspect; }
+	public static Vector2Int getScreenSize()
+	{
+		if (isWebGL() && !isEditor() && !isByteDance() && !isWeiXin() && !isOppo() && !isVivo() &&
+			(mScreenSize.x != Screen.width || mScreenSize.y != Screen.height))
+		{
+			mScreenSize = new(Screen.width, Screen.height);
+			mHalfScreenSize = new(mScreenSize.x >> 1, mScreenSize.y >> 1);
+			mScreenAspect = mScreenSize.x.divide(mScreenSize.y);
+		}
+		return mScreenSize;
+	}
+	public static Vector2Int getHalfScreenSize() { getScreenSize(); return mHalfScreenSize; }
+	public static float getScreenAspect() { getScreenSize(); return mScreenAspect; }
 	public static Vector2 getRootSize() { return getUGUIRoot().getSize(); }
 	// 获取屏幕独立的缩放值
-	public static Vector2 getScreenScale() { return FrameBaseUtility.getScreenScale(mScreenSize); }
+	public static Vector2 getScreenScale() { return FrameBaseUtility.getScreenScale(getScreenSize()); }
 	// 获取常用情况下的自动缩放比例
 	public static float getScreenScaleAuto() { return generateScreenScaleByAspectBase(getScreenScale(), ASPECT_BASE.AUTO).x; }
 	// 根据一定规则,获取屏幕的缩放

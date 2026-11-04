@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Reflection;
 using System.Collections.Generic;
 #if USE_HYBRID_CLR
@@ -162,44 +163,34 @@ public class HybridCLRSystem
 	protected static void loadMetaDataForAOT(Action callback, Action errorCallback)
 	{
 #if USE_HYBRID_CLR
-		try
+		Dictionary<string, byte[]> files = new();
+		List<string> fileNames = new();
+		foreach (string name in AOTGenericReferences.PatchedAOTAssemblyList)
 		{
-			Dictionary<string, byte[]> downloadFilesResource = new();
-			foreach (string aotFile in AOTGenericReferences.PatchedAOTAssemblyList)
-			{
-				string fileName = aotFile + ".bytes";
-				byte[] bytes = openFileSync(availableReadPath(fileName), true);
-				if (bytes == null)
-				{
-					logErrorBase("读取AOT补充元数据文件失败:" + fileName);
-					notifyLaunchFailed(errorCallback);
-					return;
-				}
-				downloadFilesResource.add(fileName, bytes);
-			}
-
-			foreach (string aotFile in AOTGenericReferences.PatchedAOTAssemblyList)
-			{
-				// 为aot assembly加载原始metadata
-				// 一旦加载后，如果AOT泛型函数对应native实现不存在，则自动替换为解释模式执行
-				// 加载assembly对应的dll，会自动为它hook。一旦aot泛型函数的native函数不存在，用解释器版本代码
-				// 注意，补充元数据是给AOT dll补充元数据，而不是给热更新dll补充元数据。
-				// 热更新dll不缺元数据，不需要补充，如果调用LoadMetadataForAOTAssembly会返回错误
-				LoadImageErrorCode err = RuntimeApi.LoadMetadataForAOTAssembly(downloadFilesResource.get(aotFile + ".bytes"), HomologousImageMode.SuperSet);
-				if (err != LoadImageErrorCode.OK)
-				{
-					logErrorBase("LoadMetadataForAOTAssembly失败:" + aotFile + ", " + err);
-					notifyLaunchFailed(errorCallback);
-					return;
-				}
-			}
-			callback?.Invoke();
+			fileNames.Add(name + ".bytes");
 		}
-		catch (Exception e)
+		loadRuntimeFiles(fileNames, files, () =>
 		{
-			logExceptionBase(e);
-			notifyLaunchFailed(errorCallback);
-		}
+			try
+			{
+				foreach (string name in AOTGenericReferences.PatchedAOTAssemblyList)
+				{
+					LoadImageErrorCode err = RuntimeApi.LoadMetadataForAOTAssembly(files.get(name + ".bytes"), HomologousImageMode.SuperSet);
+					if (err != LoadImageErrorCode.OK)
+					{
+						logErrorBase("LoadMetadataForAOTAssembly失败:" + name + ", " + err);
+						notifyLaunchFailed(errorCallback);
+						return;
+					}
+				}
+				callback?.Invoke();
+			}
+			catch (Exception e)
+			{
+				logExceptionBase(e);
+				notifyLaunchFailed(errorCallback);
+			}
+		}, errorCallback);
 #else
 		callback?.Invoke();
 #endif
@@ -208,41 +199,79 @@ public class HybridCLRSystem
 	{
 		loadMetaDataForAOT(() =>
 		{
-			try
+			Dictionary<string, byte[]> files = new();
+			List<string> fileNames = new();
+			foreach (string name in FrameSettings.getHotFixList())
 			{
-				Dictionary<string, byte[]> downloadFiles = new();
-				foreach (string name in FrameSettings.getHotFixList())
-				{
-					string fileDllName = name + ".dll.bytes";
-					byte[] bytes = openFileSync(availableReadPath(fileDllName), true);
-					if (bytes == null)
-					{
-						logErrorBase("读取热更程序集失败:" + fileDllName);
-						notifyLaunchFailed(errorCallback);
-						return;
-					}
-					downloadFiles.add(fileDllName, bytes);
-				}
-
-				// 加载以后不再卸载
-				Assembly hotfix = null;
-				foreach (var item in downloadFiles)
-				{
-					byte[] assemblyBytes = decryptAES(item.Value, FrameSettings.getAESKey(), FrameSettings.getAESIV());
-					Assembly assembly = Assembly.Load(mDecodeHotFixAssembly != null ? mDecodeHotFixAssembly(assemblyBytes) : assemblyBytes);
-					if (item.Key == "HotFix.dll.bytes")
-					{
-						hotfix = assembly;
-					}
-				}
-				launchInternal(hotfix, errorCallback);
+				fileNames.Add(name + ".dll.bytes");
 			}
-			catch (Exception e)
+			loadRuntimeFiles(fileNames, files, () =>
 			{
-				logExceptionBase(e);
-				notifyLaunchFailed(errorCallback);
-			}
+				try
+				{
+					Assembly hotfix = null;
+					foreach (var item in files)
+					{
+						byte[] assemblyBytes = decryptAES(item.Value, FrameSettings.getAESKey(), FrameSettings.getAESIV());
+						Assembly assembly = Assembly.Load(mDecodeHotFixAssembly != null ? mDecodeHotFixAssembly(assemblyBytes) : assemblyBytes);
+						if (item.Key == "HotFix.dll.bytes")
+						{
+							hotfix = assembly;
+						}
+					}
+					launchInternal(hotfix, errorCallback);
+				}
+				catch (Exception e)
+				{
+					logExceptionBase(e);
+					notifyLaunchFailed(errorCallback);
+				}
+			}, errorCallback);
 		}, errorCallback);
+	}
+	protected static void loadRuntimeFiles(List<string> fileNames, Dictionary<string, byte[]> files, Action callback, Action errorCallback)
+	{
+		if (isWebGL() && !isEditor() && !isByteDance() && !isWeiXin() && !isOppo() && !isVivo())
+		{
+			GameEntryBase.startCoroutine(loadRuntimeFilesWebGL(fileNames, files, callback, errorCallback));
+			return;
+		}
+		try
+		{
+			foreach (string name in fileNames)
+			{
+				byte[] bytes = openFileSync(availableReadPath(name), true);
+				if (bytes == null)
+				{
+					logErrorBase("读取热更文件失败:" + name);
+					notifyLaunchFailed(errorCallback);
+					return;
+				}
+				files.add(name, bytes);
+			}
+			callback?.Invoke();
+		}
+		catch (Exception e)
+		{
+			logExceptionBase(e);
+			notifyLaunchFailed(errorCallback);
+		}
+	}
+	protected static IEnumerator loadRuntimeFilesWebGL(List<string> fileNames, Dictionary<string, byte[]> files, Action callback, Action errorCallback)
+	{
+		foreach (string name in fileNames)
+		{
+			byte[] bytes = null;
+			yield return openFileAsyncInternal(availableReadPath(name), true, (byte[] data) => { bytes = data; });
+			if (bytes == null)
+			{
+				logErrorBase("读取热更文件失败:" + name);
+				notifyLaunchFailed(errorCallback);
+				yield break;
+			}
+			files.add(name, bytes);
+		}
+		callback?.Invoke();
 	}
 	protected static void launchEditor(Action errorCallback)
 	{

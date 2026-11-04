@@ -182,7 +182,7 @@ public class FileUtility
 				}
 				else
 				{
-					logError("not supported openFileSync");
+					return File.ReadAllBytes(fileName);
 				}
 			}
 #endif
@@ -294,7 +294,12 @@ public class FileUtility
 			}
 			else
 			{
-				logError("not supported writeFile");
+				using FileStream file = new(fileName, FileMode.Create, FileAccess.Write);
+				if (addBOM && size > 0)
+				{
+					file.Write(BOM, 0, BOM.Length);
+				}
+				file.Write(buffer, 0, size);
 			}
 		}
 #endif
@@ -334,7 +339,8 @@ public class FileUtility
 			}
 			else
 			{
-				logError("not supported writeTxtFile");
+				byte[] bytes = content.toBytes();
+				writeFile(fileName, bytes, bytes.Length, addBOM);
 			}
 		}
 #endif
@@ -414,7 +420,7 @@ public class FileUtility
 			}
 			else
 			{
-				logError("not supported deleteFolder");
+				Directory.Delete(path);
 			}
 		}
 #endif
@@ -532,7 +538,7 @@ public class FileUtility
 				}
 				else
 				{
-					logError("not supported deleteFile");
+					File.Delete(path);
 				}
 			}
 #endif
@@ -564,6 +570,10 @@ public class FileUtility
 				if (isOppo() || isVivo())
 				{
 					return (int)QuickGameFileSystem.getFileSize(file);
+				}
+				if (!isByteDance() && !isWeiXin())
+				{
+					return (int)new FileInfo(file).Length;
 				}
 				logError("not supported getFileSize");
 			}
@@ -626,7 +636,7 @@ public class FileUtility
 			}
 			else
 			{
-				logError("not supported isDirExist");
+				return Directory.Exists(dir);
 			}
 		}
 #endif
@@ -681,7 +691,7 @@ public class FileUtility
 			}
 			else
 			{
-				logError("not supported isFileExist");
+				return File.Exists(fileName);
 			}
 		}
 #endif
@@ -725,7 +735,7 @@ public class FileUtility
 			}
 			else
 			{
-				logError("not supported createDir");
+				Directory.CreateDirectory(dir);
 			}
 		}
 #endif

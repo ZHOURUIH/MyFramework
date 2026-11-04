@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
 using static UnityUtility;
 using static FrameBaseHotFix;
 using static FrameBaseUtility;
@@ -7,6 +9,8 @@ using static FrameBaseUtility;
 // 背景音乐和音效都可以通过音效辅助物体的方式播放,且不会有GameObject的隐藏问题
 public class AT
 {
+	protected static Dictionary<AudioHelper, int> mPendingAudio = new();
+	protected static int mPendingAudioID;
 	// 只是设置AudioSource组件上的音量,而且只能设置背景音乐的音量,一般不会动态地去修改音效地音量
 	// 设置的是绝对音量
 	public static void MUSIC_VOLUME(float target)
@@ -42,6 +46,7 @@ public class AT
 			return;
 		}
 		AudioHelper helper = mAudioManager.getMusicHelper();
+		mPendingAudio.Remove(helper);
 		string curAudioName = helper.getOrAddComponent<COMMovableObjectAudio>().getCurAudioName();
 		CmdMovableObjectPlayAudio.execute(helper);
 		if (unloadCurMusic)
@@ -151,6 +156,14 @@ public class AT
 		}
 		return SOUND_2D_Internal(sound, null, 1.0f, false, null);
 	}
+	public static AudioHelper SOUND_2D(int sound, AudioInfoCallback callback)
+	{
+		if (sound == 0)
+		{
+			return null;
+		}
+		return SOUND_2D_Internal(sound, null, 1.0f, false, callback);
+	}
 	public static AudioHelper SOUND_2D(int sound, bool loop)
 	{
 		if (sound == 0)
@@ -181,6 +194,10 @@ public class AT
 		if (!obj.isValid())
 		{
 			return;
+		}
+		if (obj is AudioHelper helper)
+		{
+			mPendingAudio.Remove(helper);
 		}
 		CmdMovableObjectPlayAudio.execute(obj);
 	}
@@ -248,8 +265,43 @@ public class AT
 	}
 	protected static void playInternal(AudioHelper helper, string soundName, float volume, bool loop, AudioInfoCallback callback)
 	{
+		mPendingAudio.Remove(helper);
+		AudioInfo info = mAudioManager.getAudio(soundName);
+		if (isWebGL() && !isEditor() && !isByteDance() && !isWeiXin() && !isOppo() && !isVivo() && info != null && info.getClip() == null)
+		{
+			int requestID = ++mPendingAudioID;
+			mPendingAudio[helper] = requestID;
+			helper.mRemainTime = -1.0f;
+			GameEntryBase.startCoroutine(playAfterLoad(helper, soundName, volume, loop, callback, info, requestID));
+			return;
+		}
 		CmdMovableObjectPlayAudio.execute(helper, soundName, volume, loop);
 		helper.mRemainTime = loop ? -1.0f : mAudioManager.getAudioLength(soundName);
-		callback?.Invoke(mAudioManager.getAudio(soundName));
+		callback?.Invoke(info);
+	}
+	protected static IEnumerator playAfterLoad(AudioHelper helper, string soundName, float volume, bool loop, AudioInfoCallback callback, AudioInfo info, int requestID)
+	{
+		if (info.mState == LOAD_STATE.NONE)
+		{
+			mAudioManager.loadAudioAsync(soundName, null);
+		}
+		while (info.mState == LOAD_STATE.LOADING)
+		{
+			yield return null;
+		}
+		if (!mPendingAudio.TryGetValue(helper, out int currentID) || currentID != requestID)
+		{
+			yield break;
+		}
+		mPendingAudio.Remove(helper);
+		if (info.getClip() == null)
+		{
+			helper.mRemainTime = 0.0f;
+			callback?.Invoke(null);
+			yield break;
+		}
+		CmdMovableObjectPlayAudio.execute(helper, soundName, volume, loop);
+		helper.mRemainTime = loop ? -1.0f : mAudioManager.getAudioLength(soundName);
+		callback?.Invoke(info);
 	}
 }

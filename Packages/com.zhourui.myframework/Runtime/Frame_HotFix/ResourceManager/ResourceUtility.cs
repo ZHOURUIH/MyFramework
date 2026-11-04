@@ -108,7 +108,7 @@ public class ResourceUtility
 	{
 		// 小游戏中读取PersistentDataPath中的文件需要使用小游戏提供的接口
 #if UNITY_WEBGL
-		if ((isByteDance() || isWeiXin() || isOppo() || isVivo()) && url.startWith(F_PERSISTENT_ASSETS_PATH))
+		if (url.startWith(F_PERSISTENT_ASSETS_PATH))
 		{
 			yield return openFileAsyncInternal(url, true, (byte[] bytes) =>
 			{
