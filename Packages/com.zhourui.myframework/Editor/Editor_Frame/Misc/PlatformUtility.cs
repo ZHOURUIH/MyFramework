@@ -251,7 +251,7 @@ public class PlatformUtility
 		searchPaths.AddRange(ObfuscatorBuilder.BuildUnityAssemblySearchPaths());
 		searchPaths.Add(editorExePath + "/Data/Managed");
 #if USE_HYBRID_CLR
-		searchPaths.Add(F_PROJECT_PATH + SettingsUtil.GetHotUpdateDllsOutputDirByTarget(EditorUserBuildSettings.activeBuildTarget));
+		searchPaths.Add(SettingsUtil.GetHotUpdateDllsOutputDirByTarget(EditorUserBuildSettings.activeBuildTarget));
 #endif
 		searchPaths.Add(F_PROJECT_PATH + "Library/PackageCache/com.unity.burst@59eb6f11d242");
 		searchPaths.Add(F_PROJECT_PATH + "Library/PackageCache/com.unity.collections@d49facba0036/Unity.Collections.LowLevel.ILSupport");
