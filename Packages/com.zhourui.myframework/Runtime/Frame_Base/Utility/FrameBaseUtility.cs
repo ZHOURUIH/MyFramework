@@ -842,10 +842,12 @@ public class FrameBaseUtility
 	}
 	public static string getMiniGameFilePath(string filePath)
 	{
+#if !UNITY_ANDROID || UNITY_EDITOR
 		if (filePath.StartsWith(F_STREAMING_ASSETS_PATH))
 		{
 			return STREAMING_ASSETS + "/" + filePath.Substring(F_STREAMING_ASSETS_PATH.Length);
 		}
+#endif
 		return filePath;
 	}
 	// 通过UnityWebRequest加载本地资源时,需要确保路径前缀正确。

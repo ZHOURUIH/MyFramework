@@ -108,7 +108,10 @@ public class MenuAssetBundle
 			// 微信的AssetBundle需要添加hash
 			option |= BuildAssetBundleOptions.AppendHashToAssetBundleName;
 #endif
-			BuildPipeline.BuildAssetBundles(outputPath, option, target);
+			if (BuildPipeline.BuildAssetBundles(outputPath, option, target) == null)
+			{
+				break;
+			}
 			AssetDatabase.Refresh();
 			// 检查资源是否有互相依赖的问题,然后构建依赖关系
 			if (!loadAndReadAssetBundleManifest(outputPath, assetBundleMap, null, showMessageBox, true))
