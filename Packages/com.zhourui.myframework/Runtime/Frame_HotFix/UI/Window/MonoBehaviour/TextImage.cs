@@ -43,6 +43,7 @@ public class TextImage : Text
 	protected Action mLinkLayoutChanged;
 	protected string mSourceText;
 	protected int mParsedFontSize;
+	protected bool mImageLayoutDirty; // 网格重建后，在LateUpdate更新子图片，避免修改重建队列
 	// 正则取出所需要的属性
 	protected static readonly Regex mTokens = new(
 		@"<link=([^>]+)>|</link>|<quad\s+width=(\d*\.?\d+)\s+sprite=([^\s/>]+)(?:\s+fps=(\d*\.?\d+))?\s*/>|<[^>]+>|\n|.",
@@ -203,6 +204,7 @@ public class TextImage : Text
 	// 销毁现有的所有Image
 	protected void clearImages()
 	{
+		mImageLayoutDirty = false;
 		foreach (InlineImage image in mImages)
 		{
 			if (image.mImage != null && mDestroyImage != null)
@@ -246,6 +248,36 @@ public class TextImage : Text
 			float height = spriteSize.x > 0.0f ? spriteSize.y / spriteSize.x : 1.0f;
 			// 图片宽度等于fontSize * scale,scale是富文本标签中的width值
 			window.setSize(new(fontSize * image.mWidth, fontSize * image.mWidth * height));
+			window.setActive(false);
+		}
+	}
+	protected void LateUpdate()
+	{
+		if (!mImageLayoutDirty)
+		{
+			return;
+		}
+		mImageLayoutDirty = false;
+		foreach (InlineImage image in mImages)
+		{
+			myUGUIImage window = image.mImage ?? image.mImageAnim;
+			if (window == null)
+			{
+				continue;
+			}
+			int vertexIndex = image.mIndex * 6;
+			bool visible = vertexIndex + 2 < mVertices.Count;
+			window.setActive(visible);
+			if (!visible)
+			{
+				continue;
+			}
+			Vector3 a = mVertices[vertexIndex].position;
+			Vector3 b = mVertices[vertexIndex + 2].position;
+			Vector3 position = (a + b) * 0.5f;
+			// y坐标需要调整,不做调整会有一定的向上偏移量,不知道这个偏移量是怎么产生的
+			position.y -= (int)(Mathf.Abs(b.x - a.x) * 0.16f);
+			window.setPosition(position);
 		}
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
@@ -281,24 +313,17 @@ public class TextImage : Text
 			{
 				continue;
 			}
-			bool visible = vertexIndex + 2 < mVertices.Count;
-			window.setActive(visible);
-			if (!visible)
+			if (vertexIndex + 2 >= mVertices.Count)
 			{
 				continue;
 			}
-			Vector3 a = mVertices[vertexIndex].position;
-			Vector3 b = mVertices[vertexIndex + 2].position;
-			Vector3 position = (a + b) * 0.5f;
-			// y坐标需要调整,不做调整会有一定的向上偏移量,不知道这个偏移量是怎么产生的
-			position.y -= (int)(Mathf.Abs(b.x - a.x) * 0.16f);
-			window.setPosition(position);
 			// 抹掉左下角的不需要渲染的部分,也就是将其顶点合并,这里的下标仅仅是顶点的下标,不考虑索引
 			for (int i = 1; i < 4; ++i)
 			{
 				vertices.SetUIVertex(mVertices[vertexIndex], image.mIndex * 4 + i);
 			}
 		}
+		mImageLayoutDirty = mImages.Count > 0;
 		mLinkLayoutChanged?.Invoke();
 	}
 }

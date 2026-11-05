@@ -29,6 +29,7 @@ public class TextImageTMP : MonoBehaviour
 	protected ImageAnimCallback mDestroyImageAnim;
 	protected Action mLinkLayoutChanged;
 	protected string mSourceText;
+	protected bool mImageLayoutDirty; // 渲染回调只标记，在LateUpdate更新子图片
 	protected void OnEnable()
 	{
 		mText = GetComponent<TextMeshProUGUI>();
@@ -92,6 +93,7 @@ public class TextImageTMP : MonoBehaviour
 				image.mImageAnim.setLoop(LOOP_MODE.LOOP);
 				image.mImageAnim.setInterval(1.0f / image.mFPS);
 				image.mImageAnim.play();
+				image.mImageAnim.setActive(false);
 			}
 			else
 			{
@@ -101,6 +103,7 @@ public class TextImageTMP : MonoBehaviour
 				}
 				image.mImage = mCreateImage();
 				image.mImage.setSpriteName(image.mSprite);
+				image.mImage.setActive(false);
 			}
 		}
 	}
@@ -111,12 +114,21 @@ public class TextImageTMP : MonoBehaviour
 			return;
 		}
 		mText.ForceMeshUpdate(true, true);
-		layoutImages(mText.textInfo);
+		mImageLayoutDirty = true;
 	}
 	protected void onPreRenderText(TMP_TextInfo info)
 	{
-		layoutImages(info);
+		mImageLayoutDirty = true;
 		mLinkLayoutChanged?.Invoke();
+	}
+	protected void LateUpdate()
+	{
+		if (!mImageLayoutDirty)
+		{
+			return;
+		}
+		mImageLayoutDirty = false;
+		layoutImages(mText.textInfo);
 	}
 	protected void layoutImages(TMP_TextInfo info)
 	{
@@ -148,6 +160,7 @@ public class TextImageTMP : MonoBehaviour
 	}
 	public void clearImages()
 	{
+		mImageLayoutDirty = false;
 		foreach (InlineImage image in mImages)
 		{
 			if (image.mImage != null && mDestroyImage != null)

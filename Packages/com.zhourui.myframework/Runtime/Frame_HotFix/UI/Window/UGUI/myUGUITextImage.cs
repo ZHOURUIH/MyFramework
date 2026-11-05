@@ -85,6 +85,8 @@ public class myUGUITextImage : myUGUIObject
 		mAtlasManager.unloadAtlas(ref mImageAnimAtlas);
 		base.destroy();
 	}
+	public AtlasRef getImageAtlas() { return mImageAtlas; }
+	public AtlasRef getImageAnimAtlas() { return mImageAnimAtlas; }
 	// 设置所有静态图片的图集,组件持有独立引用,传入null时恢复初始图集。
 	public void setImageAtlas(AtlasRef atlas)
 	{
