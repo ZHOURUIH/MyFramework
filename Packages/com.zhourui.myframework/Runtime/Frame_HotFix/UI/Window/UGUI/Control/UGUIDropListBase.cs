@@ -48,6 +48,7 @@ public abstract class UGUIDropListBase : WindowObjectUGUI
 	}
 	public virtual void clearOptions() 
 	{
+		(mCurSelect as DropItem)?.setSelected(false);
 		mSelectIndex = 0;
 	}
 	public void setSelectCallback(Action callback) { mSelectCallback = callback; }
@@ -73,8 +74,10 @@ public abstract class UGUIDropListBase : WindowObjectUGUI
 		IDropItem select = getSelectByIndex(value);
 		if (select != null)
 		{
+			(mCurSelect as DropItem)?.setSelected(false);
 			mSelectIndex = value;
 			mCurSelect = select;
+			(mCurSelect as DropItem)?.setSelected(true);
 			mLabel.setText(mCurSelect.getText());
 			if (triggerEvent)
 			{
