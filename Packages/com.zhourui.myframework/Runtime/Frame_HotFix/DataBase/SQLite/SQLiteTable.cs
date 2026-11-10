@@ -130,8 +130,8 @@ public class SQLiteTable : ClassObject
 	public bool isLoaded() { return mState == LOAD_STATE.LOADED; }
 	public static string getDecryptFilePath()
 	{
-		// SQLite缓存使用独立目录,不要再复用通用temp目录,避免清理时误删其他临时文件。
-		return FrameUtility.availableWritePath("sqlite/");
+		// Player生成的SQLite缓存放在下载资源目录之外。
+		return (isEditor() ? F_ASSET_BUNDLE_PATH : F_PERSISTENT_DATA_PATH) + SQLITE_CACHE_DIRECTORY;
 	}
 	public override void destroy()
 	{

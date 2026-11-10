@@ -59,6 +59,7 @@ public class FrameBaseDefine
 	public const string UGUI_ROOT = "UGUIRoot";
 	public const string VERSION = "Version";
 	public const string FILE_LIST = "FileList";
+	public const string SQLITE_CACHE_DIRECTORY = "sqlite/";
 	public const string DYNAMIC_DOWNLOAD_LIST = "DynamicDownloadList.json";
 	public const string DYNAMIC_SECRET_FILE = "DynamicSecretKey.bytes";
 	public const string HOTFIX = "HotFix";                                              // 主要的热更程序集名字

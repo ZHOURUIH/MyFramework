@@ -313,6 +313,7 @@ public class AssetVersionSystem : FrameSystem
 		}
 		DateTime start = DateTime.Now;
 		string fileListFullPath = path + FILE_LIST;
+		bool isPersistentPath = path == F_PERSISTENT_ASSETS_PATH;
 		// 本地已经有生成好的FileList文件,不过即使读取的是已经生成好的文件信息,也要再获取所有文件的文件名和大小进行校验,避免记录错误的信息
 		openTxtFileAsync(fileListFullPath, false, (string content) =>
 		{
@@ -327,20 +328,29 @@ public class AssetVersionSystem : FrameSystem
 				List<string> fileList = null;
 				// 扫描本地文件进行校验,只有PersistentPath中的才能扫描,且webgl无法扫描
 				bool isSame = true;
-				if (!isWebGL() && path == F_PERSISTENT_ASSETS_PATH)
+				if (!isWebGL() && isPersistentPath)
 				{
+					// 旧版可能已把SQLite缓存写入本地清单,比较时两边都要排除。
+					foreach (string file in new List<string>(fileInfoList.Keys))
+					{
+						if (isLegacySQLiteCacheFile(file))
+						{
+							fileInfoList.Remove(file);
+						}
+					}
 					fileList = new();
 					findFilesInternal(path, fileList, null, true);
 					for (int i = 0; i < fileList.Count; ++i)
 					{
 						string file = fileList[i];
-						if (isIgnorePath(file, ignorePath) || ignoreFile.Contains(getFileNameWithSuffix(file)))
+						string relativePath = file.removeStartCount(path.Length);
+						if (isLegacySQLiteCacheFile(relativePath) || isIgnorePath(file, ignorePath) || ignoreFile.Contains(getFileNameWithSuffix(file)))
 						{
 							fileList.RemoveAt(i--);
 						}
 						else
 						{
-							fileList[i] = file.removeStartCount(path.Length);
+							fileList[i] = relativePath;
 						}
 					}
 					isSame = fileInfoList.Count == fileList.Count;
@@ -416,7 +426,10 @@ public class AssetVersionSystem : FrameSystem
 					int count = fileList.Count;
 					for (int i = 0; i < fileList.Count; ++i)
 					{
-						if (isIgnorePath(fileList[i], ignorePath) || ignoreFile.Contains(getFileNameWithSuffix(fileList[i])))
+						string file = fileList[i];
+						if (isIgnorePath(file, ignorePath) || 
+							ignoreFile.Contains(getFileNameWithSuffix(file)) ||
+							isPersistentPath && isLegacySQLiteCacheFile(file.removeStartCount(path.Length)))
 						{
 							fileList.RemoveAt(i--);
 						}
@@ -547,6 +560,12 @@ public class AssetVersionSystem : FrameSystem
 		{
 			logErrorBase("setFileListToAssetSystem path error:" + path);
 		}
+	}
+	protected static bool isLegacySQLiteCacheFile(string relativePath)
+	{
+		return relativePath.StartsWith(SQLITE_CACHE_DIRECTORY) &&
+			   relativePath.EndsWith(".db") && 
+			   relativePath.IndexOf('/', SQLITE_CACHE_DIRECTORY.Length) < 0;
 	}
 	protected bool isIgnorePath(string fullPath, List<string> ignorePath)
 	{
